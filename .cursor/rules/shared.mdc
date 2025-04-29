@@ -3,9 +3,11 @@ description:
 globs: 
 alwaysApply: true
 ---
-# AI Rules for {app-name}
+# AI Rules for campAlyze
 
-{project-description}
+Narzędzie analityczne do kampanii reklamowych to aplikacja webowa zaprojektowana z myślą o specjalistach ds. reklam, którzy potrzebują szybkiego i efektywnego sposobu analizowania danych z różnych platform reklamowych. MVP produktu skupia się na importowaniu i analizie danych z plików CSV/XLSX eksportowanych z Google Ads i Meta Ads, oferując interaktywny dashboard z kluczowymi metrykami oraz możliwość porównania efektywności kampanii. Dodatkowo, już na etapie MVP zaimplementujemy podstawowe funkcje AI do generowania automatycznych podsumowań i prostych rekomendacji.
+
+Rozwiązanie to adresuje problem zbyt długiego czasu poświęcanego na manualne zbieranie, łączenie i analizowanie danych reklamowych, co ogranicza zdolność specjalistów do szybkiego reagowania i optymalizowania kampanii. Dzięki narzędziu użytkownicy mogą szybciej podejmować decyzje oparte na danych, co prowadzi do bardziej efektywnego wykorzystania budżetów reklamowych.
 
 ## Tech Stack
 

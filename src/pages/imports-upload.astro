@@ -1,0 +1,116 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { uploadImportFile } from '@/lib/importUpload';
+---
+
+<Layout title="Importuj plik danych">
+  <!-- Karta uploadu pliku importu -->
+  <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm max-w-md mx-auto mt-12">
+    <div class="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6">
+      <div class="leading-none font-semibold">Importuj plik danych</div>
+      <div class="text-muted-foreground text-sm">Wybierz plik do importu i prześlij go do systemu.</div>
+    </div>
+    <div class="px-6">
+      <form id="import-form" autocomplete="off" aria-label="Formularz importu pliku">
+        <input
+          id="file-input"
+          name="file"
+          type="file"
+          class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-neutral-50 file:text-neutral-700 hover:file:bg-neutral-100 mb-4"
+          required
+          aria-describedby="file-desc"
+        />
+        <div id="file-desc" class="sr-only">Wybierz plik do importu. Maksymalny rozmiar: 10MB.</div>
+        <div id="error-message" class="text-destructive text-sm mb-2 hidden" aria-live="assertive"></div>
+        <div id="success-message" class="text-success text-sm mb-2 hidden" aria-live="polite"></div>
+        <button id="submit-btn" type="submit" class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 w-full bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 py-2 px-4">Importuj</button>
+      </form>
+    </div>
+    <div class="flex items-center px-6">
+      <div id="status-message" class="text-muted-foreground text-xs" aria-live="polite"></div>
+    </div>
+  </div>
+  <script>
+    // Obsługa uploadu pliku importu z optymalizacją dostępności i blokadą wielokrotnego wysyłania
+    const form = document.getElementById('import-form') as HTMLFormElement | null;
+    const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const statusMessage = document.getElementById('status-message');
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+    let isUploading = false;
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (isUploading) return; // Blokada wielokrotnego wysyłania
+      if (errorMessage) errorMessage.classList.add('hidden');
+      if (successMessage) successMessage.classList.add('hidden');
+      if (statusMessage) statusMessage.textContent = '';
+      if (submitBtn) submitBtn.disabled = true;
+      isUploading = true;
+      if (statusMessage) statusMessage.textContent = 'Wysyłanie pliku...';
+
+      const file = fileInput?.files?.[0];
+      if (!file) {
+        if (errorMessage) {
+          errorMessage.textContent = 'Wybierz plik do importu.';
+          errorMessage.classList.remove('hidden');
+        }
+        if (submitBtn) submitBtn.disabled = false;
+        isUploading = false;
+        if (statusMessage) statusMessage.textContent = '';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/imports/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.status === 201) {
+          const data = await res.json();
+          if (successMessage) {
+            successMessage.textContent = `Plik "${data.original_filename}" został przesłany. Status: ${data.status}`;
+            successMessage.classList.remove('hidden');
+          }
+          if (statusMessage) statusMessage.textContent = 'Plik został poprawnie przesłany.';
+          form.reset();
+        } else if (res.status === 400) {
+          if (errorMessage) {
+            errorMessage.textContent = 'Nieprawidłowe dane lub brak pliku.';
+            errorMessage.classList.remove('hidden');
+          }
+        } else if (res.status === 401) {
+          if (errorMessage) {
+            errorMessage.textContent = 'Musisz być zalogowany, aby importować pliki.';
+            errorMessage.classList.remove('hidden');
+          }
+        } else if (res.status === 413) {
+          if (errorMessage) {
+            errorMessage.textContent = 'Plik jest zbyt duży.';
+            errorMessage.classList.remove('hidden');
+          }
+        } else {
+          if (errorMessage) {
+            errorMessage.textContent = 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie.';
+            errorMessage.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        if (errorMessage) {
+          errorMessage.textContent = 'Błąd sieci. Spróbuj ponownie.';
+          errorMessage.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        isUploading = false;
+        if (successMessage && statusMessage && !successMessage.textContent) {
+          statusMessage.textContent = '';
+        }
+      }
+    });
+  </script>
+</Layout> 
