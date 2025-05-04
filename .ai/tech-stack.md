@@ -85,6 +85,26 @@ Ta kombinacja pozwala na:
 - **Vitest** - szybkie testy jednostkowe
 - **GitHub** - hosting kodu i zarządzanie projektem
 
+## Narzędzia testowe
+
+### Testy jednostkowe i integracyjne
+- **Vitest** - framework do szybkiego testowania jednostkowego i integracyjnego, dedykowany do testowania logiki biznesowej, komponentów React oraz interakcji z API
+
+### Testy End-to-End (E2E)
+- **Playwright** - narzędzie do automatyzacji testów systemowych i akceptacyjnych, umożliwiające testowanie krytycznych ścieżek użytkownika
+
+### Testy wydajnościowe
+- **k6** - narzędzie do testów obciążeniowych i wydajnościowych API
+- **Supabase Tools** - narzędzia do profilowania zapytań PostgreSQL (`pg_stat_statements`, `explain analyze`)
+
+### Testy bezpieczeństwa
+- **OWASP ZAP** - skaner do automatycznego wykrywania podstawowych luk bezpieczeństwa
+- **Narzędzia developerskie przeglądarek** - do analizy nagłówków bezpieczeństwa HTTP i innych aspektów bezpieczeństwa
+
+### Zarządzanie testami
+- **GitHub Issues & Projects** - śledzenie defektów i organizacja pracy testowej
+- **Markdown Files** - dokumentacja przypadków testowych w repozytorium
+
 ## Korzyści wybranego stacku
 
 1. **Szybkość rozwoju** - wykorzystanie gotowych rozwiązań (Supabase, Shadcn/UI) przyspiesza proces wytwarzania

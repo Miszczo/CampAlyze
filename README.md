@@ -35,6 +35,13 @@ This solution addresses the problem of time wasted on manual collection, combina
 - Papa Parse - CSV parsing in the browser
 - xlsx - Excel file handling
 
+### Testing Tools
+
+- **Vitest** - Fast unit and integration testing framework
+- **Playwright** - End-to-end testing framework for critical user journeys
+- **k6** - Performance and load testing
+- **OWASP ZAP** - Basic security scanning
+
 ## Getting Started Locally
 
 ### Prerequisites
