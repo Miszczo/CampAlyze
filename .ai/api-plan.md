@@ -18,30 +18,66 @@
 #### Register User
 - **Method**: POST
 - **Path**: `/api/auth/register`
-- **Description**: Register a new user
+- **Description**: Register a new user using Supabase Auth. Sends a verification email.
 - **Request Body**:
   ```json
   {
-    "email": "string",
-    "password": "string",
-    "full_name": "string"
+    "email": "string (valid email format)",
+    "password": "string (min 8 chars, letters + digits)",
+    "options": {
+      "data": {
+        "full_name": "string"
+      }
+    }
   }
   ```
-- **Response Body**:
+- **Response Body** (on successful registration, before email verification):
   ```json
   {
     "id": "uuid",
+    "aud": "authenticated",
+    "role": "authenticated",
     "email": "string",
-    "full_name": "string"
+    "email_confirmed_at": null,
+    "phone": "",
+    "confirmed_at": null,
+    "last_sign_in_at": null,
+    "app_metadata": {
+      "provider": "email",
+      "providers": ["email"]
+    },
+    "user_metadata": {
+      "full_name": "string"
+    },
+    "identities": [
+      {
+        "identity_id": "uuid",
+        "id": "uuid",
+        "user_id": "uuid",
+        "identity_data": {
+          "email": "string",
+          "email_verified": false,
+          "phone_verified": false,
+          "sub": "uuid"
+        },
+        "provider": "email",
+        "last_sign_in_at": null,
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "email": "string"
+      }
+    ],
+    "created_at": "timestamp",
+    "updated_at": "timestamp"
   }
   ```
-- **Success**: 201 Created
-- **Errors**: 400 Bad Request, 409 Conflict (Email exists)
+- **Success**: 201 Created (User created, verification email sent)
+- **Errors**: 400 Bad Request (Invalid email/password format), 422 Unprocessable Entity (User already registered, but email not verified), 500 Internal Server Error (Supabase error)
 
 #### Login
 - **Method**: POST
 - **Path**: `/api/auth/login`
-- **Description**: Authenticate user and return token
+- **Description**: Authenticate user with email and password using Supabase Auth.
 - **Request Body**:
   ```json
   {
@@ -49,27 +85,145 @@
     "password": "string"
   }
   ```
-- **Response Body**:
+- **Response Body** (on successful login):
   ```json
   {
-    "access_token": "string",
+    "access_token": "string (JWT)",
+    "token_type": "bearer",
+    "expires_in": 3600, // Example TTL in seconds
+    "expires_at": "timestamp",
     "refresh_token": "string",
     "user": {
       "id": "uuid",
+      "aud": "authenticated",
+      "role": "authenticated",
       "email": "string",
-      "full_name": "string"
+      "email_confirmed_at": "timestamp | null",
+      "phone": "",
+      "confirmed_at": "timestamp | null",
+      "last_sign_in_at": "timestamp",
+      "app_metadata": { /* ... */ },
+      "user_metadata": {
+        "full_name": "string"
+      },
+      "identities": [ /* ... */ ],
+      "created_at": "timestamp",
+      "updated_at": "timestamp"
     }
   }
   ```
 - **Success**: 200 OK
-- **Errors**: 401 Unauthorized
+- **Errors**: 400 Bad Request (Invalid credentials, Missing email/password), 403 Forbidden (Email not verified, Account locked), 500 Internal Server Error (Supabase error)
 
 #### Logout
 - **Method**: POST
 - **Path**: `/api/auth/logout`
-- **Description**: Invalidate user session
+- **Description**: Sign out the current user (invalidates tokens on the Supabase side).
+- **Request Body**: None
 - **Response Body**: None
 - **Success**: 204 No Content
+- **Errors**: 401 Unauthorized (No active session), 500 Internal Server Error (Supabase error)
+
+#### Refresh Token
+- **Method**: POST
+- **Path**: `/api/auth/refresh`
+- **Description**: Obtain a new access token using a refresh token.
+- **Request Body**:
+  ```json
+  {
+    "refresh_token": "string"
+  }
+  ```
+- **Response Body** (Similar to Login response, but may not include the full user object depending on Supabase config):
+  ```json
+  {
+    "access_token": "string (JWT)",
+    "token_type": "bearer",
+    "expires_in": 3600, // Example TTL
+    "expires_at": "timestamp",
+    "refresh_token": "string" // Supabase might return the same or a new refresh token
+  }
+  ```
+- **Success**: 200 OK
+- **Errors**: 400 Bad Request (Missing refresh token), 401 Unauthorized (Invalid or expired refresh token), 500 Internal Server Error
+
+#### Forgot Password
+- **Method**: POST
+- **Path**: `/api/auth/password/forgot`
+- **Description**: Initiate the password reset process. Sends a password reset email.
+- **Request Body**:
+  ```json
+  {
+    "email": "string"
+  }
+  ```
+- **Response Body**:
+  ```json
+  {}
+  ```
+- **Success**: 200 OK (Email sent, or Supabase handled the case where the user doesn't exist gracefully)
+- **Errors**: 400 Bad Request (Missing email), 500 Internal Server Error
+
+#### Reset Password
+- **Method**: POST
+- **Path**: `/api/auth/password/reset`
+- **Description**: Set a new password using the token received via email. Requires the user to be logged in with the recovery token.
+- **Headers**: `Authorization: Bearer <recovery_access_token>` (obtained after user clicks the email link)
+- **Request Body**:
+  ```json
+  {
+    "password": "string (new password, min 8 chars, letters + digits)"
+  }
+  ```
+- **Response Body**:
+  ```json
+  {
+    "id": "uuid",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "string",
+    // ... other user fields
+  }
+  ```
+- **Success**: 200 OK
+- **Errors**: 400 Bad Request (Invalid password format, Missing password), 401 Unauthorized (Invalid or expired recovery token), 500 Internal Server Error
+
+#### Verify Email
+- **Method**: POST 
+- **Path**: `/api/auth/verify-email` 
+- **Description**: Verify user's email address using the token received via email. Supabase handles this via redirect, but an API endpoint can be used for SPA flows if needed, typically called after the user clicks the link and is redirected back to the app with a token.
+- **Request Body**: 
+  ```json
+  {
+    "token": "string (verification token from email link query param)",
+    "type": "email"
+  }
+  ```
+- **Response Body**: (User object after verification)
+  ```json
+  {
+    // ... user object with email_confirmed_at set ...
+  }
+  ```
+- **Success**: 200 OK
+- **Errors**: 400 Bad Request (Missing token), 401 Unauthorized (Invalid or expired token), 422 Unprocessable Entity (Email already verified), 500 Internal Server Error
+
+#### Resend Verification Email
+- **Method**: POST
+- **Path**: `/api/auth/resend-verification`
+- **Description**: Resend the email verification link.
+- **Request Body**:
+  ```json
+  {
+    "email": "string"
+  }
+  ```
+- **Response Body**:
+  ```json
+  {}
+  ```
+- **Success**: 200 OK
+- **Errors**: 400 Bad Request (Missing email), 422 Unprocessable Entity (Email already verified or user doesn't exist), 500 Internal Server Error
 
 ### Organizations
 

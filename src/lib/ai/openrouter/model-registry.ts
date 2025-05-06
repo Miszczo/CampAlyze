@@ -6,12 +6,12 @@ export interface ModelConfig {
 
 export class ModelRegistry {
   private models: Record<string, ModelConfig> = {
-    'openai/gpt-3.5-turbo': {
-      capabilities: ['quick_analysis', 'summarization'],
+    "openai/gpt-3.5-turbo": {
+      capabilities: ["quick_analysis", "summarization"],
       costPer1kTokens: 0.001,
     },
-    'openai/gpt-4': {
-      capabilities: ['deep_analysis', 'recommendations', 'anomaly_detection'],
+    "openai/gpt-4": {
+      capabilities: ["deep_analysis", "recommendations", "anomaly_detection"],
       costPer1kTokens: 0.03,
     },
     // Inne modele można dodać tutaj
@@ -22,4 +22,4 @@ export class ModelRegistry {
   }
 
   // Inne metody rejestru modeli
-} 
+}

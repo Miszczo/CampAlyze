@@ -26,4 +26,4 @@ export class CacheManager {
   generateKey(query: any): string {
     return JSON.stringify(query);
   }
-} 
+}

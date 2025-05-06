@@ -13,4 +13,4 @@ export class UsageTracker {
   getCurrentUsage(): number {
     return this.currentMonthUsage;
   }
-} 
+}

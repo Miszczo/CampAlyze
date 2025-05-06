@@ -1,5 +1,5 @@
-import type { ModelRegistry } from './model-registry';
-import type { RetryOptions } from './retry-handler';
+import type { ModelRegistry } from "./model-registry";
+import type { RetryOptions } from "./retry-handler";
 
 export interface OpenRouterConfig {
   apiKey: string;
@@ -17,7 +17,7 @@ export interface CacheOptions {
 
 export interface QueryParams {
   model: string;
-  messages: Array<{ role: 'system' | 'user'; content: string }>;
+  messages: { role: "system" | "user"; content: string }[];
   response_format?: any;
   temperature?: number;
   max_tokens?: number;
@@ -28,11 +28,11 @@ export interface ModelResponse {
   object: string;
   created: number;
   model: string;
-  choices: Array<any>;
+  choices: any[];
   usage?: any;
 }
 
-// Pozostałe typy domenowe można dodać tutaj 
+// Pozostałe typy domenowe można dodać tutaj
 
 // Typy domenowe dla OpenRouterService
 
@@ -40,7 +40,7 @@ export interface CampaignData {
   id: string;
   name: string;
   type: string;
-  platform: 'google' | 'meta';
+  platform: "google" | "meta";
   dateRange: { from: string; to: string };
   metrics: Record<string, number>;
   rawData?: any;
@@ -60,13 +60,13 @@ export interface OptimizationRecommendations {
 }
 
 export interface AnomalyDetectionResults {
-  anomalies: Array<{
+  anomalies: {
     metric: string;
     value: number;
     expected: number;
     deviation: number;
     description: string;
-  }>;
+  }[];
   [key: string]: any;
 }
 
@@ -92,7 +92,7 @@ export interface Model {
 }
 
 export interface ReportOptions {
-  format?: 'pdf' | 'html' | 'json';
+  format?: "pdf" | "html" | "json";
   language?: string;
   [key: string]: any;
 }
@@ -124,9 +124,9 @@ export interface UsageStats {
   usageByModel: Record<string, number>;
 }
 
-export type ServiceStatus = 'ready' | 'error' | 'initializing';
+export type ServiceStatus = "ready" | "error" | "initializing";
 
-export type TaskType = 'campaign_analysis' | 'recommendations' | 'anomaly_detection' | 'report';
+export type TaskType = "campaign_analysis" | "recommendations" | "anomaly_detection" | "report";
 
 export interface ModelParameters {
   temperature?: number;
@@ -135,7 +135,7 @@ export interface ModelParameters {
 }
 
 export interface UserMessage {
-  role: 'user';
+  role: "user";
   content: string;
 }
 
@@ -148,4 +148,4 @@ export interface UsageData {
   tokens: number;
   modelName: string;
   [key: string]: any;
-} 
+}

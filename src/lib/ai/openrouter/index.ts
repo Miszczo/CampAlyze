@@ -1,13 +1,13 @@
-import { OpenRouterApiClient } from './api-client';
-import { ModelRegistry } from './model-registry';
-import { ModelSelector } from './model-selector';
-import { RetryHandler } from './retry-handler';
-import { SystemPromptGenerator } from './system-prompt-generator';
-import { UserMessageFormatter } from './user-message-formatter';
-import { CacheManager } from './cache-manager';
-import { UsageTracker } from './usage-tracker';
-import type { OpenRouterConfig } from './types';
-import type { Priority } from './model-selector';
+import { OpenRouterApiClient } from "./api-client";
+import { ModelRegistry } from "./model-registry";
+import { ModelSelector } from "./model-selector";
+import { RetryHandler } from "./retry-handler";
+import { SystemPromptGenerator } from "./system-prompt-generator";
+import { UserMessageFormatter } from "./user-message-formatter";
+import { CacheManager } from "./cache-manager";
+import { UsageTracker } from "./usage-tracker";
+import type { OpenRouterConfig } from "./types";
+import type { Priority } from "./model-selector";
 
 export class OpenRouterService {
   private apiClient: OpenRouterApiClient;
@@ -39,9 +39,9 @@ export class OpenRouterService {
       return cached;
     }
     if (!this._checkBudgetLimit()) {
-      throw new Error('Przekroczono limit budżetu');
+      throw new Error("Przekroczono limit budżetu");
     }
-    const response = await this._withRetry(() => this._sendRequest('/chat/completions', params));
+    const response = await this._withRetry(() => this._sendRequest("/chat/completions", params));
     const validated = this._validateResponse(response, {}); // TODO: przekazać odpowiedni schemat
     this._saveToCache(cacheKey, validated);
     // Przykładowa aktualizacja usage (w pełnej wersji: response.usage)
@@ -50,7 +50,7 @@ export class OpenRouterService {
   }
 
   async analyzeCampaign(data: any, options?: any): Promise<any> {
-    const task = 'campaign_analysis';
+    const task = "campaign_analysis";
     const model = this._selectOptimalModel(task, options?.priority);
     const systemPrompt = this._generateSystemPrompt(task, { campaignType: data.type });
     const userMessage = this._formatUserMessage(data, task);
@@ -59,10 +59,7 @@ export class OpenRouterService {
 
     const params = {
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        userMessage,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       response_format: responseFormat,
       ...modelParams,
     };
@@ -81,7 +78,7 @@ export class OpenRouterService {
   }
 
   async generateOptimizationRecommendations(data: any, options?: any): Promise<any> {
-    const task = 'recommendations';
+    const task = "recommendations";
     const model = this._selectOptimalModel(task, options?.priority);
     const systemPrompt = this._generateSystemPrompt(task, { campaignType: data.type });
     const userMessage = this._formatUserMessage(data, task);
@@ -90,10 +87,7 @@ export class OpenRouterService {
 
     const params = {
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        userMessage,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       response_format: responseFormat,
       ...modelParams,
     };
@@ -101,7 +95,7 @@ export class OpenRouterService {
   }
 
   async detectAnomalies(data: any, options?: any): Promise<any> {
-    const task = 'anomaly_detection';
+    const task = "anomaly_detection";
     const model = this._selectOptimalModel(task, options?.priority);
     const systemPrompt = this._generateSystemPrompt(task, { campaignType: data.type });
     const userMessage = this._formatUserMessage(data, task);
@@ -110,10 +104,7 @@ export class OpenRouterService {
 
     const params = {
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        userMessage,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       response_format: responseFormat,
       ...modelParams,
     };
@@ -121,7 +112,7 @@ export class OpenRouterService {
   }
 
   async generateReport(data: any, options?: any): Promise<any> {
-    const task = 'report';
+    const task = "report";
     const model = this._selectOptimalModel(task, options?.priority);
     const systemPrompt = this._generateSystemPrompt(task, { campaignType: data.type });
     const userMessage = this._formatUserMessage(data, task);
@@ -130,10 +121,7 @@ export class OpenRouterService {
 
     const params = {
       model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        userMessage,
-      ],
+      messages: [{ role: "system", content: systemPrompt }, userMessage],
       response_format: responseFormat,
       ...modelParams,
     };
@@ -141,23 +129,23 @@ export class OpenRouterService {
   }
 
   async getUsageInfo(): Promise<any> {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   async getAvailableModels(): Promise<any> {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   setDefaultModel(modelName: string): void {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   setBudgetLimit(limitUSD: number): void {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   prepareInputData(input: any, options?: any): any {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   // Publiczne i prywatne metody będą dodawane w kolejnych krokach
@@ -190,12 +178,12 @@ export class OpenRouterService {
   }
 
   private _prepareResponseFormat(task: string): any {
-    return { type: 'json_object' };
+    return { type: "json_object" };
   }
 
   private _validateResponse(response: any, schema: object): any {
     if (!response) {
-      throw new Error('Brak odpowiedzi z modelu');
+      throw new Error("Brak odpowiedzi z modelu");
     }
     return response;
   }
@@ -227,8 +215,8 @@ export class OpenRouterService {
 
   private _handleApiResponse(response: any): any {
     if (response.error) {
-      throw new Error(response.error.message || 'API error');
+      throw new Error(response.error.message || "API error");
     }
     return response;
   }
-} 
+}

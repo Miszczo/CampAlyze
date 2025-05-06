@@ -1,0 +1,299 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Standardy testów jednostkowych Vitest dla campAlyze
+
+## Filozofia testowania
+
+Testy jednostkowe w projekcie campAlyze mają na celu weryfikację poprawności działania poszczególnych komponentów i funkcji, ze szczególnym uwzględnieniem:
+- Logiki biznesowej w `src/lib`
+- Komponentów React wymagających złożonej interakcji
+- Funkcji pomocniczych i utils
+- Interakcji z API Supabase (testy integracyjne jednostek)
+
+## Struktura testów
+
+- Pliki testowe umieszczaj w tym samym katalogu, co testowany kod
+- Stosuj konwencję nazewnictwa: `[nazwa-pliku].test.ts` lub `[nazwa-pliku].test.tsx`
+- Grupuj testy w bloki `describe()` odzwierciedlające testowaną funkcjonalność
+- Używaj czytelnych, polskojęzycznych opisów testów w funkcji `it()` lub `test()`
+- Organizuj testy dla utrzymywalności – używaj zagnieżdżonych `describe` bloków, jednoznacznych komunikatów asercji
+- Dziel duże zestawy testów na logiczne sekcje zgodne z testowaną funkcjonalnością
+
+## Zasady tworzenia testów
+
+### Klarowność testów
+
+- Każdy test powinien weryfikować jedną konkretną funkcjonalność
+- Stosuj schemat AAA (Arrange-Act-Assert) w testach:
+  ```ts
+  // Arrange - przygotowanie danych/środowiska
+  const input = { ... };
+  
+  // Act - wywołanie testowanej funkcji
+  const result = testedFunction(input);
+  
+  // Assert - weryfikacja rezultatu
+  expect(result).toBe(expectedOutput);
+  ```
+- Unikaj zbyt wielu asercji w jednym teście - lepiej podzielić na kilka mniejszych testów
+- Preferuj polskie opisy testów zgodnie z istniejącą konwencją w kodzie
+- Używaj inline snapshots dla czytelnych asercji złożonych struktur danych:
+  ```ts
+  expect(generatedReport).toMatchInlineSnapshot(`
+    {
+      "metryki": {
+        "ctr": 0.02,
+        "cpc": 1.25,
+        "konwersje": 10
+      }
+    }
+  `);
+  ```
+
+### Mockowanie i izolacja
+
+- Wykorzystuj obiekt `vi` do tworzenia dublerów testowych:
+  - `vi.fn()` do mockowania funkcji
+  - `vi.spyOn()` do monitorowania istniejących funkcji
+  - `vi.stubGlobal()` do mockowania obiektów globalnych
+  - `vi.mock()` do mockowania całych modułów
+- Preferuj szpiegów (`spyOn`) zamiast mocków, gdy potrzebujesz tylko weryfikować interakcje bez zmiany zachowania
+- Mockuj zewnętrzne zależności, takie jak:
+  - Wywołania `fetch` do API
+  - Supabase client
+  - External services (np. OpenRouter.ai)
+- Izoluj testowaną jednostkę od jej zależności
+- Umieszczaj fabryki mocków (`vi.mock()`) na najwyższym poziomie pliku testowego:
+  ```ts
+  vi.mock('../db/supabase', () => ({
+    supabase: {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      data: [{ id: '1', name: 'Test Campaign' }],
+      error: null
+    }
+  }));
+  ```
+- Stosuj `mockImplementation()` lub `mockReturnValue()` dla dynamicznej kontroli podczas testów
+- Pamiętaj o przywracaniu oryginalnych implementacji po zakończeniu testu (`vi.restoreAllMocks()`)
+- Użyj warunkowego mockowania dla kodu z opcjonalnymi zależnościami
+
+### Typowanie i TypeScript
+
+- Włącz ścisłe typowanie w testach, aby wcześnie wykrywać błędy typów
+- Używaj `expectTypeOf()` dla asercji na poziomie typów
+- Upewnij się, że mocki zachowują oryginalne sygnatury typów
+- Zwracaj typowane implementacje mocków z fabryk `vi.mock()`
+
+### Pokrycie testami
+
+- Dąż do 85%+ pokrycia testami dla krytycznych ścieżek kodu w `src/lib`
+- Testuj szczególnie dokładnie:
+  - Logikę obliczeń metryk (CPC, CTR, Konwersje, ROAS, itp.)
+  - Walidację danych wejściowych
+  - Obsługę błędów i przypadków brzegowych
+  - Logikę biznesową przetwarzania importu plików
+  - Funkcje wykrywania anomalii
+- Monitoruj pokrycie z określonym celem – skonfiguruj progi pokrycia w `vitest.config.ts`
+- Koncentruj się na znaczących testach, a nie na arbitralnych procentach pokrycia
+
+### Testowanie obsługi błędów
+
+- Testuj scenariusze błędów i obsługę wyjątków
+- Weryfikuj komunikaty błędów (treść oraz format)
+- Sprawdzaj, czy funkcje prawidłowo rzucają wyjątki w odpowiednich sytuacjach
+- Testuj zachowanie systemu w przypadku nieprawidłowych danych wejściowych
+
+### Testowanie komponentów DOM
+
+- Skonfiguruj jsdom dla testów DOM – ustaw `environment: 'jsdom'` w konfiguracji
+- Łącz z bibliotekami testowymi (np. Testing Library) dla realistycznej symulacji interakcji użytkownika
+- Testuj:
+  - Renderowanie komponentów
+  - Interakcje użytkownika
+  - Zarządzanie stanem
+  - Efekty uboczne i cykl życia komponentów
+
+## Konfiguracja i zaawansowane funkcje
+
+### Pliki konfiguracyjne
+
+- Stwórz dedykowany plik `vitest.config.ts` z odpowiednią konfiguracją
+- Konfiguruj progi pokrycia:
+  ```ts
+  export default defineConfig({
+    test: {
+      coverage: {
+        reporter: ['text', 'json', 'html'],
+        lines: 85,
+        branches: 75,
+        functions: 85,
+        statements: 85
+      }
+    }
+  });
+  ```
+- Twórz pliki konfiguracyjne do wielokrotnego użytku:
+  - Definiuj globalne mocki, niestandardowe matchery i konfigurację środowiska
+  - Ustaw reference w `vitest.config.ts`
+
+### Tryby pracy
+
+- Dodaj tryb watch do workflow – uruchamiaj `vitest --watch` podczas developmentu
+- Filtruj testy za pomocą `-t` aby skupić się na konkretnych obszarach
+- Eksploruj tryb UI dla złożonych testów – `vitest --ui` dla wizualnej nawigacji po testach
+- Używaj trybu jednostkowego: `vitest run --mode=unit` dla szybkich testów komponentów Astro i React
+
+## Przykłady testów
+
+### Test funkcji biznesowej
+
+```ts
+import { calculateMetrics } from './metrics';
+import { expectTypeOf } from 'vitest';
+import type { MetricsResult } from '../types';
+
+describe('calculateMetrics', () => {
+  it('poprawnie oblicza CTR na podstawie kliknięć i wyświetleń', () => {
+    // Arrange
+    const input = {
+      clicks: 100,
+      impressions: 10000
+    };
+    
+    // Act
+    const result = calculateMetrics(input);
+    
+    // Assert
+    expectTypeOf(result).toMatchTypeOf<MetricsResult>();
+    expect(result.ctr).toBe(0.01); // 1%
+  });
+
+  it('zwraca CTR 0 gdy nie ma wyświetleń', () => {
+    const result = calculateMetrics({
+      clicks: 50,
+      impressions: 0
+    });
+    expect(result.ctr).toBe(0);
+  });
+  
+  it('rzuca wyjątek gdy podano ujemne wartości', () => {
+    expect(() => calculateMetrics({
+      clicks: -5,
+      impressions: 1000
+    })).toThrowError(/ujemna wartość/i);
+  });
+});
+```
+
+### Test z mockowaniem
+
+```ts
+import { fetchCampaignData } from './campaignService';
+import { supabase } from '../db/supabase';
+
+// Mocki umieszczone na najwyższym poziomie pliku
+vi.mock('../db/supabase', () => ({
+  supabase: {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    data: [{ id: '1', name: 'Test Campaign' }],
+    error: null
+  }
+}));
+
+describe('fetchCampaignData', () => {
+  // Przywrócenie mocków po każdym teście
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+  
+  it('zwraca dane kampanii z Supabase', async () => {
+    // Act
+    const result = await fetchCampaignData('1');
+    
+    // Assert
+    expect(result).toEqual({ id: '1', name: 'Test Campaign' });
+    expect(supabase.from).toHaveBeenCalledWith('campaigns');
+  });
+  
+  it('obsługuje błąd Supabase', async () => {
+    // Arrange - dynamiczne mockowanie błędu
+    vi.mocked(supabase).error = { message: 'Database error', code: 'PGRST301' };
+    
+    // Act & Assert
+    await expect(fetchCampaignData('1'))
+      .rejects
+      .toThrowError(/Błąd pobierania danych/);
+  });
+});
+```
+
+### Test komponentu React
+
+```tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { CampaignCard } from './CampaignCard';
+
+// Plik wymaga konfiguracji jsdom jako środowisko testowe
+describe('CampaignCard', () => {
+  it('wyświetla dane kampanii', () => {
+    // Arrange
+    const campaign = {
+      id: '1',
+      name: 'Kampania testowa',
+      platform: 'google',
+      metrics: {
+        ctr: 0.025,
+        clicks: 500,
+        impressions: 20000
+      }
+    };
+    
+    // Act
+    render(<CampaignCard campaign={campaign} />);
+    
+    // Assert
+    expect(screen.getByText('Kampania testowa')).toBeInTheDocument();
+    expect(screen.getByText('2.5%')).toBeInTheDocument(); // Sformatowany CTR
+  });
+  
+  it('wywołuje onSelect po kliknięciu', () => {
+    // Arrange
+    const campaign = { id: '1', name: 'Kampania testowa', platform: 'google' };
+    const handleSelect = vi.fn();
+    
+    // Act
+    render(<CampaignCard campaign={campaign} onSelect={handleSelect} />);
+    fireEvent.click(screen.getByText('Kampania testowa'));
+    
+    // Assert
+    expect(handleSelect).toHaveBeenCalledWith('1');
+  });
+});
+```
+
+## Uruchamianie testów
+
+- Uruchamiaj testy lokalnie przed commitowaniem zmian: `vitest run`
+- Używaj trybu watch podczas pracy nad kodem: `vitest --watch`
+- Sprawdzaj pokrycie po zakończeniu funkcjonalności: `vitest run --coverage`
+- Korzystaj z UI dla lepszej wizualizacji wyników: `vitest --ui`
+- Testy jednostkowe będą również uruchamiane automatycznie w pipeline CI/CD
+
+## Przydatne zasoby
+
+- [Dokumentacja Vitest](mdc:https:/vitest.dev)
+- [Zasady testowania React z Vitest](mdc:https:/vitest.dev/guide/testing-types.html)
+- [Testowanie z Supabase](mdc:https:/supabase.com/docs/guides/testing)
+- [Testing Library dla React](mdc:https:/testing-library.com/docs/react-testing-library/intro)
+- [Mockowanie w Vitest](mdc:https:/vitest.dev/guide/mocking.html)
+
+
+

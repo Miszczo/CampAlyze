@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { ResendVerification } from "../components/auth/ResendVerification";
+
+// This page is typically accessed via redirect if email verification is required
+---
+
+<Layout title="Verify Email | CampAlyze">
+  <div class="flex min-h-[calc(100vh-theme(spacing.16))] flex-1 flex-col items-center justify-center p-4">
+    <ResendVerification client:load />
+  </div>
+</Layout>

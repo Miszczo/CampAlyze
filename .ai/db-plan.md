@@ -222,18 +222,71 @@ ORDER BY
 
 ## 5. Polityki Row Level Security (RLS)
 
-```sql
--- Włączenie RLS dla wszystkich tabel
-ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
-ALTER TABLE metrics ENABLE ROW LEVEL SECURITY;
-ALTER TABLE imports ENABLE ROW LEVEL SECURITY;
-ALTER TABLE campaign_changes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_insights ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
+-- Supabase Auth automatically adds user metadata to the auth.users table.
+-- We will leverage this instead of creating a separate users_profile table.
+-- The 'full_name' field is already part of user_metadata during registration.
+-- The 'email_verified' status is available via the 'email_confirmed_at' column in auth.users.
+-- We need to add 'failed_login_count' and 'locked_until' to user_metadata.
 
--- Polityka dla organizations
-CREATE POLICY "Users can view their organizations" 
+-- Example function to update user metadata (run by service role key):
+/*
+CREATE OR REPLACE FUNCTION update_user_metadata(user_id uuid, new_metadata jsonb)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE auth.users
+  SET raw_user_meta_data = raw_user_meta_data || new_metadata
+  WHERE id = user_id;
+END;
+$$;
+*/
+
+-- SQL snippet to add metadata fields during registration or first login attempt:
+-- (This logic should be handled in the backend API when interacting with Supabase Auth)
+-- Example: {"failed_login_count": 0, "locked_until": null}
+
+```sql
+-- Włączenie RLS dla wszystkich tabel (jeśli nie zostało zrobione)
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY; ALTER TABLE organizations FORCE ROW LEVEL SECURITY;
+ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY; ALTER TABLE campaigns FORCE ROW LEVEL SECURITY;
+ALTER TABLE metrics ENABLE ROW LEVEL SECURITY; ALTER TABLE metrics FORCE ROW LEVEL SECURITY;
+ALTER TABLE imports ENABLE ROW LEVEL SECURITY; ALTER TABLE imports FORCE ROW LEVEL SECURITY;
+ALTER TABLE campaign_changes ENABLE ROW LEVEL SECURITY; ALTER TABLE campaign_changes FORCE ROW LEVEL SECURITY;
+ALTER TABLE ai_insights ENABLE ROW LEVEL SECURITY; ALTER TABLE ai_insights FORCE ROW LEVEL SECURITY;
+ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY; ALTER TABLE user_preferences FORCE ROW LEVEL SECURITY;
+ALTER TABLE user_organizations ENABLE ROW LEVEL SECURITY; ALTER TABLE user_organizations FORCE ROW LEVEL SECURITY;
+-- Platformy są publiczne
+ALTER TABLE platforms ENABLE ROW LEVEL SECURITY; ALTER TABLE platforms FORCE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access" ON platforms FOR SELECT USING (true);
+
+
+-- Polityka dla user_organizations
+CREATE POLICY "Users can view their own organization memberships" 
+ON user_organizations FOR SELECT
+USING (user_id = auth.uid());
+
+CREATE POLICY "Admins can manage organization memberships" 
+ON user_organizations FOR ALL
+USING (
+  auth.uid() IN (
+    SELECT uo.user_id
+    FROM user_organizations uo
+    WHERE uo.organization_id = user_organizations.organization_id AND uo.role = 'admin'
+  )
+)
+WITH CHECK (
+  auth.uid() IN (
+    SELECT uo.user_id
+    FROM user_organizations uo
+    WHERE uo.organization_id = user_organizations.organization_id AND uo.role = 'admin'
+  )
+);
+
+-- Polityka dla organizations (aktualizacja)
+DROP POLICY IF EXISTS "Users can view their organizations" ON organizations;
+CREATE POLICY "Users can view organizations they belong to" 
 ON organizations FOR SELECT
 USING (
   id IN (
@@ -241,18 +294,23 @@ USING (
   )
 );
 
-CREATE POLICY "Admins can insert organizations" 
+DROP POLICY IF EXISTS "Admins can insert organizations" ON organizations;
+CREATE POLICY "Authenticated users can insert organizations" 
 ON organizations FOR INSERT
-WITH CHECK (
-  TRUE  -- Kontrolowane przez logikę aplikacji
-);
+WITH CHECK ( auth.role() = 'authenticated' );
+-- Tworzenie organizacji powinno automatycznie dodać twórcę jako admina w user_organizations (logika backendu)
 
-CREATE POLICY "Admins can update their organizations" 
+DROP POLICY IF EXISTS "Admins can update their organizations" ON organizations;
+CREATE POLICY "Organization admins can update their organizations" 
 ON organizations FOR UPDATE
 USING (
-  id IN (
-    SELECT organization_id FROM user_organizations 
-    WHERE user_id = auth.uid() AND role = 'admin'
+  auth.uid() IN (
+    SELECT user_id FROM user_organizations WHERE organization_id = organizations.id AND role = 'admin'
+  )
+)
+WITH CHECK (
+  auth.uid() IN (
+    SELECT user_id FROM user_organizations WHERE organization_id = organizations.id AND role = 'admin'
   )
 );
 
@@ -263,48 +321,118 @@ USING (
   organization_id IN (
     SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
   )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "Editors and admins can insert campaigns" 
-ON campaigns FOR INSERT
-WITH CHECK (
-  organization_id IN (
-    SELECT organization_id FROM user_organizations 
-    WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
-  )
-);
-
-CREATE POLICY "Editors and admins can update campaigns" 
-ON campaigns FOR UPDATE
+CREATE POLICY "Organization editors/admins can manage campaigns" 
+ON campaigns FOR ALL
 USING (
   organization_id IN (
-    SELECT organization_id FROM user_organizations 
-    WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
+    SELECT organization_id FROM user_organizations WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
   )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+)
+WITH CHECK (
+  organization_id IN (
+    SELECT organization_id FROM user_organizations WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
+  )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
 -- Polityka dla metrics
-CREATE POLICY "Users can view metrics in their organizations" 
+CREATE POLICY "Users can view metrics for campaigns in their organizations" 
 ON metrics FOR SELECT
 USING (
   campaign_id IN (
-    SELECT c.id FROM campaigns c
-    JOIN user_organizations uo ON c.organization_id = uo.organization_id
-    WHERE uo.user_id = auth.uid()
+    SELECT c.id FROM campaigns c WHERE c.organization_id IN (
+      SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
+    )
   )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "Editors and admins can insert metrics" 
+CREATE POLICY "System/Backend can insert metrics" 
 ON metrics FOR INSERT
+WITH CHECK ( auth.role() = 'service_role' ); -- Only backend/service role can insert raw metrics
+
+-- Polityka dla imports
+CREATE POLICY "Users can manage imports in their organizations" 
+ON imports FOR ALL
+USING (
+  organization_id IN (
+    SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
+  )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+)
+WITH CHECK (
+  organization_id IN (
+    SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
+  )
+  AND user_id = auth.uid() -- User can only manage their own imports
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+);
+
+-- Polityka dla campaign_changes
+CREATE POLICY "Users can view changes for campaigns in their organizations" 
+ON campaign_changes FOR SELECT
+USING (
+  campaign_id IN (
+    SELECT c.id FROM campaigns c WHERE c.organization_id IN (
+      SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
+    )
+  )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+);
+
+CREATE POLICY "Organization editors/admins can manage campaign changes" 
+ON campaign_changes FOR ALL
+USING (
+  campaign_id IN (
+    SELECT c.id FROM campaigns c WHERE c.organization_id IN (
+      SELECT organization_id FROM user_organizations WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
+    )
+  )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+)
 WITH CHECK (
   campaign_id IN (
-    SELECT c.id FROM campaigns c
-    JOIN user_organizations uo ON c.organization_id = uo.organization_id
-    WHERE uo.user_id = auth.uid() AND uo.role IN ('admin', 'editor')
+    SELECT c.id FROM campaigns c WHERE c.organization_id IN (
+      SELECT organization_id FROM user_organizations WHERE user_id = auth.uid() AND role IN ('admin', 'editor')
+    )
   )
+  AND user_id = auth.uid() -- User can only manage changes they created?
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
--- Polityki podobne dla pozostałych tabel
+-- Polityka dla ai_insights
+CREATE POLICY "Users can view insights for their organizations" 
+ON ai_insights FOR SELECT
+USING (
+  organization_id IN (
+    SELECT organization_id FROM user_organizations WHERE user_id = auth.uid()
+  )
+  AND auth.email_confirmed_at IS NOT NULL -- Require verified email
+);
+
+CREATE POLICY "System/Backend can manage AI insights" 
+ON ai_insights FOR ALL
+USING ( auth.role() = 'service_role' ) -- Only backend/service role
+WITH CHECK ( auth.role() = 'service_role' );
+
+-- Polityka dla user_preferences
+CREATE POLICY "Users can manage their own preferences" 
+ON user_preferences FOR ALL
+USING ( user_id = auth.uid() )
+WITH CHECK ( user_id = auth.uid() );
+
+-- RLS Policy to Block Login (Conceptual - Implemented in backend logic)
+-- Supabase Auth login endpoint needs custom logic (e.g., via Edge Function hook or backend checks)
+-- to verify 'failed_login_count' and 'locked_until' from user_metadata.
+-- 1. Before attempting Supabase signIn: Fetch user metadata using service role key.
+-- 2. Check if raw_user_meta_data->>'failed_login_count'::integer >= 5 AND raw_user_meta_data->>'locked_until'::timestamptz > NOW().
+-- 3. If locked, return 403 Forbidden.
+-- 4. If login fails: Increment 'failed_login_count'. If count reaches 5, set 'locked_until' = NOW() + interval '15 minutes'. Update metadata.
+-- 5. If login succeeds: Reset 'failed_login_count' to 0, set 'locked_until' to null. Update metadata.
 ```
 
 ## 6. Funkcje i wyzwalacze

@@ -50,7 +50,7 @@ Te wyzwania znacząco ograniczają zdolność specjalistów do szybkiego reagowa
 - Możliwość wyboru zakresu danych do eksportu
 
 ### 3.6 System kont użytkowników
-- Prosty system logowania użytkowników z wykorzystaniem Firebase Authentication
+- Prosty system logowania użytkowników z wykorzystaniem **Supabase Authentication**
 - Podstawowe zarządzanie dostępem i uprawnieniami
 - Rejestrowanie aktywności użytkowników
 
@@ -86,20 +86,49 @@ Następujące funkcjonalności są poza zakresem MVP:
 - Tytuł: Rejestracja nowego użytkownika
 - Opis: Jako nowy użytkownik, chcę zarejestrować się w systemie, aby uzyskać dostęp do narzędzia analitycznego.
 - Kryteria akceptacji:
-  1. Użytkownik może się zarejestrować podając email i hasło
+  1. Użytkownik może się zarejestrować podając email, hasło i pełne imię
   2. System weryfikuje poprawność formatu adresu email
   3. System wymaga hasła o odpowiedniej sile (min. 8 znaków, w tym litery i cyfry)
-  4. Po rejestracji użytkownik otrzymuje email weryfikacyjny
-  5. Użytkownik nie może korzystać z pełnej funkcjonalności bez potwierdzenia adresu email
+  4. Po rejestracji system wysyła email weryfikacyjny na podany adres
+  5. Użytkownik nie może korzystać z pełnej funkcjonalności (poza możliwością weryfikacji emaila i ponownego wysłania linku) bez potwierdzenia adresu email
 
 #### US-002
 - Tytuł: Logowanie użytkownika
 - Opis: Jako zarejestrowany użytkownik, chcę zalogować się do systemu, aby korzystać z narzędzia.
 - Kryteria akceptacji:
   1. Użytkownik może zalogować się podając prawidłowy email i hasło
-  2. System blokuje konto po 5 nieudanych próbach logowania
-  3. System oferuje opcję "Zapomniałem hasła"
+  2. System blokuje konto na 15 minut po 5 nieudanych próbach logowania (wyświetlając odpowiedni komunikat)
+  3. System oferuje opcję \"Zapomniałem hasła\"
   4. Po zalogowaniu użytkownik jest przekierowany na dashboard
+  5. Użytkownik z niezweryfikowanym adresem email jest przekierowywany do strony weryfikacji
+
+#### US-XXX (Nowy)
+- Tytuł: Weryfikacja adresu email
+- Opis: Jako nowo zarejestrowany użytkownik, chcę zweryfikować swój adres email, klikając link w otrzymanej wiadomości, aby uzyskać pełen dostęp do aplikacji.
+- Kryteria akceptacji:
+  1. Po kliknięciu linku weryfikacyjnego system potwierdza weryfikację adresu email
+  2. Użytkownik jest informowany o pomyślnej weryfikacji i może przejść do logowania lub dashboardu (jeśli jest już zalogowany)
+  3. System udostępnia opcję ponownego wysłania linku weryfikacyjnego, jeśli użytkownik go nie otrzymał lub link wygasł
+  4. Link weryfikacyjny jest ważny przez określony czas (np. 24 godziny)
+
+#### US-XXX (Nowy)
+- Tytuł: Odzyskiwanie hasła (Zapomniałem hasła)
+- Opis: Jako zarejestrowany użytkownik, który zapomniał hasła, chcę zainicjować proces resetowania hasła, aby odzyskać dostęp do konta.
+- Kryteria akceptacji:
+  1. Użytkownik może podać swój adres email na dedykowanej stronie \"Zapomniałem hasła\"
+  2. System wysyła email z linkiem do resetowania hasła na podany adres, jeśli konto istnieje
+  3. Email zawiera instrukcje i unikalny, ograniczony czasowo link do strony resetowania hasła
+  4. Użytkownik jest informowany o wysłaniu emaila (lub o tym, że konto nie istnieje, bez ujawniania tej informacji wprost ze względów bezpieczeństwa)
+
+#### US-XXX (Nowy)
+- Tytuł: Resetowanie hasła
+- Opis: Jako użytkownik, który otrzymał link do resetowania hasła, chcę ustawić nowe hasło, aby móc ponownie zalogować się na swoje konto.
+- Kryteria akceptacji:
+  1. Po kliknięciu linku resetującego użytkownik jest przekierowywany na stronę ustawiania nowego hasła
+  2. Użytkownik musi podać nowe hasło i je potwierdzić
+  3. System wymaga, aby nowe hasło spełniało kryteria siły (min. 8 znaków, litery i cyfry)
+  4. Po pomyślnym ustawieniu nowego hasła użytkownik jest informowany o sukcesie i może się zalogować
+  5. Link do resetowania hasła jest jednorazowy i wygasa po użyciu lub po określonym czasie (np. 1 godzinie)
 
 #### US-003
 - Tytuł: Zarządzanie uprawnieniami użytkowników

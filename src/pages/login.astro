@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { LoginForm } from "../components/auth/LoginForm";
+
+// Get message from URL query parameters
+const url = new URL(Astro.request.url);
+const message = url.searchParams.get("message");
+const error = url.searchParams.get("error");
+
+let initialMessage = message || error || null;
+let messageType: "success" | "error" | null = message ? "success" : error ? "error" : null;
+---
+
+<Layout title="Login | CampAlyze">
+  <div class="flex min-h-[calc(100vh-theme(spacing.16))] flex-1 flex-col items-center justify-center p-4">
+    <LoginForm client:load initialMessage={initialMessage} messageType={messageType} />
+  </div>
+</Layout>

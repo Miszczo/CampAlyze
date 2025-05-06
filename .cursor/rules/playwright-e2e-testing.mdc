@@ -1,0 +1,88 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Standardy testów End-to-End (E2E) Playwright dla campAlyze
+
+## 1. Filozofia i Zakres Testów E2E
+
+Testy E2E w projekcie campAlyze symulują **krytyczne ścieżki użytkownika** od początku do końca, weryfikując integrację całego systemu (Frontend <-> API <-> Baza Danych). Celem jest zapewnienie, że kluczowe funkcjonalności działają poprawnie z perspektywy użytkownika końcowego, zgodnie z historyjkami użytkowników (US) zdefiniowanymi w PRD i planie testów (`campalyze_test_plan.md`).
+
+**Kluczowe obszary testowane w E2E:**
+-   Pełny cykl uwierzytelniania (Rejestracja, Logowanie, Wylogowanie).
+-   Proces importu plików CSV/XLSX (Google Ads, Meta Ads).
+-   Podstawowa interakcja z dashboardem (wyświetlanie metryk, filtrowanie).
+-   Generowanie podsumowań AI (weryfikacja przepływu, niekoniecznie dokładności treści).
+-   Kluczowe funkcjonalności zdefiniowane w `campalyze_test_plan.md` jako testy systemowe.
+
+Testy E2E **nie** powinny zastępować testów jednostkowych czy integracyjnych. Skupiają się na przepływach, a nie na wyczerpującym testowaniu wszystkich przypadków brzegowych poszczególnych komponentów.
+
+## 2. Konfiguracja Playwright
+
+-   **Przeglądarki:** Domyślnie konfiguruj i uruchamiaj testy na **Desktop Chromium**. Okresowo przeprowadzaj testy na innych kluczowych przeglądarkach (Firefox, Webkit/Safari) zgodnie z `campalyze_test_plan.md`, szczególnie przed wydaniem.
+-   **Środowisko:** Głównym środowiskiem do uruchamiania pełnych testów E2E jest **Staging**. Testy "smoke" mogą być uruchamiane na środowisku produkcyjnym po wdrożeniu.
+-   **Izolacja:** Używaj **kontekstów przeglądarki (`browser.newContext()`)**, aby izolować stan między testami (np. sesje, local storage). Unikaj współdzielenia stanu między plikami testowymi, chyba że jest to celowe (np. przez `storageState`).
+
+## 3. Struktura i Utrzymanie Testów
+
+-   **Page Object Model (POM):** **Bezwzględnie stosuj wzorzec Page Object Model.** Każda strona lub znaczący komponent UI powinien mieć swoją klasę POM (`*.pom.ts`).
+    -   Klasy POM enkapsulują selektory i metody interakcji ze stroną.
+    -   Testy powinny używać metod POM zamiast bezpośrednich wywołań `page.locator()` czy `page.click()`.
+    -   Umieszczaj pliki POM w dedykowanym katalogu, np. `tests/e2e/poms/`.
+-   **Lokalizacja Testów:** Przechowuj testy E2E w dedykowanym katalogu w głównym repozytorium, np. `tests/e2e/`.
+-   **Nazewnictwo:** Używaj opisowych nazw dla plików testowych (`describe` blocks) i samych testów (`it` blocks), np. `auth.spec.ts`, `it('powinien pomyślnie zalogować użytkownika z poprawnymi danymi')`.
+-   **Grupowanie:** Grupuj testy logicznie w plikach (`*.spec.ts`) lub blokach `describe` według funkcjonalności (np. `auth`, `import`, `dashboard`).
+
+## 4. Pisanie Stabilnych Testów
+
+-   **Selektory (Locators):** **Używaj wbudowanych lokatorów Playwright,** preferując te odporne na zmiany struktury DOM:
+    -   `page.getByRole()` (najbardziej preferowany, oparty na atrybutach ARIA).
+    -   `page.getByLabel()`
+    -   `page.getByPlaceholder()`
+    -   `page.getByText()`
+    -   `page.getByTestId()` (używaj `data-testid` jako ostateczność, gdy inne lokatory nie są odpowiednie).
+    -   **Unikaj** selektorów CSS i XPath, chyba że jest to absolutnie konieczne, ponieważ są one bardziej podatne na zmiany.
+-   **Oczekiwanie (Waiting):** **Polegaj na wbudowanych mechanizmach auto-waiting Playwright.** Unikaj stałych opóźnień (`page.waitForTimeout()`). Używaj asercji `expect()` z odpowiednimi warunkami (np. `toBeVisible()`, `toContainText()`), które automatycznie czekają na spełnienie warunku.
+-   **Asercje:** Używaj wbudowanych asercji `expect()` z dostępnymi matcherami (`toBeVisible`, `toHaveText`, `toHaveCount`, `toHaveScreenshot`, etc.).
+
+## 5. Zarządzanie Danymi Testowymi i Stanem
+
+-   **Dane Wejściowe:** Przygotuj zestawy danych testowych (pliki CSV/XLSX dla importu) zgodnie z `campalyze_test_plan.md`. Przechowuj je w dedykowanym katalogu (np. `tests/e2e/fixtures/`).
+-   **Stan Aplikacji (Setup/Teardown):**
+    -   Używaj **hooków `beforeEach`, `afterEach`, `beforeAll`, `afterAll`** do konfiguracji i czyszczenia stanu przed/po testach (np. logowanie, tworzenie danych, czyszczenie bazy).
+    -   **Logowanie:** Implementuj logikę logowania w hooku `beforeEach` lub `beforeAll` (w zależności od potrzeby). Rozważ użycie opcji `storageState` w konfiguracji projektu Playwright, aby zapisać stan sesji po zalogowaniu i reużywać go w testach, co znacząco przyspiesza wykonanie.
+    -   **Interakcje z API:** Wykorzystuj **`request` z Playwright (`context.request` lub `page.request`)** do bezpośrednich wywołań API Supabase w celu:
+        -   Szybkiego tworzenia/usuwania danych testowych (np. użytkowników, kampanii) w hookach `beforeAll`/`afterAll`.
+        -   Weryfikacji stanu backendu po akcjach wykonanych w UI. Jest to często szybsze i bardziej niezawodne niż nawigowanie po UI w celu sprawdzenia wyniku.
+
+## 6. Testowanie Kluczowych Funkcjonalności campAlyze
+
+-   **Uwierzytelnianie:** Testuj pełny przepływ rejestracji (jeśli dotyczy E2E), logowania i wylogowania. Używaj `storageState` do optymalizacji.
+-   **Import Plików:** Testuj proces przesyłania plików (`setInputFiles`), weryfikuj komunikaty o statusie importu i podstawowe pojawienie się danych w systemie (np. w historii importu lub na dashboardzie).
+-   **Dashboard:** Weryfikuj poprawne renderowanie kluczowych elementów dashboardu, działanie filtrów i podstawową zgodność wyświetlanych danych (niekoniecznie precyzyjne obliczenia, które są domeną testów jednostkowych).
+-   **Testy Wizualne:** Używaj **`expect(page).toHaveScreenshot()`** do testów regresji wizualnej kluczowych, stabilnych widoków (np. główny layout dashboardu po załadowaniu danych). Zarządzaj snapshotami zgodnie z dokumentacją Playwright.
+
+## 7. Debugowanie i Przyspieszanie Pracy
+
+-   **Codegen:** Używaj narzędzia **Playwright Codegen (`npx playwright codegen`)** do szybkiego nagrywania wstępnych wersji testów lub eksplorowania selektorów. **Zawsze refaktoryzuj** nagrany kod, stosując POM i najlepsze praktyki.
+-   **Trace Viewer:** **Analizuj błędy testów za pomocą Trace Viewer.** Uruchamiaj testy z flagą `--trace on` (szczególnie w CI) i otwieraj wygenerowany plik `trace.zip` (`npx playwright show-trace trace.zip`), aby zobaczyć zrzuty ekranu, akcje, logi konsoli i stan DOM dla każdego kroku.
+-   **Tryb UI / Headed:** Używaj trybu UI (`npx playwright test --ui`) lub trybu headed (`--headed`) podczas pisania i debugowania testów lokalnie, aby obserwować ich wykonanie.
+-   **Parallel Execution:** Konfiguruj Playwright do **równoległego wykonywania testów** (domyślne zachowanie), aby skrócić czas przebiegu całego zestawu, zwłaszcza w CI.
+
+## 8. Integracja z CI/CD
+
+-   Skonfiguruj uruchamianie testów E2E w pipeline CI/CD (np. GitHub Actions) na środowisku Staging.
+-   Upewnij się, że raporty testów i artefakty (np. trace'y dla nieudanych testów) są dostępne po zakończeniu przebiegu w CI.
+
+## 9. Przydatne zasoby
+
+-   [Dokumentacja Playwright](mdc:https:/playwright.dev/docs/intro)
+-   [Playwright Locators](mdc:https:/playwright.dev/docs/locators)
+-   [Page Object Models](mdc:https:/playwright.dev/docs/pom) - https://playwright.dev/docs/pom
+-   [Authentication](mdc:https:/playwright.dev/docs/auth)
+-   [API Testing](mdc:https:/playwright.dev/docs/api-testing)
+-   [Trace Viewer](mdc:https:/playwright.dev/docs/trace-viewer)
+-   [Visual Comparisons](mdc:https:/playwright.dev/docs/screenshots)
+
+
