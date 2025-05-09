@@ -20,11 +20,13 @@ Testy obejmowały następujące scenariusze:
 ## Wyniki testów
 
 ### Testy, które zakończyły się sukcesem:
+
 - Nawigacja do formularza odzyskiwania hasła
 - Nawigacja do formularza rejestracji
 - Walidacja pustych pól
 
 ### Testy, które zakończyły się niepowodzeniem:
+
 - Logowanie z prawidłowymi danymi (US-002)
 - Logowanie z nieprawidłowym hasłem (US-002)
 - Logowanie z nieistniejącym kontem (US-002)
@@ -54,25 +56,28 @@ Na podstawie analizy logów i konfiguracji ustalono następujące przyczyny:
 ## Sugestie rozwiązania
 
 1. **Zmiana podejścia do mockowania API**:
+
    - Należy zrezygnować z przekierowywania żądań i zastosować natywne mechanizmy mockowania w Playwright.
    - Rozważyć użycie `page.route()` bezpośrednio w testach zamiast globalnej konfiguracji.
 
 2. **Uproszczenie struktury testów**:
+
    ```typescript
-   test('powinien zalogować się z poprawnymi danymi', async ({ page }) => {
-     await page.route('**/api/auth/signin', async (route) => {
+   test("powinien zalogować się z poprawnymi danymi", async ({ page }) => {
+     await page.route("**/api/auth/signin", async (route) => {
        return route.fulfill({
          status: 200,
-         contentType: 'application/json',
-         body: JSON.stringify({ success: true })
+         contentType: "application/json",
+         body: JSON.stringify({ success: true }),
        });
      });
-     
+
      // reszta testu
    });
    ```
 
 3. **Zmiana struktury projektu testowego**:
+
    - Oddzielić testy jednostkowe komponentów od testów E2E.
    - Użyć dedykowanego środowiska testowego z własną bazą danych lub aplikację testową.
 
@@ -85,4 +90,4 @@ Na podstawie analizy logów i konfiguracji ustalono następujące przyczyny:
 1. Implementacja zaproponowanych zmian w konfiguracji mockowania API.
 2. Refaktoryzacja testów E2E z przeniesieniem logiki mockowania do poszczególnych testów.
 3. Dodanie testów integracyjnych z prawdziwą bazą danych testową.
-4. Uzupełnienie dokumentacji testowej o szczegółowe instrukcje uruchamiania w różnych środowiskach. 
+4. Uzupełnienie dokumentacji testowej o szczegółowe instrukcje uruchamiania w różnych środowiskach.

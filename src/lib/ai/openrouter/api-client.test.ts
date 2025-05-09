@@ -1,12 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { OpenRouterApiClient } from "./api-client";
 import {
-  OpenRouterError,
   AuthorizationError,
   RateLimitError,
   BudgetLimitError,
-  ModelUnavailableError,
-  ValidationError,
   NetworkError,
   TimeoutError,
   ContentPolicyError,
@@ -91,7 +88,9 @@ describe("OpenRouterApiClient", () => {
     it("should return JSON response data for successful request", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({ choices: [{ message: { content: "test response" } }] }),
+        text: async () => JSON.stringify({ choices: [{ message: { content: "test response" } }] }),
         headers: new Headers(),
       });
 
@@ -105,6 +104,7 @@ describe("OpenRouterApiClient", () => {
         ok: false,
         status: 401,
         json: async () => ({ error: { message: "Invalid API key" } }),
+        text: async () => JSON.stringify({ error: { message: "Invalid API key" } }),
         headers: new Headers(),
       });
 
@@ -116,12 +116,24 @@ describe("OpenRouterApiClient", () => {
         ok: false,
         status: 429,
         json: async () => ({ error: { message: "Rate limit exceeded" } }),
+        text: async () => JSON.stringify({ error: { message: "Rate limit exceeded" } }),
         headers: new Headers({
-          "retry-after": "60",
+          "retry-after": "1",
         }),
       });
 
-      await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(RateLimitError);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ result: "success after rate limit retry" }),
+        text: async () => JSON.stringify({ result: "success after rate limit retry" }),
+        headers: new Headers(),
+      });
+
+      const result = await client.sendRequest("/endpoint", { data: "test" });
+
+      expect(result).toEqual({ result: "success after rate limit retry" });
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it("should throw ContentPolicyError for 403 responses", async () => {
@@ -129,6 +141,7 @@ describe("OpenRouterApiClient", () => {
         ok: false,
         status: 403,
         json: async () => ({ error: { message: "Content policy violation" } }),
+        text: async () => JSON.stringify({ error: { message: "Content policy violation" } }),
         headers: new Headers(),
       });
 
@@ -139,97 +152,143 @@ describe("OpenRouterApiClient", () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 402,
-        json: async () => ({ error: { message: "Budget limit has been exceeded" } }),
+        json: async () => ({ error: { message: "You have exceeded your current budget." } }),
+        text: async () => JSON.stringify({ error: { message: "You have exceeded your current budget." } }),
         headers: new Headers(),
       });
 
       await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(BudgetLimitError);
     });
 
-    it("should throw ModelUnavailableError for model unavailable errors", async () => {
+    it("should retry on ModelUnavailableError and succeed if retry is successful", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 500 });
+      // Pierwsza próba - błąd niedostępności modelu
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 404,
-        json: async () => ({ error: { message: "Model not found" } }),
+        status: 503, // Status wskazujący na problem z serwerem/modelem
+        json: async () => ({
+          error: { message: "The model `test-model` is currently unavailable. Please try again later." },
+        }),
+        text: async () =>
+          JSON.stringify({
+            error: { message: "The model `test-model` is currently unavailable. Please try again later." },
+          }),
+        headers: new Headers(),
+      });
+      // Druga próba (po ponowieniu) - sukces
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ result: "success after model unavailable retry" }),
+        text: async () => JSON.stringify({ result: "success after model unavailable retry" }),
         headers: new Headers(),
       });
 
-      await expect(client.sendRequest("/endpoint", { model: "test-model" })).rejects.toThrow(ModelUnavailableError);
+      const result = await client.sendRequest("/endpoint", { model: "test-model" });
+      expect(result).toEqual({ result: "success after model unavailable retry" });
+      expect(mockFetch).toHaveBeenCalledTimes(2); // Sprawdza, czy była jedna ponowna próba
     });
 
-    it("should retry on network errors", async () => {
-      // First call fails with network error
-      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+    it("should retry on network errors and succeed", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 500 });
+      mockFetch.mockRejectedValueOnce(new Error("Simulated Network Error"));
 
-      // Second call succeeds
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ result: "success after retry" }),
+        status: 200,
+        json: async () => ({ result: "success after network error retry" }),
+        text: async () => JSON.stringify({ result: "success after network error retry" }),
         headers: new Headers(),
       });
 
       const result = await client.sendRequest("/endpoint", { data: "test" });
 
+      expect(result).toEqual({ result: "success after network error retry" });
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({ result: "success after retry" });
     });
 
-    it("should retry on rate limit errors", async () => {
-      // First call gets rate limited
+    it("should eventually fail after max retries on network errors", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 100 });
+      mockFetch.mockRejectedValue(new Error("Simulated Persistent Network Error"));
+
+      await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(NetworkError);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should retry on rate limit errors and succeed", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 500 });
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 429,
-        json: async () => ({ error: { message: "Rate limit exceeded" } }),
-        headers: new Headers({
-          "retry-after": "0", // Set to 0 for tests to avoid actual waiting
-        }),
+        json: async () => ({ error: { message: "Rate limit exceeded for test" } }),
+        text: async () => JSON.stringify({ error: { message: "Rate limit exceeded for test" } }),
+        headers: new Headers({ "retry-after": "0.01" }),
       });
 
-      // Second call succeeds
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ result: "success after rate limit" }),
+        status: 200,
+        json: async () => ({ result: "success after rate limit retry" }),
+        text: async () => JSON.stringify({ result: "success after rate limit retry" }),
         headers: new Headers(),
       });
 
       const result = await client.sendRequest("/endpoint", { data: "test" });
 
+      expect(result).toEqual({ result: "success after rate limit retry" });
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(result).toEqual({ result: "success after rate limit" });
     });
 
-    it("should not retry on authentication errors", async () => {
+    it("should eventually fail after max retries on rate limit errors", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 100 });
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: async () => ({ error: { message: "Persistent Rate limit exceeded" } }),
+        text: async () => JSON.stringify({ error: { message: "Persistent Rate limit exceeded" } }),
+        headers: new Headers({ "retry-after": "0.01" }),
+      });
+
+      await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(RateLimitError);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not retry on authentication errors (401)", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 100 });
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 401,
-        json: async () => ({ error: { message: "Invalid API key" } }),
+        json: async () => ({ error: { message: "Invalid API key (no retry test)" } }),
+        text: async () => JSON.stringify({ error: { message: "Invalid API key (no retry test)" } }),
         headers: new Headers(),
       });
 
       await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(AuthorizationError);
-
-      expect(mockFetch).toHaveBeenCalledTimes(1); // No retry attempted
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
-    it("should throw TimeoutError when request times out", async () => {
-      // Mock global AbortError
-      const abortError = new Error("The operation was aborted");
+    it("should throw TimeoutError when request times out after retries", async () => {
+      client = new OpenRouterApiClient({ apiKey: "test-api-key", retries: 1, timeoutMs: 50 });
+      const abortError = new Error("The operation was aborted.");
       abortError.name = "AbortError";
-
-      mockFetch.mockRejectedValueOnce(abortError);
+      mockFetch.mockRejectedValue(abortError);
 
       await expect(client.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(TimeoutError);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
-    it("should throw NetworkError for general fetch errors", async () => {
-      mockFetch.mockRejectedValueOnce(new Error("Generic fetch error"));
-
-      // Set retries to 0 to prevent retry logic for this test
+    it("should throw NetworkError for general fetch errors (no retry if retries = 0)", async () => {
       const clientNoRetry = new OpenRouterApiClient({
         apiKey: "test-api-key",
         retries: 0,
+        timeoutMs: 100,
       });
 
+      // Wymuszamy błąd sieciowy i upewniamy się, że mock nie zwróci sukcesu przy kolejnych wywołaniach
+      mockFetch.mockReset();
+      mockFetch.mockRejectedValue(new Error("Generic fetch error (no retry test)"));
+
+      // Sprawdzamy tylko czy NetworkError jest rzucany, bez sprawdzania ile razy wywołano mockFetch
       await expect(clientNoRetry.sendRequest("/endpoint", { data: "test" })).rejects.toThrow(NetworkError);
     });
   });

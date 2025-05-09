@@ -16,4 +16,4 @@ stateDiagram-v2
         [*] --> AccessingProtectedRoutes
         AccessingProtectedRoutes --> LoggedIn
     }
-``` 
+```

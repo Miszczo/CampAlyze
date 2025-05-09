@@ -1,7 +1,5 @@
 You are an expert application architect and technical writer. Your task is to update and complete the CampAlyze project documentation and configuration so that authentication is fully implemented using Supabase Auth—and only Supabase Auth—across PRD, API Plan, DB Plan and UI Plan. Produce a single, unambiguous prompt that can be fed to a large‐language model to perform these updates. Be as specific and actionable as possible.
 
-
-
 1. Unify authentication provider to Supabase (remove Firebase references in PRD).
 2. PRD (`.ai/prd.md`):
    - Remove any mention of Firebase Authentication.
@@ -53,4 +51,3 @@ You are an expert application architect and technical writer. Your task is to up
    - Sample request/response JSON for each new endpoint.
    - SQL migration snippets for DB changes.
    - Example `.env` file fragment.
-

@@ -9,6 +9,7 @@
 ## 2. Lista widoków
 
 - **Widok Rejestracji**
+
   - Ścieżka: `/register`
   - Główny cel: Rejestracja nowego użytkownika.
   - Kluczowe komponenty: Formularz (`email`, `password`, `confirm_password`, `full_name`), przycisk "Zarejestruj się", link do strony logowania.
@@ -19,6 +20,7 @@
   - UX: Czytelny formularz, jasne komunikaty, wskazówki dotyczące wymagań hasła.
 
 - **Widok Logowania**
+
   - Ścieżka: `/login`
   - Główny cel: Uwierzytelnienie istniejącego użytkownika.
   - Kluczowe komponenty: Formularz (`email`, `password`), przycisk "Zaloguj się", link do strony rejestracji, link do strony "Zapomniałem hasła".
@@ -29,6 +31,7 @@
   - UX: Prosty formularz, wyraźne komunikaty błędów, linki do powiązanych akcji.
 
 - **Widok Weryfikacji Emaila**
+
   - Ścieżka: `/verify-email`
   - Główny cel: Informowanie użytkownika o statusie weryfikacji emaila i umożliwienie ponownego wysłania linku.
   - Kluczowe informacje: Komunikat o konieczności weryfikacji, status weryfikacji (np. "Oczekuje na weryfikację", "Email zweryfikowany!"), informacja o wysłaniu linku.
@@ -38,6 +41,7 @@
   - UX: Jasne instrukcje, łatwy dostęp do ponownego wysłania linku.
 
 - **Widok Zapomniałem Hasła**
+
   - Ścieżka: `/forgot-password`
   - Główny cel: Umożliwienie użytkownikowi zainicjowania procesu resetowania hasła.
   - Kluczowe komponenty: Formularz (`email`), przycisk "Wyślij link resetujący", link do strony logowania.
@@ -48,6 +52,7 @@
   - UX: Minimalistyczny formularz, jasny komunikat o dalszych krokach.
 
 - **Widok Resetowania Hasła**
+
   - Ścieżka: `/reset-password` (oczekuje tokena jako parametru URL, np. `/reset-password?token=...` - Supabase może obsłużyć to inaczej, np. przez `#`)
   - Główny cel: Umożliwienie użytkownikowi ustawienia nowego hasła po kliknięciu linku resetującego.
   - Kluczowe komponenty: Formularz (`new_password`, `confirm_password`), przycisk "Ustaw nowe hasło".
@@ -58,6 +63,7 @@
   - UX: Bezpieczny formularz, jasne wymagania dotyczące nowego hasła.
 
 - **Dashboard**
+
   - Ścieżka: `/dashboard`
   - Główny cel: Przedstawienie kluczowych metryk kampanii oraz alertów.
   - Kluczowe informacje: Metryki (CPC, CTR, konwersje, koszt/konwersję, ROAS), wykresy trendów, lista alertów, filtry zakresu dat.
@@ -65,6 +71,7 @@
   - UX, dostępność i bezpieczeństwo: Automatyczne odświeżanie po imporcie danych, spinner podczas ładowania, toast notifications, responsywność, automatyczne wylogowanie po timeout.
 
 - **Widok Importu Danych**
+
   - Ścieżka: `/import`
   - Główny cel: Umożliwienie przesłania pliku z danymi oraz monitorowanie statusu importu.
   - Kluczowe informacje: Formularz przesyłania pliku, lista ostatnich importów z statusami, komunikaty o błędach.
@@ -72,6 +79,7 @@
   - UX, dostępność i bezpieczeństwo: Informacje o limitach rozmiaru plików, wizualne potwierdzenia sukcesu (toast), responsywność.
 
 - **Widok Kampanii**
+
   - Ścieżka: `/kampanie`
   - Główny cel: Przegląd i zarządzanie kampaniami.
   - Kluczowe informacje: Lista kampanii z możliwością sortowania po dacie, filtrowania po nazwie, akcje (podgląd, edycja, usunięcie).
@@ -79,6 +87,7 @@
   - UX, dostępność i bezpieczeństwo: Czytelny układ listy, responsywny design, feedback (toast notifications) dla operacji.
 
 - **Widok Dziennika Zmian**
+
   - Ścieżka: `/dziennik-zmian`
   - Główny cel: Przeglądanie historii zmian dokonanych w kampaniach.
   - Kluczowe informacje: Data zmiany, typ zmiany, opis, użytkownik dokonujący zmiany.
@@ -86,6 +95,7 @@
   - UX, dostępność i bezpieczeństwo: Czytelny układ umożliwiający szybkie wyszukiwanie i sortowanie, responsywność.
 
 - **Widok Alertów**
+
   - Ścieżka: `/alerty`
   - Główny cel: Przegląd alertów dotyczących kampanii.
   - Kluczowe informacje: Szczegóły alertów (metryki, status, data), opcje aktualizacji statusu.
@@ -93,6 +103,7 @@
   - UX, dostępność i bezpieczeństwo: Jasne oznaczenie krytycznych alertów, intuicyjne akcje, responsywność.
 
 - **Widok Eksportu Danych**
+
   - Ścieżka: `/eksport`
   - Główny cel: Umożliwienie eksportu danych w wybranych formatach.
   - Kluczowe informacje: Wybór zakresu dat, format eksportu (CSV, XLSX, PDF).
@@ -138,4 +149,4 @@
 - **Formularze**: Stosowane w widokach logowania, importu danych, eksportu oraz generowania raportów.
 - **Tabele/Listy**: Prezentacja list kampanii, importów, alertów i dziennika zmian z funkcjami sortowania, filtrowania i paginacji.
 - **Wykresy**: Wizualizacja metryk i trendów na dashboardzie.
-- **Sidebar**: Globalny element nawigacyjny umożliwiający przechodzenie między widokami. 
+- **Sidebar**: Globalny element nawigacyjny umożliwiający przechodzenie między widokami.

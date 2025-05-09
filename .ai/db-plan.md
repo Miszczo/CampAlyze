@@ -3,6 +3,7 @@
 ## 1. Tabele z kolumnami, typami danych i ograniczeniami
 
 ### 1.1. Tabela `organizations`
+
 ```sql
 CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -13,6 +14,7 @@ CREATE TABLE organizations (
 ```
 
 ### 1.2. Tabela `user_organizations`
+
 ```sql
 CREATE TABLE user_organizations (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -24,6 +26,7 @@ CREATE TABLE user_organizations (
 ```
 
 ### 1.3. Tabela `platforms`
+
 ```sql
 CREATE TABLE platforms (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -33,12 +36,13 @@ CREATE TABLE platforms (
 );
 
 -- Inicjalizacja platform
-INSERT INTO platforms (name, display_name) VALUES 
+INSERT INTO platforms (name, display_name) VALUES
 ('google_ads', 'Google Ads'),
 ('meta_ads', 'Meta Ads');
 ```
 
 ### 1.4. Tabela `campaigns`
+
 ```sql
 CREATE TABLE campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -56,6 +60,7 @@ CREATE TABLE campaigns (
 ```
 
 ### 1.5. Tabela `metrics`
+
 ```sql
 CREATE TABLE metrics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,6 +78,7 @@ CREATE TABLE metrics (
 ```
 
 ### 1.6. Tabela `imports`
+
 ```sql
 CREATE TABLE imports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -91,6 +97,7 @@ CREATE TABLE imports (
 ```
 
 ### 1.7. Tabela `campaign_changes`
+
 ```sql
 CREATE TABLE campaign_changes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,6 +115,7 @@ CREATE TABLE campaign_changes (
 ```
 
 ### 1.8. Tabela `ai_insights`
+
 ```sql
 CREATE TABLE ai_insights (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -124,6 +132,7 @@ CREATE TABLE ai_insights (
 ```
 
 ### 1.9. Tabela `user_preferences`
+
 ```sql
 CREATE TABLE user_preferences (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -135,6 +144,7 @@ CREATE TABLE user_preferences (
 ## 2. Relacje między tabelami
 
 ### 2.1. Relacje jeden-do-wielu (1:N)
+
 - `organizations` 1:N `campaigns`
 - `organizations` 1:N `imports`
 - `organizations` 1:N `ai_insights`
@@ -143,6 +153,7 @@ CREATE TABLE user_preferences (
 - `platforms` 1:N `campaigns`
 
 ### 2.2. Relacje wiele-do-wielu (N:M)
+
 - `auth.users` N:M `organizations` (przez tabelę `user_organizations`)
 
 ## 3. Indeksy
@@ -158,7 +169,7 @@ CREATE INDEX idx_metrics_date ON metrics(date);
 CREATE INDEX idx_metrics_campaign_date ON metrics(campaign_id, date);
 
 CREATE INDEX idx_campaign_changes_campaign_id ON campaign_changes(campaign_id);
-CREATE INDEX idx_campaign_changes_verification_date ON campaign_changes(verification_date) 
+CREATE INDEX idx_campaign_changes_verification_date ON campaign_changes(verification_date)
   WHERE verification_date IS NOT NULL AND verified = FALSE;
 
 CREATE INDEX idx_ai_insights_organization_id ON ai_insights(organization_id);
@@ -229,18 +240,20 @@ ORDER BY
 -- We need to add 'failed_login_count' and 'locked_until' to user_metadata.
 
 -- Example function to update user metadata (run by service role key):
-/*
+/\*
 CREATE OR REPLACE FUNCTION update_user_metadata(user_id uuid, new_metadata jsonb)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  UPDATE auth.users
-  SET raw_user_meta_data = raw_user_meta_data || new_metadata
-  WHERE id = user_id;
+UPDATE auth.users
+SET raw_user_meta_data = raw_user_meta_data || new_metadata
+WHERE id = user_id;
 END;
-$$;
+
+$$
+;
 */
 
 -- SQL snippet to add metadata fields during registration or first login attempt:
@@ -263,11 +276,11 @@ CREATE POLICY "Allow public read access" ON platforms FOR SELECT USING (true);
 
 
 -- Polityka dla user_organizations
-CREATE POLICY "Users can view their own organization memberships" 
+CREATE POLICY "Users can view their own organization memberships"
 ON user_organizations FOR SELECT
 USING (user_id = auth.uid());
 
-CREATE POLICY "Admins can manage organization memberships" 
+CREATE POLICY "Admins can manage organization memberships"
 ON user_organizations FOR ALL
 USING (
   auth.uid() IN (
@@ -286,7 +299,7 @@ WITH CHECK (
 
 -- Polityka dla organizations (aktualizacja)
 DROP POLICY IF EXISTS "Users can view their organizations" ON organizations;
-CREATE POLICY "Users can view organizations they belong to" 
+CREATE POLICY "Users can view organizations they belong to"
 ON organizations FOR SELECT
 USING (
   id IN (
@@ -295,13 +308,13 @@ USING (
 );
 
 DROP POLICY IF EXISTS "Admins can insert organizations" ON organizations;
-CREATE POLICY "Authenticated users can insert organizations" 
+CREATE POLICY "Authenticated users can insert organizations"
 ON organizations FOR INSERT
 WITH CHECK ( auth.role() = 'authenticated' );
 -- Tworzenie organizacji powinno automatycznie dodać twórcę jako admina w user_organizations (logika backendu)
 
 DROP POLICY IF EXISTS "Admins can update their organizations" ON organizations;
-CREATE POLICY "Organization admins can update their organizations" 
+CREATE POLICY "Organization admins can update their organizations"
 ON organizations FOR UPDATE
 USING (
   auth.uid() IN (
@@ -315,7 +328,7 @@ WITH CHECK (
 );
 
 -- Polityka dla campaigns
-CREATE POLICY "Users can view campaigns in their organizations" 
+CREATE POLICY "Users can view campaigns in their organizations"
 ON campaigns FOR SELECT
 USING (
   organization_id IN (
@@ -324,7 +337,7 @@ USING (
   AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "Organization editors/admins can manage campaigns" 
+CREATE POLICY "Organization editors/admins can manage campaigns"
 ON campaigns FOR ALL
 USING (
   organization_id IN (
@@ -340,7 +353,7 @@ WITH CHECK (
 );
 
 -- Polityka dla metrics
-CREATE POLICY "Users can view metrics for campaigns in their organizations" 
+CREATE POLICY "Users can view metrics for campaigns in their organizations"
 ON metrics FOR SELECT
 USING (
   campaign_id IN (
@@ -351,12 +364,12 @@ USING (
   AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "System/Backend can insert metrics" 
+CREATE POLICY "System/Backend can insert metrics"
 ON metrics FOR INSERT
 WITH CHECK ( auth.role() = 'service_role' ); -- Only backend/service role can insert raw metrics
 
 -- Polityka dla imports
-CREATE POLICY "Users can manage imports in their organizations" 
+CREATE POLICY "Users can manage imports in their organizations"
 ON imports FOR ALL
 USING (
   organization_id IN (
@@ -373,7 +386,7 @@ WITH CHECK (
 );
 
 -- Polityka dla campaign_changes
-CREATE POLICY "Users can view changes for campaigns in their organizations" 
+CREATE POLICY "Users can view changes for campaigns in their organizations"
 ON campaign_changes FOR SELECT
 USING (
   campaign_id IN (
@@ -384,7 +397,7 @@ USING (
   AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "Organization editors/admins can manage campaign changes" 
+CREATE POLICY "Organization editors/admins can manage campaign changes"
 ON campaign_changes FOR ALL
 USING (
   campaign_id IN (
@@ -405,7 +418,7 @@ WITH CHECK (
 );
 
 -- Polityka dla ai_insights
-CREATE POLICY "Users can view insights for their organizations" 
+CREATE POLICY "Users can view insights for their organizations"
 ON ai_insights FOR SELECT
 USING (
   organization_id IN (
@@ -414,13 +427,13 @@ USING (
   AND auth.email_confirmed_at IS NOT NULL -- Require verified email
 );
 
-CREATE POLICY "System/Backend can manage AI insights" 
+CREATE POLICY "System/Backend can manage AI insights"
 ON ai_insights FOR ALL
 USING ( auth.role() = 'service_role' ) -- Only backend/service role
 WITH CHECK ( auth.role() = 'service_role' );
 
 -- Polityka dla user_preferences
-CREATE POLICY "Users can manage their own preferences" 
+CREATE POLICY "Users can manage their own preferences"
 ON user_preferences FOR ALL
 USING ( user_id = auth.uid() )
 WITH CHECK ( user_id = auth.uid() );
@@ -440,12 +453,16 @@ WITH CHECK ( user_id = auth.uid() );
 ```sql
 -- Funkcja aktualizująca pole updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS
+$$
+
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+NEW.updated_at = NOW();
+RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+
+$$
+LANGUAGE plpgsql;
 
 -- Wyzwalacze dla aktualizacji updated_at
 CREATE TRIGGER update_organizations_updated_at
@@ -483,4 +500,5 @@ EXECUTE FUNCTION update_updated_at_column();
    - Wsparcie dla nowych platform reklamowych
    - Bardziej zaawansowane alerty i notyfikacje
 
-5. **Uwaga implementacyjna**: Schemat korzysta z wbudowanych funkcji Supabase, w tym auth.users dla zarządzania użytkownikami i autoryzacją. 
+5. **Uwaga implementacyjna**: Schemat korzysta z wbudowanych funkcji Supabase, w tym auth.users dla zarządzania użytkownikami i autoryzacją.
+$$

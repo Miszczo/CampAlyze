@@ -5,6 +5,7 @@
 Usługa OpenRouter to integracyjna warstwa służąca do komunikacji z API OpenRouter, które zapewnia dostęp do różnych modeli LLM (Large Language Models) poprzez jeden zunifikowany interfejs. Usługa ta będzie kluczowym komponentem aplikacji campAlyze, umożliwiającym generowanie automatycznych podsumowań kampanii reklamowych, wykrywanie anomalii w danych, tworzenie rekomendacji optymalizacyjnych oraz generowanie raportów z wnioskami.
 
 Główne funkcje usługi:
+
 - Zunifikowany dostęp do różnych modeli AI (OpenAI, Anthropic, Google i inne)
 - Dynamiczny wybór modeli w zależności od zadania, priorytetu i budżetu
 - Formatowanie zapytań i odpowiedzi zgodnie z wymaganiami API OpenRouter
@@ -22,7 +23,7 @@ Główne funkcje usługi:
 class OpenRouterService {
   /**
    * Tworzy nową instancję usługi OpenRouter
-   * 
+   *
    * @param config - Konfiguracja usługi
    * @param config.apiKey - Klucz API do usługi OpenRouter
    * @param config.defaultModel - Domyślny model do używania, jeśli nie określono inaczej
@@ -46,19 +47,19 @@ Typ konfiguracji:
 interface OpenRouterConfig {
   /** Klucz API do usługi OpenRouter */
   apiKey: string;
-  
+
   /** Domyślny model do używania, jeśli nie określono inaczej */
   defaultModel: string;
-  
+
   /** Rejestr dostępnych modeli z ich parametrami */
   modelRegistry?: ModelRegistry;
-  
+
   /** Miesięczny limit budżetu w USD (opcjonalny) */
   budgetLimit?: number;
-  
+
   /** Opcje mechanizmu cache (opcjonalny) */
   cacheOptions?: CacheOptions;
-  
+
   /** Opcje strategii ponownych prób (opcjonalny) */
   retryOptions?: RetryOptions;
 }
@@ -71,7 +72,7 @@ interface OpenRouterConfig {
 ```typescript
 /**
  * Wysyła zapytanie do modelu AI z określonymi parametrami
- * 
+ *
  * @param params - Parametry zapytania
  * @returns Odpowiedź z modelu AI
  * @throws OpenRouterError w przypadku wystąpienia błędu
@@ -80,7 +81,7 @@ async query(params: QueryParams): Promise<ModelResponse>
 
 /**
  * Generuje analizę kampanii reklamowej na podstawie dostarczonych danych
- * 
+ *
  * @param data - Dane kampanii do analizy
  * @param options - Opcje analizy (opcjonalne)
  * @returns Obiekt zawierający analizę kampanii
@@ -90,7 +91,7 @@ async analyzeCampaign(data: CampaignData, options?: AnalysisOptions): Promise<Ca
 
 /**
  * Generuje rekomendacje optymalizacyjne dla kampanii reklamowej
- * 
+ *
  * @param data - Dane kampanii do optymalizacji
  * @param options - Opcje rekomendacji (opcjonalne)
  * @returns Obiekt zawierający rekomendacje optymalizacyjne
@@ -100,7 +101,7 @@ async generateOptimizationRecommendations(data: CampaignData, options?: Recommen
 
 /**
  * Wykrywa anomalie w danych kampanii reklamowej
- * 
+ *
  * @param data - Dane kampanii do analizy anomalii
  * @param options - Opcje wykrywania anomalii (opcjonalne)
  * @returns Obiekt zawierający wykryte anomalie
@@ -110,7 +111,7 @@ async detectAnomalies(data: CampaignData, options?: AnomalyDetectionOptions): Pr
 
 /**
  * Generuje raport z analizy kampanii reklamowej
- * 
+ *
  * @param data - Dane kampanii do raportu
  * @param options - Opcje raportu (opcjonalne)
  * @returns Obiekt zawierający wygenerowany raport
@@ -120,7 +121,7 @@ async generateReport(data: CampaignData, options?: ReportOptions): Promise<Campa
 
 /**
  * Pobiera informacje o aktualnym zużyciu API
- * 
+ *
  * @returns Obiekt zawierający informacje o zużyciu
  * @throws OpenRouterError w przypadku wystąpienia błędu
  */
@@ -128,7 +129,7 @@ async getUsageInfo(): Promise<UsageInfo>
 
 /**
  * Pobiera dostępne modele z API OpenRouter
- * 
+ *
  * @returns Lista dostępnych modeli
  * @throws OpenRouterError w przypadku wystąpienia błędu
  */
@@ -136,7 +137,7 @@ async getAvailableModels(): Promise<Model[]>
 
 /**
  * Zmienia domyślny model używany przez usługę
- * 
+ *
  * @param modelName - Nazwa modelu do ustawienia jako domyślny
  * @throws OpenRouterError w przypadku gdy model jest niedostępny
  */
@@ -144,14 +145,14 @@ setDefaultModel(modelName: string): void
 
 /**
  * Ustawia limit budżetu miesięcznego dla usługi
- * 
+ *
  * @param limitUSD - Limit w USD
  */
 setBudgetLimit(limitUSD: number): void
 
 /**
  * Przetwarza dane wejściowe do formatu odpowiedniego dla API OpenRouter
- * 
+ *
  * @param input - Dane wejściowe do przetworzenia
  * @param options - Opcje przetwarzania (opcjonalne)
  * @returns Przetworzone dane gotowe do wysłania do API
@@ -162,7 +163,7 @@ prepareInputData(input: any, options?: ProcessingOptions): FormattedInput
 ### 3.2 Pola Publiczne
 
 ```typescript
-/** 
+/**
  * Domyślny model używany przez usługę
  */
 readonly defaultModel: string;
@@ -190,7 +191,7 @@ readonly modelRegistry: ModelRegistry;
 ```typescript
 /**
  * Wysyła żądanie do API OpenRouter
- * 
+ *
  * @param endpoint - Punkt końcowy API
  * @param payload - Dane do wysłania
  * @returns Odpowiedź z API
@@ -200,7 +201,7 @@ private async _sendRequest(endpoint: string, payload: any): Promise<any>
 
 /**
  * Wybiera optymalny model dla danego zadania na podstawie jego typu, priorytetu i aktualnego zużycia budżetu
- * 
+ *
  * @param task - Typ zadania
  * @param priority - Priorytet zadania (opcjonalny)
  * @returns Nazwa wybranego modelu
@@ -209,7 +210,7 @@ private _selectOptimalModel(task: TaskType, priority?: Priority): string
 
 /**
  * Przygotowuje parametry modelu na podstawie typu zadania i kontekstu
- * 
+ *
  * @param task - Typ zadania
  * @param context - Kontekst zadania (opcjonalny)
  * @returns Parametry modelu
@@ -218,7 +219,7 @@ private _prepareModelParameters(task: TaskType, context?: TaskContext): ModelPar
 
 /**
  * Generuje odpowiedni prompt systemowy dla danego zadania
- * 
+ *
  * @param task - Typ zadania
  * @param context - Kontekst zadania (opcjonalny)
  * @returns Wygenerowany prompt systemowy
@@ -227,7 +228,7 @@ private _generateSystemPrompt(task: TaskType, context?: TaskContext): string
 
 /**
  * Formatuje dane użytkownika do wiadomości zgodnej z API OpenRouter
- * 
+ *
  * @param data - Dane użytkownika
  * @param task - Typ zadania
  * @returns Sformatowana wiadomość użytkownika
@@ -236,7 +237,7 @@ private _formatUserMessage(data: any, task: TaskType): UserMessage
 
 /**
  * Przygotowuje schemat JSON dla strukturyzowanej odpowiedzi
- * 
+ *
  * @param task - Typ zadania
  * @returns Schema JSON do użycia w response_format
  */
@@ -244,7 +245,7 @@ private _prepareResponseFormat(task: TaskType): ResponseFormat
 
 /**
  * Waliduje odpowiedź z modelu względem oczekiwanego schematu
- * 
+ *
  * @param response - Odpowiedź z modelu
  * @param schema - Schemat do walidacji
  * @returns Zwalidowana odpowiedź lub rzuca wyjątek w przypadku niepowodzenia
@@ -254,21 +255,21 @@ private _validateResponse(response: any, schema: object): any
 
 /**
  * Aktualizuje statystyki wykorzystania API
- * 
+ *
  * @param usageData - Dane o wykorzystaniu API
  */
 private _updateUsageStats(usageData: UsageData): void
 
 /**
  * Sprawdza, czy nie przekroczono limitu budżetu
- * 
+ *
  * @returns true jeśli limit nie został przekroczony, false w przeciwnym wypadku
  */
 private _checkBudgetLimit(): boolean
 
 /**
  * Implementuje logikę ponownych prób w przypadku tymczasowych błędów
- * 
+ *
  * @param operation - Funkcja do wykonania
  * @param options - Opcje ponownych prób (opcjonalne)
  * @returns Wynik wykonania funkcji
@@ -278,7 +279,7 @@ private async _withRetry<T>(operation: () => Promise<T>, options?: RetryOptions)
 
 /**
  * Obsługuje odpowiedź z API i mapuje błędy na odpowiednie typy wyjątków
- * 
+ *
  * @param response - Odpowiedź z API
  * @returns Przetworzona odpowiedź
  * @throws OpenRouterError w przypadku błędu API
@@ -287,7 +288,7 @@ private _handleApiResponse(response: any): any
 
 /**
  * Sprawdza dostępność cache dla danego zapytania
- * 
+ *
  * @param query - Zapytanie do sprawdzenia
  * @returns Wynik z cache lub null jeśli brak w cache
  */
@@ -295,7 +296,7 @@ private _checkCache(query: string): any | null
 
 /**
  * Zapisuje wynik zapytania do cache
- * 
+ *
  * @param query - Zapytanie do zapisania
  * @param result - Wynik do zapisania
  */
@@ -360,9 +361,13 @@ private _systemPromptTemplates: Record<TaskType, string>;
  * Bazowa klasa błędu dla usługi OpenRouter
  */
 class OpenRouterError extends Error {
-  constructor(message: string, public code: string, public cause?: Error) {
+  constructor(
+    message: string,
+    public code: string,
+    public cause?: Error
+  ) {
     super(message);
-    this.name = 'OpenRouterError';
+    this.name = "OpenRouterError";
   }
 }
 
@@ -371,8 +376,8 @@ class OpenRouterError extends Error {
  */
 class AuthorizationError extends OpenRouterError {
   constructor(message: string, cause?: Error) {
-    super(message, 'AUTHORIZATION_ERROR', cause);
-    this.name = 'AuthorizationError';
+    super(message, "AUTHORIZATION_ERROR", cause);
+    this.name = "AuthorizationError";
   }
 }
 
@@ -380,9 +385,13 @@ class AuthorizationError extends OpenRouterError {
  * Błąd przekroczenia limitu
  */
 class RateLimitError extends OpenRouterError {
-  constructor(message: string, public retryAfter?: number, cause?: Error) {
-    super(message, 'RATE_LIMIT_ERROR', cause);
-    this.name = 'RateLimitError';
+  constructor(
+    message: string,
+    public retryAfter?: number,
+    cause?: Error
+  ) {
+    super(message, "RATE_LIMIT_ERROR", cause);
+    this.name = "RateLimitError";
   }
 }
 
@@ -390,9 +399,13 @@ class RateLimitError extends OpenRouterError {
  * Błąd przekroczenia budżetu
  */
 class BudgetLimitError extends OpenRouterError {
-  constructor(message: string, public currentUsage: number, public limit: number) {
-    super(message, 'BUDGET_LIMIT_ERROR');
-    this.name = 'BudgetLimitError';
+  constructor(
+    message: string,
+    public currentUsage: number,
+    public limit: number
+  ) {
+    super(message, "BUDGET_LIMIT_ERROR");
+    this.name = "BudgetLimitError";
   }
 }
 
@@ -400,9 +413,13 @@ class BudgetLimitError extends OpenRouterError {
  * Błąd niedostępności modelu
  */
 class ModelUnavailableError extends OpenRouterError {
-  constructor(message: string, public modelName: string, cause?: Error) {
-    super(message, 'MODEL_UNAVAILABLE_ERROR', cause);
-    this.name = 'ModelUnavailableError';
+  constructor(
+    message: string,
+    public modelName: string,
+    cause?: Error
+  ) {
+    super(message, "MODEL_UNAVAILABLE_ERROR", cause);
+    this.name = "ModelUnavailableError";
   }
 }
 
@@ -410,9 +427,13 @@ class ModelUnavailableError extends OpenRouterError {
  * Błąd walidacji odpowiedzi
  */
 class ValidationError extends OpenRouterError {
-  constructor(message: string, public response: any, public schema: object) {
-    super(message, 'VALIDATION_ERROR');
-    this.name = 'ValidationError';
+  constructor(
+    message: string,
+    public response: any,
+    public schema: object
+  ) {
+    super(message, "VALIDATION_ERROR");
+    this.name = "ValidationError";
   }
 }
 
@@ -421,8 +442,8 @@ class ValidationError extends OpenRouterError {
  */
 class NetworkError extends OpenRouterError {
   constructor(message: string, cause?: Error) {
-    super(message, 'NETWORK_ERROR', cause);
-    this.name = 'NetworkError';
+    super(message, "NETWORK_ERROR", cause);
+    this.name = "NetworkError";
   }
 }
 
@@ -430,9 +451,13 @@ class NetworkError extends OpenRouterError {
  * Błąd przekroczenia czasu
  */
 class TimeoutError extends OpenRouterError {
-  constructor(message: string, public timeoutMs: number, cause?: Error) {
-    super(message, 'TIMEOUT_ERROR', cause);
-    this.name = 'TimeoutError';
+  constructor(
+    message: string,
+    public timeoutMs: number,
+    cause?: Error
+  ) {
+    super(message, "TIMEOUT_ERROR", cause);
+    this.name = "TimeoutError";
   }
 }
 
@@ -440,9 +465,13 @@ class TimeoutError extends OpenRouterError {
  * Błąd naruszenia polityki treści
  */
 class ContentPolicyError extends OpenRouterError {
-  constructor(message: string, public violationType: string, cause?: Error) {
-    super(message, 'CONTENT_POLICY_ERROR', cause);
-    this.name = 'ContentPolicyError';
+  constructor(
+    message: string,
+    public violationType: string,
+    cause?: Error
+  ) {
+    super(message, "CONTENT_POLICY_ERROR", cause);
+    this.name = "ContentPolicyError";
   }
 }
 ```
@@ -451,29 +480,35 @@ class ContentPolicyError extends OpenRouterError {
 
 1. **Błędy Autoryzacji**: Natychmiastowe powiadomienie użytkownika o potrzebie aktualizacji klucza API lub problemach z autoryzacją.
 
-2. **Przekroczenie Limitu (Rate Limiting)**: 
+2. **Przekroczenie Limitu (Rate Limiting)**:
+
    - Implementacja wykładniczego wycofania (exponential backoff)
    - Ponowne próby z rosnącymi opóźnieniami
    - Respektowanie nagłówków 'Retry-After' jeśli są dostępne
 
 3. **Przekroczenie Budżetu**:
+
    - Przełączenie na tańsze modele
    - Ograniczenie funkcjonalności wymagających drogich modeli
    - Powiadomienie administratora o zbliżaniu się do limitu (80% wykorzystania)
 
 4. **Niedostępność Modelu**:
+
    - Automatyczne przełączenie na alternatywny model o podobnych możliwościach
    - Degradacja do modelu niższej klasy w przypadku braku alternatyw
 
 5. **Błędy Walidacji**:
+
    - Ponowne próby z poprawionymi parametrami
    - Przełączenie na model, który lepiej obsługuje strukturyzowane odpowiedzi
 
 6. **Błędy Sieci**:
+
    - Strategia ponownych prób z wykładniczym wycofaniem
    - Przełączenie na lokalny tryb offline dla krytycznych funkcji
 
 7. **Przekroczenie Czasu**:
+
    - Zwiększenie limitu czasu dla kolejnych prób
    - Możliwość anulowania długotrwałych operacji przez użytkownika
 
@@ -534,13 +569,14 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 2: Implementacja Klienta API
 
 1. Utworzenie klasy bazowej klienta API z obsługą autoryzacji:
+
    ```typescript
    // src/lib/ai/openrouter/api-client.ts
    export class OpenRouterApiClient {
-     private readonly baseUrl = 'https://openrouter.ai/api/v1';
-     
+     private readonly baseUrl = "https://openrouter.ai/api/v1";
+
      constructor(private apiKey: string) {}
-     
+
      async sendRequest(endpoint: string, payload: any): Promise<any> {
        // Implementacja logiki wysyłania zapytań do API
      }
@@ -548,57 +584,58 @@ class ContentPolicyError extends OpenRouterError {
    ```
 
 2. Implementacja mechanizmu retry i obsługi błędów:
+
    ```typescript
    // src/lib/ai/openrouter/retry-handler.ts
    export class RetryHandler {
-     async withRetry<T>(
-       operation: () => Promise<T>, 
-       options?: RetryOptions
-     ): Promise<T> {
+     async withRetry<T>(operation: () => Promise<T>, options?: RetryOptions): Promise<T> {
        // Implementacja logiki ponownych prób
      }
    }
    ```
 
 3. Utworzenie hierarchii klas błędów:
+
    ```typescript
    // src/lib/ai/openrouter/errors.ts
    export class OpenRouterError extends Error {
      // Implementacja bazowej klasy błędów
    }
-   
+
    // Implementacja pozostałych klas błędów
    ```
 
 ### Krok 3: Implementacja Managera Modeli
 
 1. Utworzenie rejestru modeli z konfiguracjami:
+
    ```typescript
    // src/lib/ai/openrouter/model-registry.ts
    export class ModelRegistry {
      private models: Record<string, ModelConfig> = {
-       'openai/gpt-3.5-turbo': {
-         capabilities: ['quick_analysis', 'summarization'],
+       "openai/gpt-3.5-turbo": {
+         capabilities: ["quick_analysis", "summarization"],
          costPer1kTokens: 0.001,
          // Inne parametry modelu
        },
-       'openai/gpt-4': {
-         capabilities: ['deep_analysis', 'recommendations', 'anomaly_detection'],
+       "openai/gpt-4": {
+         capabilities: ["deep_analysis", "recommendations", "anomaly_detection"],
          costPer1kTokens: 0.03,
          // Inne parametry modelu
        },
        // Inne modele
      };
-     
+
      getModel(name: string): ModelConfig | undefined {
        return this.models[name];
      }
-     
+
      // Inne metody rejestru modeli
    }
    ```
 
 2. Implementacja logiki wyboru modelu:
+
    ```typescript
    // src/lib/ai/openrouter/model-selector.ts
    export class ModelSelector {
@@ -606,7 +643,7 @@ class ContentPolicyError extends OpenRouterError {
        private registry: ModelRegistry,
        private usageTracker: UsageTracker
      ) {}
-     
+
      selectModel(task: TaskType, priority?: Priority): string {
        // Implementacja logiki wyboru modelu
      }
@@ -616,6 +653,7 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 4: Implementacja Formatterów Wiadomości
 
 1. Utworzenie generatora promptów systemowych:
+
    ```typescript
    // src/lib/ai/openrouter/system-prompt-generator.ts
    export class SystemPromptGenerator {
@@ -623,7 +661,7 @@ class ContentPolicyError extends OpenRouterError {
        campaign_analysis: "Jesteś ekspertem w analizie kampanii reklamowych...",
        // Inne szablony promptów
      };
-     
+
      generatePrompt(task: TaskType, context?: TaskContext): string {
        // Implementacja generatora promptów
      }
@@ -631,6 +669,7 @@ class ContentPolicyError extends OpenRouterError {
    ```
 
 2. Implementacja formattera wiadomości użytkownika:
+
    ```typescript
    // src/lib/ai/openrouter/user-message-formatter.ts
    export class UserMessageFormatter {
@@ -649,7 +688,7 @@ class ContentPolicyError extends OpenRouterError {
        required: ["summary", "key_findings", "recommendations"],
        properties: {
          // Definicja schematu
-       }
+       },
      },
      // Inne schematy
    };
@@ -658,15 +697,16 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 5: Implementacja Monitorowania Wykorzystania
 
 1. Utworzenie trackera wykorzystania API:
+
    ```typescript
    // src/lib/ai/openrouter/usage-tracker.ts
    export class UsageTracker {
      private currentMonthUsage = 0;
-     
+
      trackUsage(tokens: number, modelName: string): void {
        // Implementacja śledzenia wykorzystania
      }
-     
+
      checkBudgetLimit(budgetLimit: number): boolean {
        // Implementacja sprawdzania limitu budżetu
      }
@@ -674,15 +714,16 @@ class ContentPolicyError extends OpenRouterError {
    ```
 
 2. Integracja z bazą danych Supabase dla persistent storage:
+
    ```typescript
    // src/lib/ai/openrouter/usage-storage.ts
    export class UsageStorage {
      constructor(private supabaseClient: SupabaseClient) {}
-     
+
      async saveUsage(usageData: UsageData): Promise<void> {
        // Implementacja zapisu danych wykorzystania
      }
-     
+
      async getMonthlyUsage(): Promise<number> {
        // Implementacja pobierania miesięcznego wykorzystania
      }
@@ -692,19 +733,20 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 6: Implementacja Cache
 
 1. Utworzenie managera cache:
+
    ```typescript
    // src/lib/ai/openrouter/cache-manager.ts
    export class CacheManager {
      private cache = new Map<string, CachedItem>();
-     
+
      get(key: string): any | null {
        // Implementacja pobierania z cache
      }
-     
+
      set(key: string, value: any, ttl: number): void {
        // Implementacja zapisu do cache
      }
-     
+
      generateKey(query: any): string {
        // Implementacja generowania klucza cache
      }
@@ -712,15 +754,16 @@ class ContentPolicyError extends OpenRouterError {
    ```
 
 2. Integracja z bazą danych dla trwałego cache:
+
    ```typescript
    // src/lib/ai/openrouter/persistent-cache.ts
    export class PersistentCache {
      constructor(private supabaseClient: SupabaseClient) {}
-     
+
      async get(key: string): Promise<any | null> {
        // Implementacja pobierania z trwałego cache
      }
-     
+
      async set(key: string, value: any, ttl: number): Promise<void> {
        // Implementacja zapisu do trwałego cache
      }
@@ -730,19 +773,20 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 7: Implementacja Głównej Klasy Usługi
 
 1. Połączenie wszystkich komponentów w główną klasę usługi:
+
    ```typescript
    // src/lib/ai/openrouter/index.ts
-   import { OpenRouterApiClient } from './api-client';
-   import { ModelRegistry } from './model-registry';
-   import { ModelSelector } from './model-selector';
-   import { SystemPromptGenerator } from './system-prompt-generator';
-   import { UserMessageFormatter } from './user-message-formatter';
-   import { UsageTracker } from './usage-tracker';
-   import { CacheManager } from './cache-manager';
-   import { RetryHandler } from './retry-handler';
-   import { responseSchemas } from './response-schemas';
-   import type { OpenRouterConfig, QueryParams, ModelResponse } from './types';
-   
+   import { OpenRouterApiClient } from "./api-client";
+   import { ModelRegistry } from "./model-registry";
+   import { ModelSelector } from "./model-selector";
+   import { SystemPromptGenerator } from "./system-prompt-generator";
+   import { UserMessageFormatter } from "./user-message-formatter";
+   import { UsageTracker } from "./usage-tracker";
+   import { CacheManager } from "./cache-manager";
+   import { RetryHandler } from "./retry-handler";
+   import { responseSchemas } from "./response-schemas";
+   import type { OpenRouterConfig, QueryParams, ModelResponse } from "./types";
+
    export class OpenRouterService {
      private apiClient: OpenRouterApiClient;
      private modelRegistry: ModelRegistry;
@@ -752,48 +796,50 @@ class ContentPolicyError extends OpenRouterError {
      private usageTracker: UsageTracker;
      private cacheManager: CacheManager;
      private retryHandler: RetryHandler;
-     
+
      constructor(config: OpenRouterConfig) {
        // Inicjalizacja komponentów
      }
-     
+
      // Implementacja metod publicznych
-     
+
      // Implementacja metod prywatnych
    }
    ```
 
 2. Utworzenie typów danych dla usługi:
+
    ```typescript
    // src/lib/ai/openrouter/types.ts
    export interface OpenRouterConfig {
      // Definicja typu konfiguracji
    }
-   
+
    export interface QueryParams {
      // Definicja typu parametrów zapytania
    }
-   
+
    export interface ModelResponse {
      // Definicja typu odpowiedzi modelu
    }
-   
+
    // Pozostałe definicje typów
    ```
 
 ### Krok 8: Implementacja Metod Domenowych Dla Konkretnych Przypadków Użycia
 
 1. Implementacja metody analizy kampanii:
+
    ```typescript
    // Wewnątrz klasy OpenRouterService w src/lib/ai/openrouter/index.ts
-   
+
    async analyzeCampaign(data: CampaignData, options?: AnalysisOptions): Promise<CampaignAnalysis> {
      const task = 'campaign_analysis';
      const model = this._selectOptimalModel(task, options?.priority);
      const systemPrompt = this._generateSystemPrompt(task, { campaignType: data.type });
      const userMessage = this._formatUserMessage(data, task);
      const responseFormat = this._prepareResponseFormat(task);
-     
+
      const params = {
        model,
        messages: [
@@ -804,19 +850,19 @@ class ContentPolicyError extends OpenRouterError {
        temperature: options?.temperature ?? 0.3,
        max_tokens: options?.maxTokens ?? 1000
      };
-     
+
      const cacheKey = this._cacheManager.generateKey({ task, data, options });
      const cachedResult = this._checkCache(cacheKey);
-     
+
      if (cachedResult) {
        return cachedResult;
      }
-     
+
      const response = await this.query(params);
      const validatedResponse = this._validateResponse(response, responseSchemas[task]);
-     
+
      this._saveToCache(cacheKey, validatedResponse);
-     
+
      return validatedResponse;
    }
    ```
@@ -826,25 +872,26 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 9: Integracja z Frontendem
 
 1. Utworzenie hooka React do korzystania z usługi OpenRouter:
+
    ```typescript
    // src/components/hooks/useOpenRouter.ts
-   import { useState } from 'react';
-   import { OpenRouterService } from '../../lib/ai/openrouter';
-   
+   import { useState } from "react";
+   import { OpenRouterService } from "../../lib/ai/openrouter";
+
    export function useOpenRouter() {
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<Error | null>(null);
-     
+
      const openRouter = new OpenRouterService({
        apiKey: import.meta.env.OPENROUTER_API_KEY,
        defaultModel: import.meta.env.OPENROUTER_DEFAULT_MODEL,
-       budgetLimit: Number(import.meta.env.OPENROUTER_BUDGET_LIMIT)
+       budgetLimit: Number(import.meta.env.OPENROUTER_BUDGET_LIMIT),
      });
-     
+
      const analyzeCampaign = async (data, options) => {
        setLoading(true);
        setError(null);
-       
+
        try {
          const result = await openRouter.analyzeCampaign(data, options);
          setLoading(false);
@@ -855,9 +902,9 @@ class ContentPolicyError extends OpenRouterError {
          throw err;
        }
      };
-     
+
      // Pozostałe metody
-     
+
      return {
        loading,
        error,
@@ -868,28 +915,29 @@ class ContentPolicyError extends OpenRouterError {
    ```
 
 2. Utworzenie komponentu kontekstu dla dostępu do usługi OpenRouter:
+
    ```typescript
    // src/components/context/OpenRouterContext.tsx
    import { createContext, useContext, useState, useEffect } from 'react';
    import { OpenRouterService } from '../../lib/ai/openrouter';
-   
+
    const OpenRouterContext = createContext<{
      service: OpenRouterService;
      usageInfo: UsageInfo | null;
      loading: boolean;
      error: Error | null;
    } | null>(null);
-   
+
    export function OpenRouterProvider({ children }: { children: React.ReactNode }) {
      // Implementacja providera kontekstu
-     
+
      return (
        <OpenRouterContext.Provider value={{ service, usageInfo, loading, error }}>
          {children}
        </OpenRouterContext.Provider>
      );
    }
-   
+
    export function useOpenRouterContext() {
      const context = useContext(OpenRouterContext);
      if (!context) {
@@ -902,28 +950,30 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 10: Testowanie i Monitoring
 
 1. Utworzenie testów jednostkowych:
+
    ```typescript
    // src/lib/ai/openrouter/__tests__/openrouter-service.test.ts
-   import { describe, it, expect, vi } from 'vitest';
-   import { OpenRouterService } from '../index';
-   
-   describe('OpenRouterService', () => {
+   import { describe, it, expect, vi } from "vitest";
+   import { OpenRouterService } from "../index";
+
+   describe("OpenRouterService", () => {
      // Implementacja testów jednostkowych
    });
    ```
 
 2. Utworzenie narzędzi monitoringu:
+
    ```typescript
    // src/lib/ai/openrouter/monitoring.ts
    export class OpenRouterMonitoring {
      logRequest(request: any, response: any, duration: number): void {
        // Implementacja logowania zapytań
      }
-     
+
      alertOnError(error: Error): void {
        // Implementacja alertów o błędach
      }
-     
+
      alertOnBudgetThreshold(usage: number, threshold: number): void {
        // Implementacja alertów o progu budżetu
      }
@@ -933,49 +983,55 @@ class ContentPolicyError extends OpenRouterError {
 ### Krok 11: Dokumentacja i Przykłady Użycia
 
 1. Utworzenie dokumentacji API:
-   ```markdown
+
+   ````markdown
    # Dokumentacja API OpenRouterService
-   
+
    ## Inicjalizacja
-   
+
    ```typescript
    const openRouter = new OpenRouterService({
-     apiKey: 'your_api_key',
-     defaultModel: 'openai/gpt-3.5-turbo',
-     budgetLimit: 100
+     apiKey: "your_api_key",
+     defaultModel: "openai/gpt-3.5-turbo",
+     budgetLimit: 100,
    });
    ```
-   
+   ````
+
    ## Metody
-   
+
    ### analyzeCampaign
-   
+
    ...
+
+   ```
+
    ```
 
 2. Utworzenie przykładów użycia:
+
    ```typescript
    // examples/campaign-analysis.ts
-   import { OpenRouterService } from '../src/lib/ai/openrouter';
-   
+   import { OpenRouterService } from "../src/lib/ai/openrouter";
+
    async function exampleCampaignAnalysis() {
      const openRouter = new OpenRouterService({
        apiKey: process.env.OPENROUTER_API_KEY!,
-       defaultModel: 'openai/gpt-3.5-turbo'
+       defaultModel: "openai/gpt-3.5-turbo",
      });
-     
+
      const campaignData = {
        // Przykładowe dane kampanii
      };
-     
+
      try {
        const analysis = await openRouter.analyzeCampaign(campaignData);
        console.log(analysis);
      } catch (error) {
-       console.error('Error analyzing campaign:', error);
+       console.error("Error analyzing campaign:", error);
      }
    }
-   
+
    exampleCampaignAnalysis();
    ```
 

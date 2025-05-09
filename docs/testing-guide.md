@@ -91,7 +91,7 @@ http.post("/api/auth/new-endpoint", async ({ request }) => {
   try {
     const body = await request.json();
     console.log("[MSW] Handling new endpoint request:", body);
-    
+
     // Logika obsługi endpointu
     return HttpResponse.json(
       {
@@ -121,12 +121,12 @@ Przykładowa klasa POM:
 export class LoginPage {
   readonly page: Page;
   readonly emailInput: Locator;
-  
+
   constructor(page: Page) {
     this.page = page;
     this.emailInput = page.getByTestId("login-input-email");
   }
-  
+
   async fillEmail(email: string) {
     await this.emailInput.fill(email);
   }
@@ -147,11 +147,13 @@ export class LoginPage {
 Aby debugować testy E2E:
 
 1. Uruchom testy z opcją `--debug`:
+
    ```
    npx playwright test --debug
    ```
 
 2. Użyj logów z MSW do analizy przechwyconych żądań:
+
    ```typescript
    console.log("[MSW] Request:", JSON.stringify(await request.json()));
    ```
@@ -180,4 +182,4 @@ Aby debugować testy E2E:
 1. Zwiększ timeouty dla operacji sieciowych
 2. Dodaj opcje retry dla niestabilnych asercji
 3. Upewnij się, że testy czekają na zakończenie animacji przed asercjami
-4. Używaj `waitForLoadState` i podobnych metod do oczekiwania na pełne załadowanie strony 
+4. Używaj `waitForLoadState` i podobnych metod do oczekiwania na pełne załadowanie strony

@@ -8,11 +8,14 @@ export const server = setupServer(...handlers);
 async function globalSetup() {
   console.log("[Global Setup] Starting Mock Service Worker server");
 
-  // Start the server with better visibility of unhandled requests
+  // Start the server with better handling of unhandled requests
   server.listen({
-    onUnhandledRequest: (req) => {
-      console.warn(`[MSW] Unhandled ${req.method} request to ${req.url.href}`);
-    },
+    onUnhandledRequest: "bypass",
+  });
+
+  // Log unhandled requests for debugging purposes
+  server.events.on("request:unhandled", ({ request }) => {
+    console.warn(`[MSW] Unhandled ${request.method} request to ${request.url}`);
   });
 
   // Optional: Set up browser for testing

@@ -99,97 +99,351 @@ const logRequest = async (request: Request, path: string) => {
   }
 };
 
-// Define mocked API handlers for auth endpoints
+/**
+ * Handlery MSW dla testów E2E
+ *
+ * Ten plik zawiera definicje mockowanych endpointów API, które są używane
+ * podczas testów E2E z Playwright w trybie mock. Zapewniają one deterministyczne
+ * odpowiedzi dla zapytań API, symulując zachowanie rzeczywistego backendu
+ * bez konieczności łączenia się z prawdziwą bazą danych.
+ */
 export const handlers = [
-  // Handle login endpoint with better wildcards and more flexible URL matching
-  http.post("*/api/auth/signin", async ({ request }) => {
-    await logRequest(request, "signin");
+  /**
+   * Endpoint logowania
+   * Obsługuje różne scenariusze testowe dla procesu logowania:
+   * - Prawidłowe dane uwierzytelniające
+   * - Nieprawidłowe hasło
+   * - Nieistniejący użytkownik
+   * - Niezweryfikowany email
+   * - Zablokowane konto
+   */
+  http.post("/api/auth/signin", async ({ request }) => {
+    // Logowanie żądania dla celów debugowania
+    await logRequest(request, "/api/auth/signin");
 
     try {
-      const body = (await request.json()) as Credentials;
-      console.log("[MSW] Handling login request for:", body.email);
+      const body = await request.json();
+      const { email, password } = body;
+      console.log("[MSW] Login request:", { email, password: "HIDDEN" });
 
-      const user = getUserByEmail(body.email);
-
-      // Check if account is locked
-      if (user && isAccountLocked(user.email)) {
-        console.log("[MSW] Account is locked:", user.email);
+      // Sprawdź, czy konto jest zablokowane
+      if (isAccountLocked(email)) {
+        console.log(`[MSW] Login failed: Account ${email} is locked`);
         return HttpResponse.json(
           {
-            error:
-              "Your account has been locked due to too many failed login attempts. Please try again in 15 minutes.",
+            success: false,
+            error: "Your account has been locked due to too many failed login attempts",
           },
           { status: 403 }
         );
       }
 
-      // Handle different test scenarios based on email/password
-      if (user?.email === mockUsers.verified.email && body.password === mockUsers.verified.password) {
-        console.log("[MSW] Successful login for verified user");
+      // Pobierz użytkownika na podstawie emaila
+      const user = getUserByEmail(email);
+
+      // Symulacja różnych scenariuszy testowych na podstawie adresu email
+      if (user && user.email === mockUsers.verified.email && password === mockUsers.verified.password) {
+        // Prawidłowe dane uwierzytelniające
+        console.log("[MSW] Login successful");
         return HttpResponse.json(
           {
             success: true,
-            user: {
-              id: user.id,
-              email: user.email,
-              user_metadata: user.user_metadata,
+            data: {
+              user: {
+                id: user.id,
+                email: user.email,
+                name: user.user_metadata.full_name,
+                created_at: new Date().toISOString(),
+              },
+              session: {
+                access_token: "mock-access-token",
+                refresh_token: "mock-refresh-token",
+                expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+              },
             },
           },
           { status: 200 }
         );
-      }
-
-      if (user?.email === mockUsers.lockable.email && body.password === mockUsers.lockable.password) {
-        console.log("[MSW] Successful login for lockable user");
+      } else if (user && user.email === mockUsers.unverified.email) {
+        // Niezweryfikowany email
+        console.log("[MSW] Login failed: Email not verified");
         return HttpResponse.json(
           {
-            success: true,
-            user: {
-              id: user.id,
-              email: user.email,
-              user_metadata: user.user_metadata,
-            },
-          },
-          { status: 200 }
-        );
-      }
-
-      if (body.email === "nonexistent@example.com") {
-        console.log("[MSW] Login attempt with non-existent user");
-        return HttpResponse.json({ error: "User not found" }, { status: 404 });
-      }
-
-      if (
-        (user?.email === mockUsers.verified.email || user?.email === mockUsers.lockable.email) &&
-        body.password !== user.password
-      ) {
-        console.log("[MSW] Login attempt with invalid credentials");
-
-        // Record failed attempt for lockable account
-        if (user?.email === mockUsers.lockable.email) {
-          recordFailedAttempt(user.email);
-        }
-
-        return HttpResponse.json({ error: "Invalid credentials" }, { status: 401 });
-      }
-
-      if (user?.email === mockUsers.unverified.email) {
-        console.log("[MSW] Login attempt with unverified email");
-        return HttpResponse.json(
-          {
+            success: false,
             error: "Email not verified",
             requiresVerification: true,
           },
-          { status: 403 }
+          { status: 400 }
+        );
+      } else if (user && user.email === mockUsers.lockable.email && password !== user.password) {
+        // Nieprawidłowe hasło dla konta, które można zablokować
+        recordFailedAttempt(email);
+        console.log("[MSW] Login failed: Invalid credentials for lockable account");
+
+        // Sprawdź, czy konto zostało właśnie zablokowane
+        if (isAccountLocked(email)) {
+          return HttpResponse.json(
+            {
+              success: false,
+              error: "Your account has been locked due to too many failed login attempts",
+            },
+            { status: 403 }
+          );
+        }
+
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "Invalid login credentials",
+          },
+          { status: 401 }
+        );
+      } else if (user) {
+        // Nieprawidłowe hasło
+        console.log("[MSW] Login failed: Invalid credentials");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "Invalid login credentials",
+          },
+          { status: 401 }
+        );
+      } else {
+        // Nieistniejący użytkownik
+        console.log("[MSW] Login failed: User not found");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "User not found",
+          },
+          { status: 404 }
         );
       }
-
-      // Default fallback for unhandled cases
-      console.log("[MSW] Unhandled login scenario, returning generic error");
-      return HttpResponse.json({ error: "Authentication failed" }, { status: 400 });
     } catch (error) {
-      console.error("[MSW] Error parsing request body:", error);
-      return HttpResponse.json({ error: "Invalid request format" }, { status: 400 });
+      console.error("[MSW] Error handling login request:", error);
+      return HttpResponse.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
+    }
+  }),
+
+  // Zachowujemy również oryginalny handler dla /api/auth/login, na wypadek gdyby gdzieś był używany
+  http.post("/api/auth/login", async ({ request }) => {
+    try {
+      const body = await request.json();
+      const { email, password } = body;
+      console.log("[MSW] Login request:", { email, password: "HIDDEN" });
+
+      // Symulacja różnych scenariuszy testowych na podstawie adresu email
+      if (email === "verified-user@example.com" && password === "Password123!") {
+        // Prawidłowe dane uwierzytelniające
+        console.log("[MSW] Login successful");
+        return HttpResponse.json(
+          {
+            success: true,
+            data: {
+              user: {
+                id: "mock-user-id-123",
+                email,
+                name: "Test User",
+                created_at: new Date().toISOString(),
+              },
+              session: {
+                access_token: "mock-access-token",
+                refresh_token: "mock-refresh-token",
+                expires_at: new Date(Date.now() + 3600 * 1000).toISOString(),
+              },
+            },
+          },
+          { status: 200 }
+        );
+      } else if (email === "verified-user@example.com") {
+        // Nieprawidłowe hasło
+        console.log("[MSW] Login failed: Invalid credentials");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "Invalid login credentials",
+          },
+          { status: 401 }
+        );
+      } else if (email === "unverified-user@example.com") {
+        // Niezweryfikowany email
+        console.log("[MSW] Login failed: Email not verified");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "Email not verified",
+            needsVerification: true,
+          },
+          { status: 400 }
+        );
+      } else if (email === "lockable-account@example.com") {
+        // Zablokowane konto (po 5 próbach)
+        console.log("[MSW] Login failed: Account locked");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "Your account has been locked due to too many failed login attempts",
+          },
+          { status: 403 }
+        );
+      } else {
+        // Nieistniejący użytkownik
+        console.log("[MSW] Login failed: User not found");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "User not found",
+          },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      console.error("[MSW] Error handling login request:", error);
+      return HttpResponse.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
+    }
+  }),
+
+  /**
+   * Endpoint ponownego wysłania weryfikacji email
+   */
+  http.post("/api/auth/resend-verification", async ({ request }) => {
+    try {
+      const body = await request.json();
+      const { email } = body;
+      console.log("[MSW] Resend verification request:", { email });
+
+      if (email === "unverified-user@example.com") {
+        console.log("[MSW] Verification email sent successfully");
+        return HttpResponse.json(
+          {
+            success: true,
+            message: "Verification email sent successfully",
+          },
+          { status: 200 }
+        );
+      } else {
+        console.log("[MSW] Resend verification failed: User not found");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "User not found",
+          },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      console.error("[MSW] Error handling resend verification request:", error);
+      return HttpResponse.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
+    }
+  }),
+
+  /**
+   * Endpoint wylogowania
+   */
+  http.post("/api/auth/logout", async () => {
+    console.log("[MSW] Logout request");
+    return HttpResponse.json(
+      {
+        success: true,
+      },
+      { status: 200 }
+    );
+  }),
+
+  /**
+   * Endpoint rejestracji
+   */
+  http.post("/api/auth/register", async ({ request }) => {
+    try {
+      const body = await request.json();
+      const { email } = body;
+      console.log("[MSW] Register request:", { email, password: "HIDDEN" });
+
+      if (email === "existing-user@example.com") {
+        console.log("[MSW] Registration failed: User already exists");
+        return HttpResponse.json(
+          {
+            success: false,
+            error: "User already exists",
+          },
+          { status: 409 }
+        );
+      } else {
+        console.log("[MSW] Registration successful");
+        return HttpResponse.json(
+          {
+            success: true,
+            message: "User registered successfully. Please check your email for verification.",
+          },
+          { status: 201 }
+        );
+      }
+    } catch (error) {
+      console.error("[MSW] Error handling register request:", error);
+      return HttpResponse.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
+    }
+  }),
+
+  /**
+   * Endpoint importu danych
+   */
+  http.post("/api/imports/upload", async ({ request }) => {
+    try {
+      const formData = await request.formData();
+      const file = formData.get("file") as File;
+      const platform = formData.get("platform") as string;
+
+      console.log("[MSW] Import request:", {
+        fileName: file?.name,
+        fileSize: file?.size,
+        platform,
+      });
+
+      return HttpResponse.json(
+        {
+          success: true,
+          data: {
+            importId: "mock-import-id-123",
+            fileName: file?.name,
+            platform,
+            status: "processing",
+          },
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      console.error("[MSW] Error handling import request:", error);
+      return HttpResponse.json(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
     }
   }),
 
@@ -306,19 +560,6 @@ export const handlers = [
     );
   }),
 
-  // Logout endpoint
-  http.post("/api/auth/signout", () => {
-    console.log("[MSW] Logout request");
-
-    return HttpResponse.json(
-      {
-        success: true,
-        message: "Logged out successfully",
-      },
-      { status: 200 }
-    );
-  }),
-
   // Endpoint do resetowania stanu mocków (np. licznik prób logowania)
   http.post("/mock/reset", () => {
     failedLoginAttempts.clear();
@@ -339,112 +580,5 @@ export const handlers = [
     console.log(`[MSW] Headers:`, headers);
     if (body) console.log(`[MSW] Body:`, body);
     return HttpResponse.json({ error: "Endpoint not implemented in mock server" }, { status: 501 });
-  }),
-
-  // Auth handlers
-  http.post("/api/auth/login", async ({ request }) => {
-    try {
-      const body = (await request.json()) as { email: string; password: string };
-      console.log("[MSW] Login request:", body);
-
-      const { email, password } = body;
-
-      // Case: Verified user with correct password
-      if (email === "verified-user@example.com" && password === "Password123!") {
-        return HttpResponse.json(
-          {
-            user: {
-              id: "123e4567-e89b-12d3-a456-426614174000",
-              email: "verified-user@example.com",
-              emailVerified: true,
-            },
-            session: {
-              accessToken: "mock-access-token",
-              refreshToken: "mock-refresh-token",
-            },
-          },
-          { status: 200 }
-        );
-      }
-
-      // Case: Unverified user
-      if (email === "unverified-user@example.com") {
-        return HttpResponse.json(
-          {
-            error: "Email not confirmed",
-            status: 400,
-          },
-          { status: 400 }
-        );
-      }
-
-      // Case: Wrong password
-      if (email === "verified-user@example.com") {
-        return HttpResponse.json(
-          {
-            error: "Invalid login credentials",
-            status: 401,
-          },
-          { status: 401 }
-        );
-      }
-
-      // Case: User not found
-      return HttpResponse.json(
-        {
-          error: "User not found",
-          status: 404,
-        },
-        { status: 404 }
-      );
-    } catch (error) {
-      console.error("[MSW] Error handling login request:", error);
-      return HttpResponse.json(
-        {
-          error: "Internal server error",
-          status: 500,
-        },
-        { status: 500 }
-      );
-    }
-  }),
-
-  // Resend verification email handler
-  http.post("/api/auth/resend-verification", async ({ request }) => {
-    try {
-      const body = (await request.json()) as { email: string };
-      console.log("[MSW] Resend verification request:", body);
-
-      const { email } = body;
-
-      // Always succeed for test emails
-      if (email === "unverified-user@example.com") {
-        return HttpResponse.json(
-          {
-            success: true,
-            message: "Verification email sent",
-          },
-          { status: 200 }
-        );
-      }
-
-      // Rate limiting error for all other emails
-      return HttpResponse.json(
-        {
-          error: "Too many requests",
-          status: 429,
-        },
-        { status: 429 }
-      );
-    } catch (error) {
-      console.error("[MSW] Error handling resend verification request:", error);
-      return HttpResponse.json(
-        {
-          error: "Internal server error",
-          status: 500,
-        },
-        { status: 500 }
-      );
-    }
   }),
 ];

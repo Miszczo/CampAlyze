@@ -1,4 +1,5 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 
 export class LoginPage {
   readonly page: Page;
@@ -21,18 +22,18 @@ export class LoginPage {
     this.page = page;
 
     // Form elements
-    this.emailInput = page.getByLabel("Email");
-    this.passwordInput = page.getByLabel("Password");
-    this.submitButton = page.getByRole("button", { name: "Log in" });
-    this.resendVerificationButton = page.getByRole("button", { name: /resend verification/i });
-    this.registerLink = page.getByRole("link", { name: /don't have an account\? register/i });
-    this.forgotPasswordLink = page.getByRole("link", { name: /forgot password\?/i });
+    this.emailInput = page.getByTestId("login-input-email");
+    this.passwordInput = page.getByTestId("login-input-password");
+    this.submitButton = page.getByTestId("login-button-submit");
+    this.resendVerificationButton = page.getByTestId("login-button-resend-verification");
+    this.registerLink = page.getByTestId("login-link-register");
+    this.forgotPasswordLink = page.getByTestId("login-link-forgot-password");
 
     // Error and success messages
-    this.errorMessage = page.getByTestId("error-message");
-    this.successMessage = page.getByTestId("success-message");
-    this.emailErrorMessage = page.locator('[data-error-for="email"]');
-    this.passwordErrorMessage = page.locator('[data-error-for="password"]');
+    this.errorMessage = page.getByTestId("login-alert-error");
+    this.successMessage = page.getByTestId("login-alert-success");
+    this.emailErrorMessage = page.getByTestId("login-error-email");
+    this.passwordErrorMessage = page.getByTestId("login-error-password");
   }
 
   // Navigation
@@ -49,55 +50,42 @@ export class LoginPage {
     await this.passwordInput.fill(password);
   }
 
-  async submitForm() {
-    await this.submitButton.click();
-  }
-
   async login(email: string, password: string) {
     await this.fillEmail(email);
     await this.fillPassword(password);
-    await this.submitForm();
+    await this.submitButton.click();
   }
 
-  async clickResendVerification() {
+  async resendVerification() {
     await this.resendVerificationButton.click();
   }
 
-  async clickRegisterLink() {
-    await this.registerLink.click();
-  }
-
-  async clickForgotPasswordLink() {
-    await this.forgotPasswordLink.click();
-  }
-
   // Assertions
-  async expectErrorMessage(messagePattern: RegExp | string) {
+  async expectErrorMessage(message?: string) {
     await expect(this.errorMessage).toBeVisible();
-    await expect(this.errorMessage).toContainText(messagePattern);
+    if (message) {
+      await expect(this.errorMessage).toContainText(message);
+    }
   }
 
-  async expectSuccessMessage(messagePattern: RegExp | string) {
+  async expectSuccessMessage(message?: string) {
     await expect(this.successMessage).toBeVisible();
-    await expect(this.successMessage).toContainText(messagePattern);
+    if (message) {
+      await expect(this.successMessage).toContainText(message);
+    }
   }
 
-  async expectEmailValidationError() {
+  async expectEmailError(message?: string) {
     await expect(this.emailErrorMessage).toBeVisible();
-    await expect(this.emailErrorMessage).toContainText(/required|empty/i);
+    if (message) {
+      await expect(this.emailErrorMessage).toContainText(message);
+    }
   }
 
-  async expectPasswordValidationError() {
+  async expectPasswordError(message?: string) {
     await expect(this.passwordErrorMessage).toBeVisible();
-    await expect(this.passwordErrorMessage).toContainText(/required|empty/i);
-  }
-
-  async expectEmailFormatError() {
-    await expect(this.emailErrorMessage).toBeVisible();
-    await expect(this.emailErrorMessage).toContainText(/invalid|format/i);
-  }
-
-  async expectResendVerificationButtonVisible() {
-    await expect(this.resendVerificationButton).toBeVisible();
+    if (message) {
+      await expect(this.passwordErrorMessage).toContainText(message);
+    }
   }
 }

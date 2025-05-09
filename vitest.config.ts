@@ -32,6 +32,15 @@ export default defineConfig({
         "src/setupTests.ts", // Wykluczamy plik setupowy z pokrycia
       ],
     },
+    // Wykluczenie testów E2E z testów Vitest
+    exclude: [
+      "node_modules",
+      "dist",
+      ".idea",
+      ".git",
+      ".cache",
+      "tests/e2e/**", // Wykluczamy wszystkie testy E2E
+    ],
     // Konfiguracja dla React Testing Library (jeśli używasz setupFiles)
     // clearMocks: true,
   },

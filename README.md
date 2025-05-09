@@ -3,6 +3,7 @@
 An analytical tool for advertising campaigns designed for marketing specialists who need a fast and efficient way to analyze data from various advertising platforms.
 
 ## Table of Contents
+
 - [Project Description](#project-description)
 - [Tech Stack](#tech-stack)
 - [Getting Started Locally](#getting-started-locally)
@@ -95,30 +96,36 @@ npm run dev
 ### Core Features
 
 1. **Import and Process Data**
+
    - Import data from CSV/XLSX files (Google Ads and Meta Ads)
    - Data validation and error reporting
    - Process key metrics: CPC, CTR, conversions, cost/conversion, ROAS
 
 2. **Interactive Dashboard**
+
    - Visualize key metrics
    - Compare platforms side-by-side
    - Segment data by platform, campaign, and time period
    - Compare periods (current week/month vs. previous)
 
 3. **Alert System**
+
    - Flags for campaigns with potential issues
    - Notifications for campaigns requiring attention
 
 4. **Change Tracking**
+
    - Log changes made to campaigns
    - Set verification dates for changes
    - Compare metrics before and after changes
 
 5. **Export Data**
+
    - Export reports to CSV/PDF/XLSX
    - Select data ranges for export
 
 6. **User Authentication**
+
    - Firebase Authentication integration
    - User roles and permissions
    - Activity logging
@@ -145,6 +152,7 @@ npm run dev
 The project is currently in development with a target completion time for MVP of 3-4 weeks. The focus is on delivering core functionality that provides immediate value to users while establishing a solid foundation for future enhancements.
 
 Development priorities:
+
 1. Basic data import and dashboard functionality
 2. User authentication and data management
 3. AI-powered analysis features

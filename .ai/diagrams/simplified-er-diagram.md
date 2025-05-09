@@ -77,4 +77,4 @@ erDiagram
         timestamp updated_at
     }
 
-``` 
+```

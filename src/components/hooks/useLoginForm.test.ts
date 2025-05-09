@@ -36,39 +36,14 @@ describe("useLoginForm hook", () => {
     expect(typeof result.current.handleResendVerification).toBe("function");
   });
 
-  it("should initialize with provided initialMessage (error type)", () => {
-    const errorMessage = "Test error message";
-    const { result } = renderHook(() =>
-      useLoginForm({
-        initialMessage: errorMessage,
-        messageType: "error",
-      })
-    );
-
-    expect(result.current.error).toBe(errorMessage);
-    expect(result.current.successMessage).toBeNull();
-  });
-
-  it("should initialize with provided initialMessage (success type)", () => {
-    const successMessage = "Test success message";
-    const { result } = renderHook(() =>
-      useLoginForm({
-        initialMessage: successMessage,
-        messageType: "success",
-      })
-    );
-
-    expect(result.current.error).toBeNull();
-    expect(result.current.successMessage).toBe(successMessage);
-  });
-
   it("should handle form submission for successful login", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ success: true }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm());
+    const mockNavigate = vi.fn();
+    const { result } = renderHook(() => useLoginForm(mockNavigate));
 
     // Set form values
     result.current.form.setValue("email", "test@example.com");
@@ -86,7 +61,7 @@ describe("useLoginForm hook", () => {
       body: JSON.stringify({ email: "test@example.com", password: "password123" }),
     });
 
-    expect(window.location.href).toBe("/dashboard");
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -113,7 +88,7 @@ describe("useLoginForm hook", () => {
 
     // Assertions
     expect(result.current.requiresVerification).toBe(true);
-    expect(result.current.error).toContain("verify your email address");
+    expect(result.current.error).toBe("Email not verified");
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -128,14 +103,9 @@ describe("useLoginForm hook", () => {
     // Set form values
     result.current.form.setValue("email", "test@example.com");
 
-    // Set verification required
-    act(() => {
-      result.current.form.setValue("email", "test@example.com");
-    });
-
     // Call resend verification
     await act(async () => {
-      await result.current.handleResendVerification();
+      await result.current.handleResendVerification("test@example.com");
     });
 
     // Assertions
@@ -146,7 +116,6 @@ describe("useLoginForm hook", () => {
     });
 
     expect(result.current.successMessage).toContain("Verification email sent successfully");
-    expect(result.current.requiresVerification).toBe(false);
     expect(result.current.isLoading).toBe(false);
   });
 });

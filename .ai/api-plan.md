@@ -1,6 +1,7 @@
 # REST API Plan
 
 ## 1. Resources
+
 - **Organizations** → `organizations` table
 - **Users** → `auth.users` table & `user_organizations` junction table
 - **Platforms** → `platforms` table
@@ -16,6 +17,7 @@
 ### Authentication & User Management
 
 #### Register User
+
 - **Method**: POST
 - **Path**: `/api/auth/register`
 - **Description**: Register a new user using Supabase Auth. Sends a verification email.
@@ -75,6 +77,7 @@
 - **Errors**: 400 Bad Request (Invalid email/password format), 422 Unprocessable Entity (User already registered, but email not verified), 500 Internal Server Error (Supabase error)
 
 #### Login
+
 - **Method**: POST
 - **Path**: `/api/auth/login`
 - **Description**: Authenticate user with email and password using Supabase Auth.
@@ -102,11 +105,15 @@
       "phone": "",
       "confirmed_at": "timestamp | null",
       "last_sign_in_at": "timestamp",
-      "app_metadata": { /* ... */ },
+      "app_metadata": {
+        /* ... */
+      },
       "user_metadata": {
         "full_name": "string"
       },
-      "identities": [ /* ... */ ],
+      "identities": [
+        /* ... */
+      ],
       "created_at": "timestamp",
       "updated_at": "timestamp"
     }
@@ -116,6 +123,7 @@
 - **Errors**: 400 Bad Request (Invalid credentials, Missing email/password), 403 Forbidden (Email not verified, Account locked), 500 Internal Server Error (Supabase error)
 
 #### Logout
+
 - **Method**: POST
 - **Path**: `/api/auth/logout`
 - **Description**: Sign out the current user (invalidates tokens on the Supabase side).
@@ -125,6 +133,7 @@
 - **Errors**: 401 Unauthorized (No active session), 500 Internal Server Error (Supabase error)
 
 #### Refresh Token
+
 - **Method**: POST
 - **Path**: `/api/auth/refresh`
 - **Description**: Obtain a new access token using a refresh token.
@@ -148,6 +157,7 @@
 - **Errors**: 400 Bad Request (Missing refresh token), 401 Unauthorized (Invalid or expired refresh token), 500 Internal Server Error
 
 #### Forgot Password
+
 - **Method**: POST
 - **Path**: `/api/auth/password/forgot`
 - **Description**: Initiate the password reset process. Sends a password reset email.
@@ -165,6 +175,7 @@
 - **Errors**: 400 Bad Request (Missing email), 500 Internal Server Error
 
 #### Reset Password
+
 - **Method**: POST
 - **Path**: `/api/auth/password/reset`
 - **Description**: Set a new password using the token received via email. Requires the user to be logged in with the recovery token.
@@ -181,7 +192,7 @@
     "id": "uuid",
     "aud": "authenticated",
     "role": "authenticated",
-    "email": "string",
+    "email": "string"
     // ... other user fields
   }
   ```
@@ -189,10 +200,11 @@
 - **Errors**: 400 Bad Request (Invalid password format, Missing password), 401 Unauthorized (Invalid or expired recovery token), 500 Internal Server Error
 
 #### Verify Email
-- **Method**: POST 
-- **Path**: `/api/auth/verify-email` 
+
+- **Method**: POST
+- **Path**: `/api/auth/verify-email`
 - **Description**: Verify user's email address using the token received via email. Supabase handles this via redirect, but an API endpoint can be used for SPA flows if needed, typically called after the user clicks the link and is redirected back to the app with a token.
-- **Request Body**: 
+- **Request Body**:
   ```json
   {
     "token": "string (verification token from email link query param)",
@@ -209,6 +221,7 @@
 - **Errors**: 400 Bad Request (Missing token), 401 Unauthorized (Invalid or expired token), 422 Unprocessable Entity (Email already verified), 500 Internal Server Error
 
 #### Resend Verification Email
+
 - **Method**: POST
 - **Path**: `/api/auth/resend-verification`
 - **Description**: Resend the email verification link.
@@ -228,6 +241,7 @@
 ### Organizations
 
 #### List Organizations
+
 - **Method**: GET
 - **Path**: `/api/organizations`
 - **Description**: Get all organizations for current user
@@ -247,6 +261,7 @@
 - **Success**: 200 OK
 
 #### Create Organization
+
 - **Method**: POST
 - **Path**: `/api/organizations`
 - **Description**: Create a new organization
@@ -268,6 +283,7 @@
 - **Errors**: 400 Bad Request
 
 #### Manage Organization Users
+
 - **Method**: POST
 - **Path**: `/api/organizations/{id}/users`
 - **Description**: Add user to organization
@@ -292,6 +308,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### Update User Role
+
 - **Method**: PUT
 - **Path**: `/api/organizations/{id}/users/{user_id}`
 - **Description**: Update user role within organization
@@ -317,6 +334,7 @@
 ### Data Import
 
 #### Upload File
+
 - **Method**: POST
 - **Path**: `/api/imports/upload`
 - **Description**: Upload data file
@@ -333,6 +351,7 @@
 - **Errors**: 400 Bad Request, 413 Payload Too Large
 
 #### Process Import
+
 - **Method**: POST
 - **Path**: `/api/imports/{id}/process`
 - **Description**: Begin processing an uploaded file
@@ -354,6 +373,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### Get Import Status
+
 - **Method**: GET
 - **Path**: `/api/imports/{id}/status`
 - **Description**: Check status of an import
@@ -372,6 +392,7 @@
 - **Errors**: 404 Not Found
 
 #### List Imports
+
 - **Method**: GET
 - **Path**: `/api/imports`
 - **Description**: Get import history
@@ -409,6 +430,7 @@
 ### Campaigns
 
 #### List Campaigns
+
 - **Method**: GET
 - **Path**: `/api/campaigns`
 - **Description**: Get all campaigns for organization
@@ -451,6 +473,7 @@
 - **Success**: 200 OK
 
 #### Get Campaign Details
+
 - **Method**: GET
 - **Path**: `/api/campaigns/{id}`
 - **Description**: Get detailed campaign information
@@ -485,6 +508,7 @@
 - **Errors**: 404 Not Found
 
 #### Update Campaign
+
 - **Method**: PUT
 - **Path**: `/api/campaigns/{id}`
 - **Description**: Update campaign information
@@ -514,6 +538,7 @@
 ### Metrics
 
 #### Get Campaign Metrics
+
 - **Method**: GET
 - **Path**: `/api/metrics/campaigns/{id}`
 - **Description**: Get metrics for a specific campaign
@@ -546,6 +571,7 @@
 - **Errors**: 404 Not Found
 
 #### Get Metrics Summary
+
 - **Method**: GET
 - **Path**: `/api/metrics/summary`
 - **Description**: Get summary metrics across campaigns
@@ -581,6 +607,7 @@
 - **Success**: 200 OK
 
 #### Compare Metrics Periods
+
 - **Method**: GET
 - **Path**: `/api/metrics/comparison/periods`
 - **Description**: Compare metrics between two periods
@@ -622,6 +649,7 @@
 ### Campaign Changes
 
 #### Create Campaign Change
+
 - **Method**: POST
 - **Path**: `/api/campaigns/{id}/changes`
 - **Description**: Record a campaign change
@@ -650,6 +678,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### List Campaign Changes
+
 - **Method**: GET
 - **Path**: `/api/campaigns/{id}/changes`
 - **Description**: Get changes for a campaign
@@ -674,6 +703,7 @@
 - **Errors**: 404 Not Found
 
 #### Get Upcoming Verifications
+
 - **Method**: GET
 - **Path**: `/api/verifications/upcoming`
 - **Description**: Get upcoming change verifications
@@ -700,6 +730,7 @@
 - **Success**: 200 OK
 
 #### Verify Campaign Change
+
 - **Method**: PUT
 - **Path**: `/api/changes/{id}/verify`
 - **Description**: Mark a change as verified with notes
@@ -723,6 +754,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### Get Change Impact
+
 - **Method**: GET
 - **Path**: `/api/campaigns/changes/{id}/impact`
 - **Description**: Get metrics before and after a change
@@ -779,6 +811,7 @@
 ### Alerts
 
 #### Get Alerts
+
 - **Method**: GET
 - **Path**: `/api/alerts`
 - **Description**: Get campaign alerts
@@ -806,6 +839,7 @@
 - **Success**: 200 OK
 
 #### Update Alert Status
+
 - **Method**: PUT
 - **Path**: `/api/alerts/{id}/status`
 - **Description**: Update alert status (dismiss)
@@ -827,6 +861,7 @@
 - **Errors**: 404 Not Found
 
 #### Configure Alert Thresholds
+
 - **Method**: PUT
 - **Path**: `/api/organizations/{id}/alert-thresholds`
 - **Description**: Configure alert thresholds for an organization
@@ -856,6 +891,7 @@
 ### AI Insights
 
 #### Get AI Insights
+
 - **Method**: GET
 - **Path**: `/api/ai/insights`
 - **Description**: Get AI-generated insights
@@ -893,6 +929,7 @@
 - **Success**: 200 OK
 
 #### Generate Campaign Summary
+
 - **Method**: POST
 - **Path**: `/api/ai/insights/summary`
 - **Description**: Generate a campaign summary
@@ -921,6 +958,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### Update Insight Status
+
 - **Method**: PUT
 - **Path**: `/api/ai/insights/{id}/status`
 - **Description**: Update insight status
@@ -942,6 +980,7 @@
 - **Errors**: 400 Bad Request, 404 Not Found
 
 #### Generate AI Report
+
 - **Method**: POST
 - **Path**: `/api/ai/reports/generate`
 - **Description**: Generate a comprehensive AI report
@@ -966,6 +1005,7 @@
 - **Errors**: 400 Bad Request
 
 #### Get AI Report
+
 - **Method**: GET
 - **Path**: `/api/ai/reports/{id}`
 - **Description**: Get a generated AI report
@@ -988,6 +1028,7 @@
 ### Data Export
 
 #### Export Data
+
 - **Method**: GET
 - **Path**: `/api/export`
 - **Description**: Export data in various formats
@@ -1005,6 +1046,7 @@
 ### User Activity
 
 #### Get User Activities
+
 - **Method**: GET
 - **Path**: `/api/activities`
 - **Description**: Get user activity logs
@@ -1044,6 +1086,7 @@
 ### Platforms
 
 #### List Platforms
+
 - **Method**: GET
 - **Path**: `/api/platforms`
 - **Description**: Get all available platforms
@@ -1066,12 +1109,14 @@
 The API uses Supabase Authentication with JWT tokens for securing endpoints.
 
 ### Authentication Implementation
+
 - JWT-based authentication using Supabase Auth
 - Access and refresh tokens
 - Token expiration and refresh flow
 - Rate limiting to prevent brute force attacks
 
 ### Authorization Implementation
+
 - Role-based access control via user_organizations roles
 - Row-Level Security (RLS) policies on Supabase
 - Three permission levels:
@@ -1080,6 +1125,7 @@ The API uses Supabase Authentication with JWT tokens for securing endpoints.
   - Viewer: Can only view data, no modifications
 
 ### Security Headers
+
 - CORS configuration
 - Content-Security-Policy
 - X-XSS-Protection
@@ -1088,28 +1134,33 @@ The API uses Supabase Authentication with JWT tokens for securing endpoints.
 ## 4. Validation and Business Logic
 
 ### Validation Rules
+
 - **Organizations**:
   - Name: Required, max length 100
-  
 - **User Organizations**:
+
   - Role: Must be one of 'admin', 'editor', 'viewer'
 
 - **Campaigns**:
+
   - Name: Required, max length 100
   - Status: Must be one of 'active', 'paused', 'completed', 'archived'
   - Unique constraint on (organization_id, platform_id, external_id)
   - Start date must be before or equal to end date
 
 - **Metrics**:
+
   - Date: Required
   - Numeric fields (impressions, clicks, etc.): Must be non-negative
   - Unique constraint on (campaign_id, date)
 
 - **Imports**:
+
   - Status: Must be one of 'pending', 'processing', 'completed', 'error'
   - File size limitations
 
 - **Campaign Changes**:
+
   - Description: Required
   - Change type: Must be one of 'budget', 'targeting', 'creative', 'bid', 'other'
   - Implementation date: Required
@@ -1120,25 +1171,23 @@ The API uses Supabase Authentication with JWT tokens for securing endpoints.
   - Content: Required
 
 ### Business Logic Implementation
+
 - **Data Import Processing**:
   - File validation
   - Format detection
   - Mapping to internal schema
   - Campaign creation/updating
   - Metrics aggregation
-  
 - **AI Insight Generation**:
   - Trend detection based on statistical analysis
   - Anomaly detection using outlier identification algorithms
   - Summary generation using OpenRouter.ai with appropriate models
   - Recommendations based on performance metrics
-  
 - **Alert System**:
   - Threshold-based alerts for key metrics
   - Real-time notification via WebSockets
   - Daily digest of critical alerts
-  
 - **Campaign Change Impact Analysis**:
   - Pre/post comparison of metrics
   - Statistical significance testing
-  - Automated verification reminders 
+  - Automated verification reminders

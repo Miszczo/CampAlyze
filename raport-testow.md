@@ -1,53 +1,141 @@
-# Raport z rozwiązania problemów testów E2E z Mock Service Worker
+# Raport z testów E2E komponentu logowania
 
-## Zidentyfikowane problemy
+## Wprowadzenie
 
-1. **Nieprawidłowe przechwytywanie żądań API** - MSW poprawnie się uruchamiał, ale żądania API nie były skutecznie przechwytywane i były przekierowywane do prawdziwego API Supabase.
-2. **Problemy z dopasowaniem ścieżek URL** - Handlery MSW nie przechwytywały odpowiednio żądań API.
-3. **Problemy z portami deweloperskimi** - Dynamiczne porty (3002/3003) powodowały problemy z konfiguracją.
+Niniejszy raport prezentuje wyniki testów End-to-End (E2E) przeprowadzonych na komponencie logowania w aplikacji campAlyze. Testy zostały wykonane z wykorzystaniem frameworka Playwright oraz metodologii Page Object Model (POM).
 
-## Wprowadzone zmiany
+## Znalezione problemy
 
-### 1. Dodanie modułu interceptora API (`tests/e2e/intercept-setup.ts`)
+### 1. Problem z importem typów
 
-Stworzono nowy moduł do przechwytywania i przekierowywania żądań API. Moduł ten:
-- Przechwytuje wszystkie żądania pasujące do wzorca `**/(api|auth)/**`
-- Przekierowuje je do lokalnego serwera MSW na odpowiednim porcie
-- Zachowuje oryginalne nagłówki i ciało żądania
-- Dodaje szczegółowe logowanie dla lepszego diagnozowania problemów
+```
+[ERROR] [vite] The requested module 'react-hook-form' does not provide an export named 'UseFormReturn'
+```
 
-### 2. Aktualizacja handlerów MSW (`tests/e2e/mocks/handlers.ts`)
+Wykryto błąd w importowaniu typu `UseFormReturn` z biblioteki react-hook-form. Problem został częściowo rozwiązany poprzez zmianę sposobu importu na import typu:
 
-- Zmieniono wzorce ścieżek z `/api/auth/signin` na bardziej ogólne `*/api/auth/signin`, aby dopasować różne formaty URL
-- Dodano handlery przechwytujące dla wszystkich endpointów uwierzytelniania
-- Dodano handler catch-all dla nieobsługiwanych endpointów
-- Rozszerzono logowanie dla lepszego diagnozowania problemów
+```typescript
+import type { UseFormReturn } from "react-hook-form";
+```
 
-### 3. Poprawienie konfiguracji MSW (`tests/e2e/setup-msw.ts`)
+### 2. Niezgodność selektorów w POM
 
-- Zaktualizowano sposób inicjalizacji MSW z lepszym logowaniem nieobsługiwanych żądań
-- Zaimplementowano ulepszony mechanizm przechwytywania żądań z wykorzystaniem nowego modułu `intercept-setup.ts`
-- Usunięto duplikujące się handlery odpowiedzi
+Selektory definiowane w Page Object Model (POM) nie odpowiadały rzeczywistym atrybutom data-testid w komponentach. Przykładowo:
 
-### 4. Aktualizacja konfiguracji globalnej (`tests/e2e/global-setup.ts`)
+- POM szukał `error-message`, podczas gdy w komponencie było `login-alert-error`
+- POM szukał przycisku o nazwie "Log in", podczas gdy w komponencie było "Login"
 
-- Dodano wykrywanie dynamicznego portu i automatyczne dostosowanie konfiguracji
-- Udostępniono serwer MSW globalnie dla całego środowiska testowego
-- Dodano szczegółowe logowanie dla lepszego diagnozowania problemów
+Problem został częściowo rozwiązany poprzez aktualizację POM, jednak nadal testy nie mogą znaleźć elementów w strukturze DOM.
 
-## Jak uruchomić testy
+### 3. Problemy z renderowaniem komponentów w testach
 
-1. Uruchom serwer deweloperski: `npm run dev`
-2. Uruchom testy z flagą debugowania: `npx playwright test --debug`
+Testy E2E nie mogą znaleźć elementów formularza logowania, co sugeruje, że:
 
-## Porady dotyczące rozwiązywania problemów
+- Komponenty mogą nie być prawidłowo renderowane w środowisku testowym
+- Selektory data-testid mogą nie być zgodne między POM a rzeczywistymi komponentami
+- Komponenty React mogą nie być w pełni załadowane przed próbą ich testowania
 
-1. **Sprawdź porty** - Upewnij się, że serwer deweloperski jest dostępny pod oczekiwanym portem
-2. **Logowanie przechwytywania** - Monitoruj logi przechwytywanych żądań z tagami `[MSW]`, `[Intercept]` i `[Network Request]`
-3. **Debugowanie w trybie interaktywnym** - Uruchom testy z flagą `--debug` dla lepszej widoczności
+### 4. Brak synchronizacji w działaniu API mockowego
 
-## Uwagi końcowe
+API mockowe nie przechwytuje poprawnie żądań. Główne problemy:
 
-Główny problem wynikał z niewłaściwego przechwytywania żądań API przez MSW. Wprowadzone zmiany znacznie poprawiają ten aspekt poprzez dokładniejsze przechwytywanie i przekierowywanie żądań do lokalnego serwera MSW.
+- W testach używane są ścieżki `/api/auth/signin`, które zostały skonfigurowane w MSW, ale żądania mogą być wysyłane do innych ścieżek
+- Konfiguracja MSW z `onUnhandledRequest: "bypass"` pokazuje, że niektóre żądania nie są przechwytywane
+- Brakuje odpowiedniej wizualizacji i debugowania żądań API podczas testów
 
-Największym wyzwaniem było zapewnienie, że żądania są poprawnie przechwytywane niezależnie od formatu URL (względne, bezwzględne) oraz że MSW poprawnie na nie odpowiada.
+### 5. Problemy z końcami linii
+
+Linter zgłasza liczne błędy związane z końcami linii (CRLF vs LF), co może powodować problemy w różnych środowiskach. Problem został częściowo rozwiązany, ale nadal wymaga uwagi, szczególnie w pliku `global-setup.ts`.
+
+### 6. Niespójność między różnymi wersjami Page Object Model
+
+W projekcie istnieją dwa osobne pliki implementujące Page Object Model dla strony logowania:
+
+- `tests/e2e/poms/LoginPage.pom.ts`
+- `tests/e2e/pages/LoginPage.ts`
+
+To prowadzi do niespójności w testach, które mogą importować różne wersje tego samego POM.
+
+### 7. Problemy z testami walidacji formularza
+
+Testy związane z walidacją pól formularza nie działają poprawnie, ponieważ:
+
+- Komunikaty o błędach walidacji nie są wykrywane przez selektory
+- Mechanizm validacji formularza może działać odmiennie w środowisku testowym
+
+## Rekomendowane rozwiązania
+
+### 1. Ujednolicenie konwencji data-testid
+
+Stworzyć i udokumentować standaryzowany system nazewnictwa dla atrybutów data-testid, np.:
+
+```
+[komponenta]-[typ_elementu]-[opis]
+```
+
+Przykład: `login-button-submit`, `login-alert-error`
+
+### 2. Weryfikacja rzeczywistych atrybutów data-testid w komponentach
+
+Przeprowadzić dokładną inspekcję komponentów w przeglądarce, aby zweryfikować, czy atrybuty data-testid są faktycznie renderowane w DOM zgodnie z oczekiwaniami. Można to zrobić za pomocą narzędzi deweloperskich przeglądarki.
+
+### 3. Ujednolicenie Page Object Model
+
+Usunąć jedną z wersji POM i upewnić się, że wszystkie testy importują tę samą, spójną wersję:
+
+```typescript
+// Preferować jedną lokalizację, np.:
+import { LoginPage } from "./poms/LoginPage.pom";
+```
+
+### 4. Debugowanie renderowania komponentów
+
+Dodać dodatkowe logowanie i asercje w testach, aby sprawdzić, czy komponenty są prawidłowo renderowane, np.:
+
+```typescript
+// Sprawdzić, czy podstawowa struktura DOM jest widoczna
+await expect(page.locator("form")).toBeVisible();
+console.log("DOM Structure:", await page.content());
+```
+
+### 5. Poprawa konfiguracji mockowania API
+
+Zweryfikować, czy ścieżki API w mockach dokładnie odpowiadają tym używanym w aplikacji:
+
+```typescript
+// W handlers.ts
+http.post("/api/auth/signin", async ({ request }) => { ... });
+
+// W komponencie logowania - upewnić się, że używana jest dokładnie ta sama ścieżka
+const response = await fetch("/api/auth/signin", { ... });
+```
+
+### 6. Rozwiązanie problemu react-hook-form
+
+Zaktualizować definicję typu w hookach:
+
+```typescript
+// W pliku useLoginForm.ts
+import type { UseFormReturn } from "react-hook-form";
+
+export type LoginFormReturn = Omit<ReturnType<typeof useLoginForm>, "form"> & {
+  form: UseFormReturn<LoginFormValues>;
+};
+```
+
+### 7. Standaryzacja końców linii
+
+Skonfigurować Git, EditorConfig i Prettier, aby wymuszały jednolity styl końca linii (LF):
+
+```bash
+git config --global core.autocrlf input
+```
+
+## Wnioski
+
+Testy E2E dla komponentu logowania nadal wykazują problemy pomimo naprawy części z nich. Najważniejsze kwestie to problemy z renderowaniem komponentów w środowisku testowym oraz brak komunikacji z mockami API. Dalsza debugging i zwiększona instrumentacja testów może pomóc w identyfikacji źródła problemów.
+
+Dwa kluczowe obszary, które należy zbadać w pierwszej kolejności:
+
+1. Czy komponenty React są poprawnie renderowane z odpowiednimi atrybutami data-testid
+2. Czy mockowane API prawidłowo przechwytuje i obsługuje żądania od komponentów

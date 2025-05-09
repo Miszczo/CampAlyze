@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLoginForm } from "../hooks/useLoginForm";
 import { LoginFormAlerts } from "./LoginFormAlerts";
@@ -14,6 +14,16 @@ interface LoginFormProps {
 export const LoginForm: React.FC<LoginFormProps> = ({ initialMessage = null, messageType = null }) => {
   const { form, isLoading, error, successMessage, requiresVerification, onSubmit, handleResendVerification } =
     useLoginForm({ initialMessage, messageType });
+
+  useEffect(() => {
+    console.log("[LoginForm] Form loaded");
+  }, []);
+
+  console.log("[LoginForm-Debug] Rendering with states:", {
+    error: error,
+    successMessage,
+    requiresVerification,
+  });
 
   return (
     <Card className="w-full max-w-md" data-testid="login-card">

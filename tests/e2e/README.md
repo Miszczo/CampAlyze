@@ -19,7 +19,7 @@ npm run test:e2e
 TEST_MODE=mock npm run test:e2e
 ```
 
-### Tryb integracyjny 
+### Tryb integracyjny
 
 ```bash
 # Uruchomienie testów z rzeczywistym API
@@ -33,6 +33,7 @@ Test blokowania konta po 5 nieudanych próbach logowania działa w pełni tylko 
 ### Jak test działa:
 
 1. W trybie mockowym:
+
    - Po 5 nieudanych próbach logowania, konto jest blokowane na 15 minut
    - Wyświetlany jest komunikat o zablokowaniu konta
    - Nawet poprawne dane logowania są odrzucane
@@ -56,4 +57,4 @@ Jeśli test blokowania konta nie działa poprawnie:
 
 1. Upewnij się, że uruchamiasz go w trybie mockowym (domyślnie lub z `TEST_MODE=mock`)
 2. Sprawdź logi konsoli pod kątem informacji o przechwytywaniu żądań
-3. Jeśli żądania nie są przechwytywane, może być problem z konfiguracją MSW 
+3. Jeśli żądania nie są przechwytywane, może być problem z konfiguracją MSW

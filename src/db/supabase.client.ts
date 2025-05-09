@@ -8,20 +8,15 @@ const isTestEnvironment =
   import.meta.env.MODE === "test" ||
   (typeof process !== "undefined" && (process.env.IS_TEST_ENV === "true" || process.env.NODE_ENV === "test"));
 
-// Użyj zmiennych środowiskowych lub wartości mockowanych dla testów
-const supabaseUrl = isTestEnvironment
-  ? import.meta.env.MOCK_SUPABASE_URL || "https://mock.supabase.co"
-  : import.meta.env.SUPABASE_URL;
+// Użyj zmiennych środowiskowych dla rzeczywistej bazy E2E lub normalnej konfiguracji
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.SUPABASE_KEY; // Używamy SUPABASE_KEY zgodnie z .env.test
 
-const supabaseAnonKey = isTestEnvironment
-  ? import.meta.env.MOCK_SUPABASE_KEY || "mock-key"
-  : import.meta.env.SUPABASE_KEY;
-
-// Log informacyjny pokazujący użycie rzeczywistego lub mockowanego klienta
+// Log informacyjny pokazujący użycie konfiguracji
 if (isTestEnvironment) {
-  console.log("[Supabase Client] Using mock Supabase configuration for tests");
+  console.log("[Supabase Client] Using E2E Supabase configuration (from .env.test)");
 } else {
-  console.log("[Supabase Client] Using real Supabase configuration");
+  console.log("[Supabase Client] Using real Supabase configuration (from .env)");
 }
 
 export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);

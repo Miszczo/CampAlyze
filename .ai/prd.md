@@ -24,37 +24,44 @@ Te wyzwania znacząco ograniczają zdolność specjalistów do szybkiego reagowa
 ## 3. Wymagania funkcjonalne
 
 ### 3.1 Import i przetwarzanie danych
+
 - Import danych z plików CSV/XLSX eksportowanych z Google Ads i Meta Ads
 - Walidacja plików pod kątem wymaganych kolumn i formatów danych
 - Alerty informujące o błędach podczas importowania plików
 - Możliwość przetwarzania podstawowych metryk: CPC, CTR, konwersje, koszt/konwersję, ROAS
 
 ### 3.2 Interaktywny dashboard
+
 - Wizualizacja kluczowych metryk (CPC, CTR, konwersje, koszt/konwersję, ROAS)
 - Widok porównawczy platform - zestawienie efektywności kampanii z różnych platform na jednym ekranie
 - Podstawowa segmentacja danych według platform, kampanii i okresu czasu
 - Porównanie okresów - zestawienie wyników bieżącego tygodnia/miesiąca z poprzednim
 
 ### 3.3 System alertów i flagowania
+
 - System prostych flag wskazujący kampanie z potencjalnymi problemami na podstawie progów wydajności
 - Powiadomienia o kampaniach wymagających uwagi
 
 ### 3.4 Dziennik zmian
+
 - Rejestrowanie wprowadzonych zmian w kampaniach z datą i opisem
 - Oznaczenie daty planowanej weryfikacji efektów
 - Lista nadchodzących weryfikacji widoczna na dashboardzie
 - Możliwość porównania metryk przed i po wprowadzeniu zmiany
 
 ### 3.5 Eksport danych
+
 - Eksport raportów do formatów CSV/PDF/XLSX
 - Możliwość wyboru zakresu danych do eksportu
 
 ### 3.6 System kont użytkowników
+
 - Prosty system logowania użytkowników z wykorzystaniem **Supabase Authentication**
 - Podstawowe zarządzanie dostępem i uprawnieniami
 - Rejestrowanie aktywności użytkowników
 
 ### 3.7 Funkcje AI
+
 - Automatyczne generowanie tekstowych podsumowań wyników kampanii
 - Wskazywanie potencjalnych trendów i anomalii w danych
 - Proste rekomendacje dotyczące optymalizacji kampanii
@@ -83,6 +90,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Uwierzytelnianie i zarządzanie kontami
 
 #### US-001
+
 - Tytuł: Rejestracja nowego użytkownika
 - Opis: Jako nowy użytkownik, chcę zarejestrować się w systemie, aby uzyskać dostęp do narzędzia analitycznego.
 - Kryteria akceptacji:
@@ -93,6 +101,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   5. Użytkownik nie może korzystać z pełnej funkcjonalności (poza możliwością weryfikacji emaila i ponownego wysłania linku) bez potwierdzenia adresu email
 
 #### US-002
+
 - Tytuł: Logowanie użytkownika
 - Opis: Jako zarejestrowany użytkownik, chcę zalogować się do systemu, aby korzystać z narzędzia.
 - Kryteria akceptacji:
@@ -103,6 +112,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   5. Użytkownik z niezweryfikowanym adresem email jest przekierowywany do strony weryfikacji
 
 #### US-XXX (Nowy)
+
 - Tytuł: Weryfikacja adresu email
 - Opis: Jako nowo zarejestrowany użytkownik, chcę zweryfikować swój adres email, klikając link w otrzymanej wiadomości, aby uzyskać pełen dostęp do aplikacji.
 - Kryteria akceptacji:
@@ -112,6 +122,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Link weryfikacyjny jest ważny przez określony czas (np. 24 godziny)
 
 #### US-XXX (Nowy)
+
 - Tytuł: Odzyskiwanie hasła (Zapomniałem hasła)
 - Opis: Jako zarejestrowany użytkownik, który zapomniał hasła, chcę zainicjować proces resetowania hasła, aby odzyskać dostęp do konta.
 - Kryteria akceptacji:
@@ -121,6 +132,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik jest informowany o wysłaniu emaila (lub o tym, że konto nie istnieje, bez ujawniania tej informacji wprost ze względów bezpieczeństwa)
 
 #### US-XXX (Nowy)
+
 - Tytuł: Resetowanie hasła
 - Opis: Jako użytkownik, który otrzymał link do resetowania hasła, chcę ustawić nowe hasło, aby móc ponownie zalogować się na swoje konto.
 - Kryteria akceptacji:
@@ -131,6 +143,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   5. Link do resetowania hasła jest jednorazowy i wygasa po użyciu lub po określonym czasie (np. 1 godzinie)
 
 #### US-003
+
 - Tytuł: Zarządzanie uprawnieniami użytkowników
 - Opis: Jako administrator, chcę zarządzać uprawnieniami użytkowników, aby kontrolować dostęp do danych i funkcjonalności.
 - Kryteria akceptacji:
@@ -142,6 +155,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Import i przetwarzanie danych
 
 #### US-004
+
 - Tytuł: Import danych z plików CSV/XLSX
 - Opis: Jako specjalista ds. reklam, chcę importować dane z plików CSV/XLSX z Google Ads i Meta Ads, aby analizować efektywność kampanii.
 - Kryteria akceptacji:
@@ -152,6 +166,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   5. Dane są poprawnie zapisywane w bazie danych
 
 #### US-005
+
 - Tytuł: Rozpoznawanie formatu danych
 - Opis: Jako specjalista ds. reklam, chcę aby system automatycznie rozpoznawał format danych z różnych platform, aby zaoszczędzić czas na ręcznej konfiguracji.
 - Kryteria akceptacji:
@@ -161,6 +176,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może dostosować mapowanie w przypadku problemów
 
 #### US-006
+
 - Tytuł: Historia importów
 - Opis: Jako specjalista ds. reklam, chcę widzieć historię importowanych plików, aby kontrolować zakres dostępnych danych.
 - Kryteria akceptacji:
@@ -172,6 +188,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Dashboard i wizualizacja
 
 #### US-007
+
 - Tytuł: Wyświetlanie kluczowych metryk na dashboardzie
 - Opis: Jako specjalista ds. reklam, chcę widzieć kluczowe metryki na dashboardzie, aby szybko ocenić efektywność kampanii.
 - Kryteria akceptacji:
@@ -181,6 +198,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Dashboard odświeża się automatycznie po imporcie nowych danych
 
 #### US-008
+
 - Tytuł: Porównanie platform reklamowych
 - Opis: Jako specjalista ds. reklam, chcę porównywać wyniki kampanii z różnych platform, aby zidentyfikować najskuteczniejsze kanały.
 - Kryteria akceptacji:
@@ -190,6 +208,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może przełączać się między różnymi widokami porównawczymi
 
 #### US-009
+
 - Tytuł: Segmentacja danych
 - Opis: Jako specjalista ds. reklam, chcę segmentować dane według kampanii, platform i czasu, aby głębiej analizować wyniki.
 - Kryteria akceptacji:
@@ -199,6 +218,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Wszystkie wykresy i metryki aktualizują się po zastosowaniu filtrów
 
 #### US-010
+
 - Tytuł: Porównanie okresów
 - Opis: Jako specjalista ds. reklam, chcę porównywać wyniki z różnych okresów, aby ocenić trendy i postępy w optymalizacji.
 - Kryteria akceptacji:
@@ -210,6 +230,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### System alertów
 
 #### US-011
+
 - Tytuł: Automatyczne flagi dla problemowych kampanii
 - Opis: Jako specjalista ds. reklam, chcę otrzymywać automatyczne powiadomienia o kampaniach z problemami, aby szybko reagować na spadki efektywności.
 - Kryteria akceptacji:
@@ -221,6 +242,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Dziennik zmian
 
 #### US-012
+
 - Tytuł: Rejestrowanie zmian w kampaniach
 - Opis: Jako specjalista ds. reklam, chcę rejestrować wprowadzone zmiany w kampaniach, aby śledzić ich wpływ na wyniki.
 - Kryteria akceptacji:
@@ -230,6 +252,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Wpisy są przypisane do konkretnych kampanii
 
 #### US-013
+
 - Tytuł: Lista nadchodzących weryfikacji
 - Opis: Jako specjalista ds. reklam, chcę widzieć listę nadchodzących weryfikacji zmian, aby nie przeoczyć terminu oceny efektów.
 - Kryteria akceptacji:
@@ -239,6 +262,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może przejść bezpośrednio do szczegółów zmiany z listy
 
 #### US-014
+
 - Tytuł: Porównanie wyników przed i po zmianie
 - Opis: Jako specjalista ds. reklam, chcę porównać wyniki kampanii przed i po wprowadzeniu zmiany, aby ocenić jej skuteczność.
 - Kryteria akceptacji:
@@ -250,6 +274,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Eksport danych
 
 #### US-015
+
 - Tytuł: Eksport raportów
 - Opis: Jako specjalista ds. reklam, chcę eksportować dane do różnych formatów, aby udostępniać je innym osobom lub używać w innych narzędziach.
 - Kryteria akceptacji:
@@ -261,6 +286,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### Bezpieczeństwo i monitorowanie
 
 #### US-016
+
 - Tytuł: Monitorowanie aktywności użytkowników
 - Opis: Jako administrator, chcę monitorować aktywność użytkowników w systemie, aby zapewnić bezpieczeństwo danych.
 - Kryteria akceptacji:
@@ -272,6 +298,7 @@ Następujące funkcjonalności są poza zakresem MVP:
 ### AI i analiza danych
 
 #### US-017
+
 - Tytuł: Automatyczne podsumowania kampanii
 - Opis: Jako specjalista ds. reklam, chcę otrzymywać automatycznie generowane podsumowania wyników kampanii, aby szybko zrozumieć ich wydajność bez konieczności analizowania wszystkich metryk.
 - Kryteria akceptacji:
@@ -281,6 +308,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może wygenerować podsumowanie dla dowolnego zakresu dat
 
 #### US-018
+
 - Tytuł: Wykrywanie trendów i anomalii
 - Opis: Jako specjalista ds. reklam, chcę aby system automatycznie wykrywał trendy i anomalie w danych kampanii, aby szybciej identyfikować problemy i szanse.
 - Kryteria akceptacji:
@@ -290,6 +318,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może dostosować czułość wykrywania anomalii
 
 #### US-019
+
 - Tytuł: Proste rekomendacje optymalizacyjne
 - Opis: Jako specjalista ds. reklam, chcę otrzymywać podstawowe rekomendacje dotyczące optymalizacji kampanii, aby szybciej podejmować decyzje.
 - Kryteria akceptacji:
@@ -299,6 +328,7 @@ Następujące funkcjonalności są poza zakresem MVP:
   4. Użytkownik może oznaczyć rekomendacje jako zaimplementowane lub odrzucone
 
 #### US-020
+
 - Tytuł: Generowanie raportów AI
 - Opis: Jako specjalista ds. reklam, chcę generować automatyczne raporty AI na podstawie wybranych metryk i okresów, aby efektywniej raportować wyniki.
 - Kryteria akceptacji:
@@ -323,4 +353,4 @@ Sukces produktu będzie mierzony następującymi wskaźnikami:
 9. Średni czas odpowiedzi aplikacji poniżej 1,5 sekundy
 10. 90% użytkowników nie zgłasza problemów z dostępnością aplikacji
 11. 70% użytkowników ocenia funkcje AI jako przydatne w codziennej pracy
-12. 60% rekomendacji generowanych przez AI jest uznawanych za trafne przez użytkowników 
+12. 60% rekomendacji generowanych przez AI jest uznawanych za trafne przez użytkowników

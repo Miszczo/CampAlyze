@@ -1,23 +1,17 @@
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useLoginForm } from "../useLoginForm";
-import * as supabaseClient from "../../../lib/supabase/client";
 
-// Mock supabaseClient
-vi.mock("../../../lib/supabase/client", () => ({
-  supabase: {
-    auth: {
-      signInWithPassword: vi.fn(),
-      resendEmailVerification: vi.fn(),
-    },
-  },
-}));
+// Mock fetch API
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
 describe("useLoginForm", () => {
   const mockNavigate = vi.fn();
 
   beforeEach(() => {
     vi.resetAllMocks();
+    mockFetch.mockClear();
   });
 
   afterEach(() => {
@@ -36,11 +30,10 @@ describe("useLoginForm", () => {
 
   it("should handle successful login", async () => {
     // Mock successful login response
-    const mockSignIn = vi.mocked(supabaseClient.supabase.auth.signInWithPassword);
-    mockSignIn.mockResolvedValueOnce({
-      data: { user: { id: "123", email: "test@example.com" }, session: { access_token: "token" } },
-      error: null,
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -48,7 +41,11 @@ describe("useLoginForm", () => {
       await result.current.onSubmit({ email: "test@example.com", password: "Password123!" });
     });
 
-    expect(mockSignIn).toHaveBeenCalledWith({ email: "test@example.com", password: "Password123!" });
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "test@example.com", password: "Password123!" }),
+    });
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -56,11 +53,14 @@ describe("useLoginForm", () => {
 
   it("should handle email not verified error", async () => {
     // Mock error response for unverified email
-    const mockSignIn = vi.mocked(supabaseClient.supabase.auth.signInWithPassword);
-    mockSignIn.mockResolvedValueOnce({
-      data: { user: null, session: null },
-      error: { message: "Email not confirmed", status: 400 },
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({
+        error: "Email not confirmed",
+        requiresVerification: true,
+      }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -68,7 +68,11 @@ describe("useLoginForm", () => {
       await result.current.onSubmit({ email: "unverified@example.com", password: "Password123!" });
     });
 
-    expect(mockSignIn).toHaveBeenCalledWith({ email: "unverified@example.com", password: "Password123!" });
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "unverified@example.com", password: "Password123!" }),
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.requiresVerification).toBe(true);
     expect(result.current.error).toContain("Email not confirmed");
@@ -76,11 +80,13 @@ describe("useLoginForm", () => {
 
   it("should handle invalid credentials error", async () => {
     // Mock error response for invalid credentials
-    const mockSignIn = vi.mocked(supabaseClient.supabase.auth.signInWithPassword);
-    mockSignIn.mockResolvedValueOnce({
-      data: { user: null, session: null },
-      error: { message: "Invalid login credentials", status: 401 },
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        error: "Invalid login credentials",
+      }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -88,18 +94,24 @@ describe("useLoginForm", () => {
       await result.current.onSubmit({ email: "test@example.com", password: "WrongPassword" });
     });
 
-    expect(mockSignIn).toHaveBeenCalledWith({ email: "test@example.com", password: "WrongPassword" });
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "test@example.com", password: "WrongPassword" }),
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toContain("Invalid login credentials");
   });
 
   it("should handle user not found error", async () => {
     // Mock error response for user not found
-    const mockSignIn = vi.mocked(supabaseClient.supabase.auth.signInWithPassword);
-    mockSignIn.mockResolvedValueOnce({
-      data: { user: null, session: null },
-      error: { message: "User not found", status: 404 },
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+      json: async () => ({
+        error: "User not found",
+      }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -107,18 +119,21 @@ describe("useLoginForm", () => {
       await result.current.onSubmit({ email: "nonexistent@example.com", password: "Password123!" });
     });
 
-    expect(mockSignIn).toHaveBeenCalledWith({ email: "nonexistent@example.com", password: "Password123!" });
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/signin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "nonexistent@example.com", password: "Password123!" }),
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toContain("User not found");
   });
 
   it("should handle resend email verification", async () => {
     // Mock successful resend verification
-    const mockResend = vi.mocked(supabaseClient.supabase.auth.resendEmailVerification);
-    mockResend.mockResolvedValueOnce({
-      data: {},
-      error: null,
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: "Verification email sent successfully." }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -132,18 +147,24 @@ describe("useLoginForm", () => {
       await result.current.handleResendVerification("unverified@example.com");
     });
 
-    expect(mockResend).toHaveBeenCalledWith({ email: "unverified@example.com" });
-    expect(result.current.successMessage).toContain("Verification email sent");
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "unverified@example.com" }),
+    });
+    expect(result.current.successMessage).toContain("Verification email sent successfully");
     expect(result.current.error).toBeNull();
   });
 
   it("should handle error during resend verification", async () => {
     // Mock error during resend verification
-    const mockResend = vi.mocked(supabaseClient.supabase.auth.resendEmailVerification);
-    mockResend.mockResolvedValueOnce({
-      data: {},
-      error: { message: "Too many requests", status: 429 },
-    });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: "Too many requests",
+      }),
+    } as Response);
 
     const { result } = renderHook(() => useLoginForm(mockNavigate));
 
@@ -156,7 +177,11 @@ describe("useLoginForm", () => {
       await result.current.handleResendVerification("unverified@example.com");
     });
 
-    expect(mockResend).toHaveBeenCalledWith({ email: "unverified@example.com" });
+    expect(mockFetch).toHaveBeenCalledWith("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "unverified@example.com" }),
+    });
     expect(result.current.successMessage).toBeNull();
     expect(result.current.error).toContain("Too many requests");
   });

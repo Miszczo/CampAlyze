@@ -1,56 +1,50 @@
-import { chromium } from "@playwright/test";
-import { setupServer } from "msw/node";
-import { handlers } from "./mocks/handlers";
+/**
+ * Globalny setup dla testów E2E Playwright
+ *
+ * Ten plik wykonuje się przed uruchomieniem wszystkich testów.
+ * Używany jest do konfiguracji środowiska testowego.
+ */
 
-// Create MSW server and expose it for reuse
-export const server = setupServer(...handlers);
+// Określamy tryb testów (mock lub integration)
+const testMode = process.env.TEST_MODE || "mock";
+console.log(`[Global Setup] Running tests in ${testMode} mode`);
 
+/**
+ * Funkcja global setup wykonująca się przed wszystkimi testami
+ */
 async function globalSetup() {
-  console.log("[Global Setup] Starting Mock Service Worker server");
+  console.log("[Global Setup] Starting setup process...");
 
-  // Start the server with better visibility of unhandled requests
-  server.listen({
-    onUnhandledRequest: (req) => {
-      console.warn(`[MSW] Unhandled ${req.method} request to ${req.url.href}`);
-    },
-  });
+  // Wyświetl informacje diagnostyczne o środowisku
+  console.log(`[Global Setup] Test mode: ${testMode}`);
+  console.log(`[Global Setup] BASE_URL: ${process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"}`);
 
-  // Optional: Set up browser for testing
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  // Visit the site to make sure it's ready - dynamic port detection
-  let baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3003/";
-
-  try {
-    console.log("[Global Setup] Testing connection to app at:", baseUrl);
-    await page.goto(baseUrl);
-    console.log("[Global Setup] Successfully connected to app");
-  } catch (error) {
-    // Try alternative port if using default port
-    if (baseUrl.includes("3003")) {
-      console.log("[Global Setup] Failed to connect on port 3003, trying 3002...");
-      baseUrl = baseUrl.replace("3003", "3002");
-      try {
-        await page.goto(baseUrl);
-        console.log("[Global Setup] Successfully connected to app on port 3002");
-        // Update environment variable
-        process.env.PLAYWRIGHT_BASE_URL = baseUrl;
-        console.log("[Global Setup] Updated PLAYWRIGHT_BASE_URL to:", baseUrl);
-      } catch (secondError) {
-        console.error("[Global Setup] Failed to connect to app on both ports:");
-        console.error(secondError);
-      }
-    } else {
-      console.error("[Global Setup] Failed to connect to app:");
-      console.error(error);
-    }
+  // Sprawdź, czy zmienne środowiskowe dla Supabase są dostępne
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    console.log("[Global Setup] Supabase environment variables are available");
+  } else {
+    console.warn("[Global Setup] Warning: Supabase environment variables not found!");
   }
 
-  // Close browser
-  await browser.close();
+  // Sprawdź, czy mamy dane testowe
+  if (process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD) {
+    console.log("[Global Setup] Test user credentials are available");
+  } else {
+    console.warn("[Global Setup] Warning: Test user credentials not found in environment variables!");
+  }
 
-  console.log("[Global Setup] MSW server started and app connection tested");
+  console.log("[Global Setup] Setup complete");
 }
 
+/**
+ * Funkcja global teardown wykonująca się po wszystkich testach
+ */
+async function globalTeardown() {
+  console.log("[Global Setup] Starting teardown process...");
+  // Tutaj można dodać operacje czyszczenia po testach
+  console.log("[Global Setup] Teardown complete");
+}
+
+// Eksportujemy obie funkcje do użycia przez Playwright
 export default globalSetup;
+export { globalTeardown };

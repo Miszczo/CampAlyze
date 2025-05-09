@@ -35,4 +35,4 @@ graph TD
     style AuthService fill:#f9f,stroke:#333,stroke-width:2px
     style FileStorage fill:#f9f,stroke:#333,stroke-width:2px
     style AIService fill:#ccf,stroke:#333,stroke-width:2px
-``` 
+```

@@ -22,4 +22,4 @@ sequenceDiagram
             Middleware (Astro src/middleware/index.ts)->>Browser/Client: Przekierowanie 302 na /auth/login
         end
     end
-``` 
+```

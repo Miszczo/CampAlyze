@@ -1,5 +1,5 @@
 /**
- * Pomocnik do konfiguracji przechwytywania żądań podczas testów E2E z MSW
+ * Pomocnik do konfiguracji przechwytywania żądań podczas testów E2E
  */
 import type { Page } from "@playwright/test";
 
@@ -8,66 +8,129 @@ import type { Page } from "@playwright/test";
  * Ta funkcja powinna być wywołana dla każdej strony testowej przed uruchomieniem testów.
  */
 export async function setupApiInterception(page: Page) {
-  // Śledzenie dodatkowych informacji dla debugowania
-  console.log(`[Intercept-Setup] Setting up API interception for page ${page.url()}`);
+  console.log(`[Intercept-Setup] Setting up API interception`);
 
-  // Przechwytujemy wszystkie żądania do API i przekierowujemy je przez localhost
-  // gdzie MSW nasłuchuje na żądania
-  await page.route("**/(api|auth)/**", async (route) => {
+  // 1. Dodajemy interceptor dla żądań API - musi być najpierw
+  // Uwaga: w url trzeba użyć ** zamiast * aby złapać wszystkie ścieżki
+  await page.route("**/api/auth/signin", async (route) => {
     const url = route.request().url();
-    const method = route.request().method();
+    console.log(`[Intercept] Intercepted signin request: ${url}`);
 
-    console.log(`[Intercept] Caught API request: ${method} ${url}`);
+    try {
+      const postData = route.request().postDataJSON() as { email: string; password: string };
+      const { email, password } = postData;
+      console.log(`[Intercept] Login request with email: ${email}`);
 
-    // Sprawdź czy URL zawiera /api/auth/ - to są endpointy, które nas interesują
-    if (url.includes("/api/auth/")) {
-      console.log(`[Intercept] Handling auth request: ${method} ${url}`);
-
-      try {
-        // Pobierz oryginalne nagłówki i ciało
-        const headers = route.request().headers();
-        let body = null;
-        try {
-          body = await route.request().postData();
-        } catch (e) {
-          // Ignoruj błędy - niektóre żądania mogą nie mieć ciała
-        }
-
-        // Dynamiczne pobieranie portu z PLAYWRIGHT_BASE_URL
-        const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3003";
-        let mockServerPort = "3003";
-        try {
-          const parsed = new URL(baseUrl);
-          mockServerPort = parsed.port || "3003";
-        } catch {}
-        const mockServerUrl = `http://localhost:${mockServerPort}${new URL(url).pathname}`;
-
-        console.log(`[Intercept] Redirecting to MSW server: ${mockServerUrl}`);
-
-        // Przygotuj nowe żądanie z przekierowanym URL
-        const newRequest = {
-          url: mockServerUrl,
-          method: method,
-          headers: {
-            ...headers,
-            "x-msw-bypass": "false", // Upewnij się, że MSW złapie to żądanie
-          },
-          body: body,
-        };
-
-        // Kontynuuj z nowym żądaniem
-        await route.continue(newRequest);
-      } catch (error) {
-        console.error(`[Intercept] Error during request interception:`, error);
-        await route.continue(); // Fallback do oryginalnego żądania
+      // Pomyślne logowanie
+      if (
+        email === (process.env.TEST_USER_EMAIL || "verified-user@example.com") &&
+        password === (process.env.TEST_USER_PASSWORD || "Password123!")
+      ) {
+        console.log(`[Intercept] Mocking successful login for ${email}`);
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ success: true }),
+        });
+        return;
       }
-    } else {
-      // Inne żądania przepuszczamy bez zmian
-      await route.continue();
+
+      // Niezweryfikowany użytkownik
+      if (email === "unverified-user@example.com") {
+        console.log(`[Intercept] Mocking unverified user for ${email}`);
+        await route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            requiresVerification: true,
+            error: "Email not verified",
+          }),
+        });
+        return;
+      }
+
+      // Domyślna odpowiedź - błędne dane logowania
+      console.log(`[Intercept] Mocking invalid credentials for ${email}`);
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: "Invalid login credentials",
+        }),
+      });
+    } catch (error) {
+      console.error(`[Intercept] Error handling signin:`, error);
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: "An unexpected error occurred during authentication",
+        }),
+      });
     }
   });
 
-  // Dodajemy nasłuchiwanie na zdarzenia odpowiedzi dla lepszego debugowania
+  // Interceptor dla żądań resend-verification
+  await page.route("**/api/auth/resend-verification", async (route) => {
+    const url = route.request().url();
+    console.log(`[Intercept] Intercepted resend-verification request: ${url}`);
+
+    try {
+      const postData = route.request().postDataJSON() as { email: string };
+      const { email } = postData;
+
+      if (!email) {
+        await route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            error: "Please enter your email address to resend verification.",
+          }),
+        });
+        return;
+      }
+
+      // Błąd dla konkretnego adresu email używanego w testach
+      if (email === "error-prone@example.com") {
+        console.log(`[Intercept] Mocking error for resend verification: ${email}`);
+        await route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            error: "Failed to resend verification email.",
+          }),
+        });
+        return;
+      }
+
+      // Pomyślne ponowne wysłanie
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          message: "Verification email sent successfully",
+        }),
+      });
+    } catch (error) {
+      console.error(`[Intercept] Error handling resend-verification:`, error);
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: "An unexpected error occurred while resending verification",
+        }),
+      });
+    }
+  });
+
+  // 2. Debug listener dla wszystkich odpowiedzi
   page.on("response", async (response) => {
     const url = response.url();
     if (url.includes("/api/auth/")) {
@@ -75,26 +138,15 @@ export async function setupApiInterception(page: Page) {
       const statusText = response.statusText();
       console.log(`[Intercept] Response for ${url}: ${status} ${statusText}`);
 
-      // Zapisz nagłówki odpowiedzi
-      const headers = response.headers();
-      console.log(`[Intercept] Response headers:`, headers);
-
-      // Próba logowania ciała odpowiedzi
-      if (headers["content-type"]?.includes("application/json")) {
-        try {
-          const body = await response.json();
-          console.log(`[Intercept] Response body:`, JSON.stringify(body, null, 2));
-        } catch (e) {
-          console.error(`[Intercept] Error parsing JSON response:`, e);
+      try {
+        if (response.headers()["content-type"]?.includes("application/json")) {
+          // Response w Playwright nie ma metody clone, więc bezpośrednio parsujemy JSON
+          const jsonBody = await response.json();
+          console.log(`[Intercept] Response body: ${JSON.stringify(jsonBody)}`);
         }
+      } catch (error) {
+        console.log(`[Intercept] Could not parse response JSON:`, error);
       }
-    }
-  });
-
-  // Dodatkowy nasłuch na błędy żądań sieciowych
-  page.on("requestfailed", (request) => {
-    if (request.url().includes("/api/auth/")) {
-      console.error(`[Intercept] Request failed for ${request.url()}:`, request.failure());
     }
   });
 

@@ -22,4 +22,4 @@ sequenceDiagram
         Backend API (Astro Endpoint /api/imports/upload)-->>Frontend (React Component): Odpowiedź 201 Created (import_id, status)
         Frontend (React Component)->>User: Wyświetla potwierdzenie importu / status
     end
-``` 
+```

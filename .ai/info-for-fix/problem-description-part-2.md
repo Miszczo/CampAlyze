@@ -1,6 +1,7 @@
 kontynuacja z problem-description-part-1.md
 
 #### 2.4. Problem: Błędy asercji dotyczące `initialMessage` i komunikatów błędów
+
     *   **Plik:** `src/components/hooks/useLoginForm.test.ts`
     *   **Komunikaty błędów:**
         *   `AssertionError: expected null to be 'Test error message'`
@@ -43,6 +44,7 @@ kontynuacja z problem-description-part-1.md
 ### Kategoria 3: Problemy z Testami Klienta API OpenRouter (`api-client.test.ts`)
 
 #### 3.1. Problem: Obietnice rozwiązują się zamiast odrzucać dla błędów API
+
     *   **Plik:** `src/lib/ai/openrouter/api-client.test.ts`
     *   **Testy:**
         *   `should throw RateLimitError for 429 responses`
@@ -82,6 +84,7 @@ kontynuacja z problem-description-part-1.md
         ```
 
 #### 3.2. Problem: Błąd testu ponawiania prób przy błędach sieciowych
+
     *   **Plik:** `src/lib/ai/openrouter/api-client.test.ts`
     *   **Test:** `should retry on network errors`
     *   **Komunikat błędu:** `NetworkError: Request failed ... Caused by: Error: Network error`
@@ -107,7 +110,7 @@ kontynuacja z problem-description-part-1.md
               });
 
               const client = new OpenRouterApiClient('test-key', { retries: maxAttempts -1 }); // lub jakkolwiek konfigurujesz liczbę ponowień
-              
+
               await expect(client.sendRequest('/endpoint', {})).resolves.toEqual({ data: 'success after retries' });
               expect(fetch).toHaveBeenCalledTimes(maxAttempts);
             });
@@ -119,7 +122,7 @@ kontynuacja z problem-description-part-1.md
               });
 
               const client = new OpenRouterApiClient('test-key', { retries: maxAttempts -1 });
-              
+
               await expect(client.sendRequest('/endpoint', {})).rejects.toThrow(NetworkError); // lub specyficzny błąd po ponowieniach
               expect(fetch).toHaveBeenCalledTimes(maxAttempts); // Klient powinien próbować X razy
             });
@@ -128,6 +131,7 @@ kontynuacja z problem-description-part-1.md
 ### Kategoria 4: Ogólne Błędy Sieciowe w Testach Komponentów
 
 #### 4.1. Problem: Niezamockowane lub źle mockowane `fetch` w testach komponentów UI
+
     *   **Pliki:**
         *   `src/components/auth/ForgotPasswordForm.test.tsx`
         *   `src/components/auth/ResendVerification.test.tsx`

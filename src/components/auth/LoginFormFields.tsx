@@ -1,8 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { LoginFormValues } from "../hooks/useLoginForm";
+import type { UseFormReturn } from "react-hook-form";
+import type { LoginFormValues } from "../hooks/useLoginForm";
 
 interface LoginFormFieldsProps {
   form: UseFormReturn<LoginFormValues>;

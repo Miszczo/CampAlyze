@@ -1,6 +1,7 @@
 # Status implementacji widoku OpenRouterService
 
 ## Zrealizowane kroki
+
 - Utworzono strukturę katalogów `src/lib/ai/openrouter` zgodnie z planem.
 - Zaimplementowano klasę `OpenRouterApiClient` (szkielet) do komunikacji z API.
 - Zaimplementowano pełną hierarchię błędów (`OpenRouterError` i pochodne).
@@ -17,6 +18,7 @@
 - Zaimplementowano pełny workflow w `analyzeCampaign` oraz szkielety pozostałych metod domenowych (`generateOptimizationRecommendations`, `detectAnomalies`, `generateReport`).
 
 ## Kolejne kroki
+
 - Implementacja metod: `getUsageInfo`, `getAvailableModels`, `setDefaultModel`, `setBudgetLimit`, `prepareInputData`.
 - Uzupełnienie typów parametrów i zwracanych wartości w publicznych metodach oraz dokumentacji.
-- Przygotowanie kodu do testów jednostkowych i dalszej rozbudowy (np. walidacja schematów, obsługa usage z API). 
+- Przygotowanie kodu do testów jednostkowych i dalszej rozbudowy (np. walidacja schematów, obsługa usage z API).

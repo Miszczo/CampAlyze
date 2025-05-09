@@ -23,4 +23,4 @@ sequenceDiagram
         Frontend (React/Astro Page)->>User: Wyświetla błąd logowania
     end
 
-``` 
+```

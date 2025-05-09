@@ -12,12 +12,11 @@ Specjaliści ds. reklam tracą zbyt wiele czasu na manualne zbieranie, łączeni
 - **Prosty eksport raportów** do formatów CSV/PDF/XLSX
 - **System prostych flag** wskazujący kampanie z potencjalnymi problemami (na podstawie progów wydajności)
 - **Podstawowy dziennik zmian kampanii** umożliwiający:
-    - Rejestrowanie wprowadzonych zmian w kampaniach z datą i opisem
-    - Oznaczenie daty planowanej weryfikacji efektów
-    - Lista nadchodzących weryfikacji widoczna na dashboardzie
-    - Możliwość porównania metryk przed i po wprowadzeniu zmiany
+  - Rejestrowanie wprowadzonych zmian w kampaniach z datą i opisem
+  - Oznaczenie daty planowanej weryfikacji efektów
+  - Lista nadchodzących weryfikacji widoczna na dashboardzie
+  - Możliwość porównania metryk przed i po wprowadzeniu zmiany
 - **Prosty system kont użytkowników** z podstawowym zarządzaniem dostępem
-
 
 ## Elementy poza zakresem MVP
 
@@ -35,7 +34,6 @@ Specjaliści ds. reklam tracą zbyt wiele czasu na manualne zbieranie, łączeni
 - Analizy semantyczne treści reklamowych
 - Automatyczne powiadomienia e-mail o zaplanowanych weryfikacjach zmian
 
-
 ## Kryteria sukcesu
 
 - Redukcja czasu poświęcanego na analizę danych i raportowanie o minimum 40%
@@ -44,4 +42,3 @@ Specjaliści ds. reklam tracą zbyt wiele czasu na manualne zbieranie, łączeni
 - 90% użytkowników uznaje, że narzędzie ułatwia im dostęp do kluczowych metryk kampanii
 - 80% użytkowników deklaruje, że narzędzie pozwala im podejmować lepsze decyzje dotyczące kampanii
 - Wizualna atrakcyjność i intuicyjność interfejsu zostaje oceniona na co najmniej 8/10 przez testerów
-

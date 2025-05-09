@@ -9,12 +9,14 @@ Stack technologiczny został dobrany pod kątem szybkiego dostarczenia MVP (3-4 
 ### Astro 5 + React 19
 
 Astro 5 zostało wybrane jako główny framework ze względu na:
+
 - **Wydajność** - generowanie statycznego HTML na serwerze z selektywną hydratacją komponentów interaktywnych
 - **Islands Architecture** - tylko te komponenty, które wymagają interaktywności, otrzymują JavaScript
 - **Szybkość ładowania** - mniejsza ilość JS przesyłana do klienta, co jest kluczowe dla aplikacji analitycznej
 - **Łatwość integracji** - możliwość używania komponentów React tylko tam, gdzie potrzebna jest interaktywność
 
 React 19 będzie używany w formie wysp dla komponentów wymagających interaktywności:
+
 - Formularze importu danych
 - Interaktywne filtry i selekcja dat
 - Panele konfiguracyjne alertów
@@ -36,6 +38,7 @@ React 19 będzie używany w formie wysp dla komponentów wymagających interakty
 ### Supabase
 
 Supabase zostało wybrane jako kompleksowe rozwiązanie backendowe, ponieważ:
+
 - **PostgreSQL** - wydajna baza danych idealna do złożonych zapytań analitycznych i agregacji danych
 - **Row Level Security (RLS)** - zaawansowane mechanizmy bezpieczeństwa na poziomie wierszy
 - **Autentykacja** - gotowy system zarządzania użytkownikami z różnymi metodami logowania
@@ -51,17 +54,20 @@ To podejście eliminuje potrzebę budowania własnego backendu, przyspieszając 
 ### OpenRouter.ai
 
 Dla funkcji AI wybranym rozwiązaniem jest:
+
 - **OpenRouter.ai** - dostęp do szerokiej gamy modeli AI (OpenAI, Anthropic, Google i inne) przez jeden interfejs API
 - **Supabase Vector Store** - przechowywanie wektorów dla efektywnego wyszukiwania podobnych kampanii
 - **pgvector** - rozszerzenie PostgreSQL do obsługi wektorów embeddings, zintegrowane z Supabase
 
 Kluczowe korzyści OpenRouter.ai:
+
 - **Elastyczność modeli** - możliwość testowania różnych modeli AI w celu znalezienia optymalnego stosunku jakości do ceny
 - **Limity finansowe** - wbudowane mechanizmy kontroli kosztów dla kluczy API
 - **Niezawodność** - dostęp do alternatywnych modeli w przypadku niedostępności jednego dostawcy
 - **Optymalizacja kosztów** - możliwość wyboru modeli o różnym stosunku ceny do wydajności dla różnych zadań
 
 Ta kombinacja pozwala na:
+
 - Generowanie tekstowych podsumowań kampanii z optymalnym modelem
 - Wykrywanie anomalii w danych poprzez porównanie z historycznymi wzorcami
 - Tworzenie rekomendacji optymalizacyjnych
@@ -88,20 +94,25 @@ Ta kombinacja pozwala na:
 ## Narzędzia testowe
 
 ### Testy jednostkowe i integracyjne
+
 - **Vitest** - framework do szybkiego testowania jednostkowego i integracyjnego, dedykowany do testowania logiki biznesowej, komponentów React oraz interakcji z API
 
 ### Testy End-to-End (E2E)
+
 - **Playwright** - narzędzie do automatyzacji testów systemowych i akceptacyjnych, umożliwiające testowanie krytycznych ścieżek użytkownika
 
 ### Testy wydajnościowe
+
 - **k6** - narzędzie do testów obciążeniowych i wydajnościowych API
 - **Supabase Tools** - narzędzia do profilowania zapytań PostgreSQL (`pg_stat_statements`, `explain analyze`)
 
 ### Testy bezpieczeństwa
+
 - **OWASP ZAP** - skaner do automatycznego wykrywania podstawowych luk bezpieczeństwa
 - **Narzędzia developerskie przeglądarek** - do analizy nagłówków bezpieczeństwa HTTP i innych aspektów bezpieczeństwa
 
 ### Zarządzanie testami
+
 - **GitHub Issues & Projects** - śledzenie defektów i organizacja pracy testowej
 - **Markdown Files** - dokumentacja przypadków testowych w repozytorium
 
@@ -122,4 +133,4 @@ Ta kombinacja pozwala na:
 4. **Izolacja funkcji AI** - zaimplementować funkcje AI jako osobne mikrousługi, aby ułatwić skalowanie
 5. **Optymalizacja AI** - rozpocząć z prostszymi i tańszymi modelami, stopniowo testując bardziej zaawansowane
 6. **Caching** - zaimplementować strategię cachowania dla często używanych danych i zapytań
-7. **Kontrola kosztów** - ustanowić limity miesięczne dla API AI i monitoring zużycia 
+7. **Kontrola kosztów** - ustanowić limity miesięczne dla API AI i monitoring zużycia

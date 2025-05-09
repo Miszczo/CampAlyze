@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
 console.log("CONFIG: Loaded Playwright environment variables:");
 console.log(`- PLAYWRIGHT_BASE_URL: ${process.env.PLAYWRIGHT_BASE_URL || "not set"}`);
 console.log(`- TEST_USER_EMAIL: ${process.env.TEST_USER_EMAIL ? "set (hidden)" : "not set"}`);
+console.log(`- TEST_MODE: ${process.env.TEST_MODE || "mock (default)"}`);
 
 export default defineConfig({
   testDir: "./tests/e2e", // Katalog z testami E2E
@@ -28,7 +29,7 @@ export default defineConfig({
   /* Współdzielona konfiguracja dla wszystkich projektów poniżej. Zobacz https://playwright.dev/docs/api/class-testoptions */
   use: {
     /* Podstawowy URL do użycia podczas akcji takich jak `await page.goto('/')` */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3003", // Port używany przez Astro
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001", // Ustawiamy domyślny port na 3001 lub ten z .env.test
 
     /* Zbieraj ślad (trace) przy nieudanych próbach. Zobacz https://playwright.dev/docs/trace-viewer */
     trace: "retain-on-failure", // Zatrzymaj ślad dla nieudanych testów
@@ -46,8 +47,13 @@ export default defineConfig({
   /* Konfiguracja dla konkretnych projektów (przeglądarek) */
   projects: [
     {
+      name: "setup",
+      testMatch: /global\.setup\.ts/,
+    },
+    {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
     },
 
     // Opcjonalnie: Skonfiguruj inne przeglądarki zgodnie z planem testów
@@ -84,14 +90,22 @@ export default defineConfig({
 
   /* Opcjonalnie: Uruchom serwer deweloperski przed rozpoczęciem testów */
   webServer: {
-    command: "npm run dev",
-    url: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3003",
-    reuseExistingServer: true,
+    command: "npm run dev:e2e", // Użyj skryptu dla E2E, który czyta .env.test
+    url: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001", // Playwright będzie czekał na ten URL
+    reuseExistingServer: !process.env.CI, // W CI zawsze uruchamiaj nowy serwer, lokalnie można reużywać
     stdout: "pipe",
     stderr: "pipe",
-    timeout: 60000, // Dajemy serwerowi minutę na uruchomienie
+    timeout: 120 * 1000, // Dajemy serwerowi minutę na uruchomienie
+    env: {
+      // Dodajemy, aby przekazać zmienne do procesu serwera, jeśli są potrzebne
+      NODE_ENV: "test",
+      // Możesz tu dodać inne zmienne, które Twój skrypt dev:e2e może oczekiwać
+    },
   },
 
   // Zwiększ globalny timeout dla testów
   timeout: 60000, // 60 sekund
+
+  // Dodaj ścieżkę do globalnego setupu
+  globalSetup: "./tests/e2e/global-setup.ts",
 });

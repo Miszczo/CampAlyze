@@ -48,74 +48,107 @@ export class OpenRouterApiClient {
    * @returns Odpowiedź z API
    * @throws OpenRouterError w przypadku błędu
    */
-  async sendRequest(endpoint: string, payload: any): Promise<any> {
+  async sendRequest(endpoint: string, payload: Record<string, unknown>): Promise<unknown> {
     const url = this._buildUrl(endpoint);
     const headers = this._prepareHeaders();
 
     let lastError: Error | undefined = undefined;
     let attempts = 0;
 
-    while (attempts <= this.retries) {
-      attempts++;
-
+    for (attempts = 0; attempts <= this.retries; attempts++) {
       try {
-        let controller;
+        let controller: AbortController;
         try {
           controller = new AbortController();
-        } catch (e) {
-          // Fallback for environments where AbortController is not available (e.g., test environments)
-          controller = { signal: null, abort: () => {} };
+        } catch (controllerError) {
+          console.warn(
+            "AbortController not available, using fallback. Timeout may not work as expected.",
+            controllerError
+          );
+          controller = {
+            signal: null,
+            abort: () => {
+              console.warn("AbortController.abort() called on fallback.");
+            },
+          } as unknown as AbortController;
         }
 
         const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
-        const response = await fetch(url, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+            signal: controller.signal as AbortSignal,
+          });
 
-        clearTimeout(timeoutId);
+          clearTimeout(timeoutId);
 
-        const data = await response.json();
+          if (!response.ok) {
+            let responseBodyText = "<empty_response_body>"; // Domyślna wartość, jeśli odczyt zawiedzie
+            let data: Record<string, unknown> = {};
+            try {
+              // Najpierw pobierz tekst, aby mieć go w razie problemów z JSON
+              responseBodyText = await response.text();
+              data = JSON.parse(responseBodyText) as Record<string, unknown>;
+            } catch (parseError) {
+              console.error("Failed to parse JSON from error response:", parseError, "Raw body:", responseBodyText);
+              data = { error: { message: `HTTP error ${response.status}. Raw body: ${responseBodyText}` } };
+            }
+            const error = this._handleErrorResponse(response, data, payload);
 
-        if (!response.ok) {
-          const error = this._handleErrorResponse(response, data, payload);
-          if (this._shouldRetry(error) && attempts <= this.retries) {
-            // Exponential backoff (100ms, 200ms, 400ms, etc.)
-            const delay = Math.min(100 * Math.pow(2, attempts - 1), 5000);
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            if (attempts === this.retries || !this._shouldRetry(error)) {
+              throw error;
+            }
             lastError = error;
+            const delay = Math.min(100 * Math.pow(2, attempts), 5000);
+            await new Promise((resolve) => setTimeout(resolve, delay));
             continue;
           }
-          throw error;
-        }
 
-        return data;
-      } catch (error: any) {
+          const responseData = (await response.json()) as Record<string, unknown>;
+          return responseData;
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          throw fetchError; // Rzuć błąd, aby został przechwycony w zewnętrznym bloku catch
+        }
+      } catch (error: unknown) {
         if (error instanceof OpenRouterError) {
-          throw error;
-        }
-
-        if (error.name === "AbortError") {
-          throw new TimeoutError("Request timed out", this.timeoutMs, error);
-        }
-
-        if (this._shouldRetry(error) && attempts <= this.retries) {
-          // Exponential backoff for network errors
-          const delay = Math.min(100 * Math.pow(2, attempts - 1), 5000);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          if (attempts === this.retries || !this._shouldRetry(error)) {
+            throw error;
+          }
           lastError = error;
-          continue;
+        } else if (error instanceof Error && error.name === "AbortError") {
+          lastError = new TimeoutError("Request timed out", this.timeoutMs, error);
+          throw lastError;
+        } else {
+          const cause = error instanceof Error ? error : new Error(String(error));
+          const newNetworkError = new NetworkError(
+            "Request failed during fetch operation or other unexpected error",
+            cause
+          );
+
+          // Jeśli retries=0 lub to ostatnia próba, rzucamy błąd
+          if (attempts === this.retries || this.retries === 0) {
+            throw newNetworkError;
+          }
+
+          if (!this._shouldRetry(newNetworkError)) {
+            throw newNetworkError;
+          }
+          lastError = newNetworkError;
         }
 
-        throw new NetworkError("Request failed", error);
+        const delay = Math.min(100 * Math.pow(2, attempts), 5000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
-    // If we've exhausted retries, throw the last error
-    throw lastError || new NetworkError("Maximum retry attempts exceeded", new Error("Unknown error"));
+    throw (
+      lastError ||
+      new NetworkError("Maximum retry attempts exceeded without a specific error", new Error("Unknown retry error"))
+    );
   }
 
   /**
@@ -134,7 +167,7 @@ export class OpenRouterApiClient {
       "Content-Type": "application/json",
       Authorization: `Bearer ${this.apiKey}`,
       "HTTP-Referer": "https://campalyze.app",
-      "X-Title": "campAlyze", // Nazwa applikacji
+      "X-Title": "campAlyze",
       ...this.defaultHeaders,
     };
   }
@@ -142,59 +175,77 @@ export class OpenRouterApiClient {
   /**
    * Obsługuje odpowiedź błędu z API
    */
-  private _handleErrorResponse(response: Response, data: any, requestPayload: any): OpenRouterError {
+  private _handleErrorResponse(
+    response: Response,
+    data: Record<string, unknown>,
+    requestPayload: Record<string, unknown>
+  ): OpenRouterError {
     const statusCode = response.status;
-    const errorMessage = data.error?.message || data.message || "Unknown API error";
+    const errorCause = new Error(`API Error Data: ${JSON.stringify(data)}`); // Tworzymy Error z data
+
+    const errorMessage =
+      typeof data.error === "object" && data.error !== null && "message" in data.error
+        ? String((data.error as { message: string }).message)
+        : data.message
+          ? String(data.message)
+          : "Unknown API error";
 
     if (statusCode === 401) {
-      return new AuthorizationError("Invalid API key", data);
+      return new AuthorizationError("Invalid API key", errorCause);
     }
 
     if (statusCode === 429) {
-      const retryAfter = response.headers.get("retry-after")
-        ? parseInt(response.headers.get("retry-after") || "60", 10)
-        : 60;
-      return new RateLimitError("Rate limit exceeded", retryAfter, data);
+      const retryAfterHeader = response.headers.get("retry-after");
+      const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
+      return new RateLimitError("Rate limit exceeded", isNaN(retryAfter) ? 60 : retryAfter, errorCause);
     }
 
     if (statusCode === 403) {
-      return new ContentPolicyError("Content policy violation", errorMessage, data);
+      return new ContentPolicyError("Content policy violation", errorMessage, errorCause);
     }
 
     if (statusCode === 400) {
-      return new ValidationError("Invalid request", errorMessage, data);
+      return new ValidationError("Invalid request", errorMessage, errorCause);
     }
 
     if (errorMessage.toLowerCase().includes("budget")) {
+      // Usunięto `data` jako czwarty argument, ponieważ konstruktor BudgetLimitError go nie oczekuje
+      // Jeśli BudgetLimitError ma przechowywać oryginalne `data`, jego definicja musi zostać zmieniona
       return new BudgetLimitError("Budget limit exceeded", 0, 0);
     }
 
-    if (errorMessage.toLowerCase().includes("model unavailable") || statusCode === 404) {
-      const model = data.model || requestPayload?.model || "unknown";
-      return new ModelUnavailableError("Model unavailable", model, data);
+    const modelFromPayload = typeof requestPayload.model === "string" ? requestPayload.model : undefined;
+    const modelFromData =
+      typeof data.error === "object" && data.error !== null && "model" in data.error
+        ? String((data.error as { model: string }).model)
+        : undefined;
+
+    // Sprawdzamy czy wiadomość zawiera informację o niedostępności modelu
+    if (
+      (errorMessage.toLowerCase().includes("model") && errorMessage.toLowerCase().includes("unavailable")) ||
+      statusCode === 503 ||
+      statusCode === 404
+    ) {
+      const model = modelFromData || modelFromPayload || "unknown";
+      return new ModelUnavailableError("Model unavailable", model, errorCause);
     }
 
-    return new OpenRouterError("API error", errorMessage, data);
+    return new OpenRouterError("API error", errorMessage, errorCause);
   }
 
   /**
    * Określa, czy ponowić próbę dla danego błędu
    */
-  private _shouldRetry(error: any): boolean {
-    // Retry network-related errors and rate limits
+  private _shouldRetry(error: unknown): boolean {
     if (error instanceof NetworkError || error instanceof TimeoutError) {
       return true;
     }
-
     if (error instanceof RateLimitError) {
       return true;
     }
-
     if (error instanceof ModelUnavailableError) {
       return true;
     }
-
-    // Don't retry auth, validation or content policy errors
     if (
       error instanceof AuthorizationError ||
       error instanceof ValidationError ||
@@ -203,7 +254,12 @@ export class OpenRouterApiClient {
     ) {
       return false;
     }
-
+    if (error instanceof OpenRouterError) {
+      return false;
+    }
+    if (error instanceof Error) {
+      return true;
+    }
     return false;
   }
 }

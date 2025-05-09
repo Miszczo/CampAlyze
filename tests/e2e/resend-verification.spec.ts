@@ -1,5 +1,6 @@
-import { test, expect } from "./setup-msw";
+import { test, expect } from "@playwright/test";
 import { LoginPage } from "./poms/LoginPage.pom";
+import { setupApiInterception } from "./intercept-setup";
 
 // Log the current test mode at the beginning of the test suite
 console.log(`[Resend Verification Test] Running in ${process.env.TEST_MODE || "mock"} mode (default: mock)`);
@@ -8,6 +9,9 @@ test.describe("Resend Verification E2E Tests", () => {
   let loginPage: LoginPage;
 
   test.beforeEach(async ({ page }) => {
+    // Najpierw ustawiamy interceptor API
+    await setupApiInterception(page);
+
     loginPage = new LoginPage(page);
     await loginPage.goto();
     // Upewnij się, że strona logowania jest załadowana przed każdym testem
@@ -73,19 +77,13 @@ test.describe("Resend Verification E2E Tests", () => {
       // Wypełniamy formularz, ale nie submitujemy jeszcze
       await loginPage.fillEmail(unverifiedEmail);
       await loginPage.fillPassword(anyPassword);
-
-      // Ręcznie zmieniamy wartość emaila na problematyczny
-      // (Symulujemy sytuację, gdy użytkownik zmienia email po zobaczeniu błędu weryfikacji)
-      await page.evaluate(() => {
-        const emailInput = document.querySelector('[data-testid="login-input-email"]') as HTMLInputElement;
-        if (emailInput) emailInput.value = "error-prone@example.com";
-      });
-
-      // Wysyłamy formularz z problematycznym emailem
       await loginPage.clickLoginButton();
 
       // Czekamy na wyświetlenie przycisku resend
       await expect(loginPage.resendVerificationButton).toBeVisible();
+
+      // Zmieniamy wartość emaila na problematyczny
+      await loginPage.fillEmail(problematicEmail);
     });
 
     await test.step("Click resend verification with problematic email", async () => {
@@ -108,9 +106,23 @@ test.describe("Resend Verification E2E Tests", () => {
 
       // Czyścimy pole email
       await loginPage.emailInput.clear();
+      await loginPage.emailInput.press("Tab"); // Wywołaj zdarzenie blur
     });
 
     await test.step("Attempt resend with empty email field", async () => {
+      // Ustawiamy mock dla pustego emaila bezpośrednio w teście
+      await page.route("**/api/auth/resend-verification", async (route) => {
+        console.log("[Test] Intercepting empty email resend request");
+        await route.fulfill({
+          status: 400,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            error: "Please enter your email address to resend verification.",
+          }),
+        });
+      });
+
       await loginPage.clickResendVerificationButton();
 
       // Asercja: Powinien pojawić się błąd o pustym polu email

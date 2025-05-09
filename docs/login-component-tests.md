@@ -24,12 +24,12 @@ Dla komponentu LoginForm zaimplementowano dwa rodzaje testów:
 
 Testy jednostkowe znajdują się w następujących lokalizacjach:
 
-- **src/components/hooks/__tests__/useLoginForm.test.ts** - Testy dla custom hooka
-- **src/components/LoginForm/__tests__/LoginFormAlerts.test.tsx** - Testy dla komponentu alertów
-- **src/components/LoginForm/__tests__/LoginFormFields.test.tsx** - Testy dla pól formularza
-- **src/components/LoginForm/__tests__/LoginFormActions.test.tsx** - Testy dla przycisków
-- **src/components/LoginForm/__tests__/LoginFormFooter.test.tsx** - Testy dla stopki formularza
-- **src/components/LoginForm/__tests__/LoginForm.test.tsx** - Testy dla głównego komponentu
+- **src/components/hooks/**tests**/useLoginForm.test.ts** - Testy dla custom hooka
+- **src/components/LoginForm/**tests**/LoginFormAlerts.test.tsx** - Testy dla komponentu alertów
+- **src/components/LoginForm/**tests**/LoginFormFields.test.tsx** - Testy dla pól formularza
+- **src/components/LoginForm/**tests**/LoginFormActions.test.tsx** - Testy dla przycisków
+- **src/components/LoginForm/**tests**/LoginFormFooter.test.tsx** - Testy dla stopki formularza
+- **src/components/LoginForm/**tests**/LoginForm.test.tsx** - Testy dla głównego komponentu
 
 ## Struktura testów E2E
 
@@ -130,13 +130,15 @@ W testach E2E zmockowano następujące scenariusze:
 Aby debugować testy E2E:
 
 1. Uruchom testy z opcją `--debug`:
+
    ```bash
    npx playwright test --debug
    ```
 
 2. Użyj UI Playwright do interaktywnego debugowania:
+
    ```bash
    npm run test:e2e:ui
    ```
 
-3. Sprawdź logi MSW w konsoli, aby zobaczyć przechwycone żądania. 
+3. Sprawdź logi MSW w konsoli, aby zobaczyć przechwycone żądania.

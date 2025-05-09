@@ -3,25 +3,26 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
 ## Zidentyfikowane Problemy Główne:
 
 1.  **Błędy Konfiguracji Środowiska Testowego / Importu Modułów:**
-    *   Niepoprawne ścieżki importu dla komponentów `LoginForm` i jego podkomponentów.
-    *   Konflikt między konfiguracją Vitest a testami E2E Playwright.
-    *   Problem z mockowaniem modułu `crypto` w teście `upload.test.ts`.
+    - Niepoprawne ścieżki importu dla komponentów `LoginForm` i jego podkomponentów.
+    - Konflikt między konfiguracją Vitest a testami E2E Playwright.
+    - Problem z mockowaniem modułu `crypto` w teście `upload.test.ts`.
 2.  **Błędy w Logice Hooka `useLoginForm` i Jego Testach:**
-    *   `TypeError: Failed to parse URL from /api/auth/...`: Błąd parsowania URL dla `fetch` w środowisku testowym Node.js.
-    *   Ostrzeżenia `act(...)`: Aktualizacje stanu React poza blokiem `act`.
-    *   Błędy asercji dotyczące mocków (spy not called / incorrect arguments).
-    *   Błędy asercji dotyczące inicjalizacji stanu na podstawie `initialMessage` oraz oczekiwanych komunikatów błędów.
+    - `TypeError: Failed to parse URL from /api/auth/...`: Błąd parsowania URL dla `fetch` w środowisku testowym Node.js.
+    - Ostrzeżenia `act(...)`: Aktualizacje stanu React poza blokiem `act`.
+    - Błędy asercji dotyczące mocków (spy not called / incorrect arguments).
+    - Błędy asercji dotyczące inicjalizacji stanu na podstawie `initialMessage` oraz oczekiwanych komunikatów błędów.
 3.  **Problemy z Testami Klienta API OpenRouter (`api-client.test.ts`):**
-    *   Niepoprawne działanie mocków `fetch` prowadzące do tego, że obietnice rozwiązują się zamiast odrzucać w przypadkach błędów (np. RateLimitError, ModelUnavailableError).
-    *   Problem z testowaniem logiki ponawiania prób przy błędach sieciowych.
+    - Niepoprawne działanie mocków `fetch` prowadzące do tego, że obietnice rozwiązują się zamiast odrzucać w przypadkach błędów (np. RateLimitError, ModelUnavailableError).
+    - Problem z testowaniem logiki ponawiania prób przy błędach sieciowych.
 4.  **Ogólne Błędy Sieciowe w Testach Komponentów:**
-    *   Występowanie nieobsłużonych błędów sieciowych (`Error: Network Error`, `Error: Network request failed`) w testach komponentów UI, co sugeruje brakujące lub niepoprawne mockowanie `fetch`.
+    - Występowanie nieobsłużonych błędów sieciowych (`Error: Network Error`, `Error: Network request failed`) w testach komponentów UI, co sugeruje brakujące lub niepoprawne mockowanie `fetch`.
 
 ## Szczegółowy Plan Naprawczy:
 
 ### Kategoria 1: Błędy Konfiguracji Środowiska Testowego / Importu Modułów
 
 #### 1.1. Problem: Błędne ścieżki importu dla komponentów `LoginForm`
+
     *   **Pliki:**
         *   `src/components/LoginForm/__tests__/LoginForm.test.tsx`
         *   `src/components/LoginForm/__tests__/LoginFormActions.test.tsx`
@@ -53,6 +54,7 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
                 ```
 
 #### 1.2. Problem: Konflikt między Vitest a testami E2E Playwright
+
     *   **Pliki:**
         *   `tests/e2e/login.spec.ts`
         *   `tests/e2e/resend-verification.spec.ts`
@@ -77,6 +79,7 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
         2.  **Oddzielne skrypty uruchamiania:** Upewnij się, że masz oddzielne skrypty w `package.json` do uruchamiania testów Vitest i testów Playwright.
 
 #### 1.3. Problem: Błąd mockowania modułu `crypto`
+
     *   **Plik:** `src/pages/api/imports/upload.test.ts` (pośrednio wpływa na `upload.ts`)
     *   **Komunikat błędu:** `Error: [vitest] No "default" export is defined on the "crypto" mock. Did you forget to return it from "vi.mock"?`
     *   **Przyczyna:** Plik `upload.ts` importuje `randomUUID` jako nazwany export z modułu `crypto`. Mock modułu `crypto` w teście nie dostarcza tej funkcji poprawnie.
@@ -102,6 +105,7 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
 ### Kategoria 2: Błędy w Logice Hooka `useLoginForm` i Jego Testach
 
 #### 2.1. Problem: `TypeError: Failed to parse URL from /api/auth/...`
+
     *   **Pliki:**
         *   `src/components/hooks/useLoginForm.ts`
         *   `src/components/hooks/__tests__/useLoginForm.test.ts` (wiele testów)
@@ -133,6 +137,7 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
         3.  Upewnij się, że `useLoginForm.ts` używa `fetch` w sposób, który można łatwo mockować. Jeśli `signIn` z `next-auth/react` jest używany, to mockuj `signIn` bezpośrednio. Logi wskazują, że `onSubmit` w `useLoginForm.ts:44` i `handleResendVerification` w `useLoginForm.ts:103` bezpośrednio używają `fetch`.
 
 #### 2.2. Problem: Ostrzeżenia `act(...)`
+
     *   **Pliki:**
         *   `src/components/hooks/useLoginForm.test.ts` (kilka testów)
         *   `src/components/auth/ResendVerification.test.tsx`
@@ -167,6 +172,7 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
             ```
 
 #### 2.3. Problem: Błędy asercji dotyczące mocków (spy not called / incorrect arguments)
+
     *   **Pliki:**
         *   `src/components/hooks/__tests__/useLoginForm.test.ts` (wiele testów)
         *   `src/components/hooks/useLoginForm.test.ts` (jeden test dotyczący `mockFetch`)
@@ -179,5 +185,6 @@ Na podstawie dostarczonych logów z testów oraz podsumowania agenta, zidentyfik
             *   Sprawdź, czy argumenty przekazywane do mockowanych funkcji w kodzie (`useLoginForm.ts`) zgadzają się z tymi oczekiwanymi w asercjach (`expect(mockSignIn).toHaveBeenCalledWith(...)`).
             *   Dla `src/components/hooks/useLoginForm.test.ts > ... > should handle resend verification success`: upewnij się, że `mockFetch` jest poprawnie skonfigurowany i że asercja `toHaveBeenCalledWith` sprawdza poprawny URL (np. `/api/auth/resend-verification`, a nie pełny URL jeśli mockujesz tylko ścieżkę) i opcje.
 
-----------
+---
+
 ciąg dalszy w @problem-description-part-2.md

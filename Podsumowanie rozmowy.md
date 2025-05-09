@@ -1,4 +1,3 @@
-
 ## Decyzje
 
 <decisions>
