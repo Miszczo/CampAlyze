@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Production
 
 on:
   push:
@@ -7,35 +7,7 @@ on:
       - master
 
 jobs:
-  deploy-staging:
-    runs-on: ubuntu-latest
-    environment: staging
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm test
-      - name: Build
-        run: npm run build
-        env:
-          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          PUBLIC_SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLIC_KEY }}
-      - name: Deploy to Staging
-        uses: netlify/actions/cli@master
-        with:
-          args: deploy --dir=dist --prod
-        env:
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-
   deploy-production:
-    needs: deploy-staging
     runs-on: ubuntu-latest
     environment: production
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -48,6 +20,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Run tests
+        run: npm test
       - name: Build
         run: npm run build
         env:
