@@ -47,6 +47,19 @@ async function globalSetup() {
     }
   }
 
+  try {
+    const sessionData = await browser.evaluate(async () => {
+      return JSON.parse(window.localStorage.getItem("supabase.auth.token") || "null");
+    });
+    await browser.evaluate(async () => {
+      console.log("clearing localStorage...");
+      window.localStorage.clear();
+    });
+    console.log({ sessionData });
+  } catch (_) {
+    console.log("Error accessing localStorage");
+  }
+
   // Close browser
   await browser.close();
 

@@ -1,0 +1,11 @@
+# Ignorowane pliki i katalogi dla ESLint
+
+# Generowane typy (błąd "File appears to be binary")
+src/db/database.types.ts
+
+# Katalogi
+node_modules/
+dist/
+.astro/
+
+# Inne pliki 

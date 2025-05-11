@@ -59,7 +59,7 @@ export interface CreateOrganizationDTO {
   name: string;
 }
 
-export interface OrganizationDTO extends Pick<Organization, "id" | "name" | "created_at"> {}
+export type OrganizationDTO = Pick<Organization, "id" | "name" | "created_at">;
 
 export interface OrganizationWithRoleDTO extends OrganizationDTO {
   role: string; // 'admin', 'editor', 'viewer'
@@ -115,7 +115,7 @@ export interface ImportListItemDTO {
 }
 
 // Campaign DTOs
-export interface CampaignSummaryMetricsDTO extends BaseMetricsDTO {}
+export type CampaignSummaryMetricsDTO = BaseMetricsDTO;
 
 export interface CampaignListItemDTO {
   id: string;
@@ -172,7 +172,7 @@ export interface MetricsSummaryDTO {
   };
 }
 
-export interface PeriodMetricsDTO extends BaseMetricsDTO {}
+export type PeriodMetricsDTO = BaseMetricsDTO;
 
 export interface MetricsComparisonDTO {
   current_period: PeriodMetricsDTO;
@@ -332,7 +332,7 @@ export interface ActivityDTO {
   activity_type: string;
   entity_type: string;
   entity_id: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
 }
 
@@ -346,7 +346,7 @@ export interface PlatformDTO {
 // User Preferences DTOs
 export interface UserPreferencesDTO {
   user_id: string;
-  preferences: Record<string, any>;
+  preferences: Record<string, unknown>;
   updated_at?: string;
 }
 
@@ -387,4 +387,30 @@ export interface CompleteVerificationCommandModel extends VerifyCampaignChangeDT
   notify_users?: boolean;
   campaign_id: string;
   change_id: string;
+}
+
+export interface DashboardCardProps {
+  title: string;
+  metric: string | number;
+  change?: number;
+  trend?: "up" | "down" | "neutral";
+}
+
+export interface ImportFileProps {
+  onImportSuccess?: (data: ImportFileResponseDTO) => void;
+  onImportError?: (error: Error) => void;
+}
+
+export interface CampaignPerformanceProps {
+  campaignId: string;
+  dateRange?: { start: Date; end: Date };
+}
+
+export type DataValue = string | number | boolean | null | Date;
+
+export type MetricReport = Record<string, DataValue>;
+
+export interface DashboardData {
+  metrics: Record<string, string | number>;
+  comparisons: Record<string, number>;
 }

@@ -83,14 +83,6 @@ export const ResendVerification: React.FC = () => {
         )}
         {!userEmail && !error && <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />}
       </CardContent>
-      <CardFooter className="flex justify-center">
-        <p className="text-sm text-muted-foreground">
-          Return to{" "}
-          <a href="/login" className="text-primary hover:underline">
-            Login
-          </a>
-        </p>
-      </CardFooter>
     </Card>
   );
 };

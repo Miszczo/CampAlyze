@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { uploadImportFile } from "@/lib/importUpload";
+// Usuwam nieużywany import
 ---
 
 <Layout title="Importuj plik danych">
@@ -35,87 +35,108 @@ import { uploadImportFile } from "@/lib/importUpload";
       <div id="status-message" class="text-muted-foreground text-xs" aria-live="polite"></div>
     </div>
   </div>
-  <script>
-    // Obsługa uploadu pliku importu z optymalizacją dostępności i blokadą wielokrotnego wysyłania
-    const form = document.getElementById("import-form") as HTMLFormElement | null;
-    const fileInput = document.getElementById("file-input") as HTMLInputElement | null;
-    const errorMessage = document.getElementById("error-message");
-    const successMessage = document.getElementById("success-message");
-    const statusMessage = document.getElementById("status-message");
-    const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement | null;
-    let isUploading = false;
+</Layout>
 
-    form?.addEventListener("submit", async (e) => {
+<script lang="ts">
+  // Deklaracja typów dla elementów formularza
+  const form = document.getElementById("import-form") as HTMLFormElement;
+  const fileInput = document.getElementById("file-input") as HTMLInputElement;
+  const errorMessage = document.getElementById("error-message") as HTMLDivElement;
+  const successMessage = document.getElementById("success-message") as HTMLDivElement;
+  const statusMessage = document.getElementById("status-message") as HTMLDivElement;
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+
+  // Flaga blokująca wielokrotne wysyłanie
+  let isUploading = false;
+
+  // Funkcja obsługująca błędy
+  function showError(message: string) {
+    if (errorMessage) {
+      errorMessage.textContent = message;
+      errorMessage.classList.remove("hidden");
+    }
+  }
+
+  // Funkcja obsługująca sukces
+  function showSuccess(message: string) {
+    if (successMessage) {
+      successMessage.textContent = message;
+      successMessage.classList.remove("hidden");
+    }
+  }
+
+  // Funkcja ustawiająca status
+  function setStatus(message: string) {
+    if (statusMessage) {
+      statusMessage.textContent = message;
+    }
+  }
+
+  // Funkcja reset formularza
+  function resetForm() {
+    if (submitBtn) submitBtn.disabled = false;
+    isUploading = false;
+  }
+
+  // Obsługa zdarzenia submit formularza
+  if (form) {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (isUploading) return; // Blokada wielokrotnego wysyłania
+
+      // Blokada wielokrotnego wysyłania
+      if (isUploading) return;
+
+      // Reset komunikatów
       if (errorMessage) errorMessage.classList.add("hidden");
       if (successMessage) successMessage.classList.add("hidden");
-      if (statusMessage) statusMessage.textContent = "";
+      setStatus("");
+
+      // Blokada przycisku
       if (submitBtn) submitBtn.disabled = true;
       isUploading = true;
-      if (statusMessage) statusMessage.textContent = "Wysyłanie pliku...";
 
+      // Status uploadu
+      setStatus("Wysyłanie pliku...");
+
+      // Sprawdzenie czy plik został wybrany
       const file = fileInput?.files?.[0];
       if (!file) {
-        if (errorMessage) {
-          errorMessage.textContent = "Wybierz plik do importu.";
-          errorMessage.classList.remove("hidden");
-        }
-        if (submitBtn) submitBtn.disabled = false;
-        isUploading = false;
-        if (statusMessage) statusMessage.textContent = "";
+        showError("Wybierz plik do importu.");
+        resetForm();
         return;
       }
 
+      // Przygotowanie formularza do wysłania
       const formData = new FormData();
       formData.append("file", file);
 
       try {
+        // Wysłanie żądania
         const res = await fetch("/api/imports/upload", {
           method: "POST",
           body: formData,
         });
+
+        // Obsługa odpowiedzi
         if (res.status === 201) {
           const data = await res.json();
-          if (successMessage) {
-            successMessage.textContent = `Plik "${data.original_filename}" został przesłany. Status: ${data.status}`;
-            successMessage.classList.remove("hidden");
-          }
-          if (statusMessage) statusMessage.textContent = "Plik został poprawnie przesłany.";
+          showSuccess(`Plik "${data.original_filename}" został przesłany. Status: ${data.status}`);
+          setStatus("Plik został poprawnie przesłany.");
           form.reset();
         } else if (res.status === 400) {
-          if (errorMessage) {
-            errorMessage.textContent = "Nieprawidłowe dane lub brak pliku.";
-            errorMessage.classList.remove("hidden");
-          }
+          showError("Nieprawidłowe dane lub brak pliku.");
         } else if (res.status === 401) {
-          if (errorMessage) {
-            errorMessage.textContent = "Musisz być zalogowany, aby importować pliki.";
-            errorMessage.classList.remove("hidden");
-          }
+          showError("Musisz być zalogowany, aby importować pliki.");
         } else if (res.status === 413) {
-          if (errorMessage) {
-            errorMessage.textContent = "Plik jest zbyt duży.";
-            errorMessage.classList.remove("hidden");
-          }
+          showError("Plik jest zbyt duży.");
         } else {
-          if (errorMessage) {
-            errorMessage.textContent = "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";
-            errorMessage.classList.remove("hidden");
-          }
+          showError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
         }
-      } catch (err) {
-        if (errorMessage) {
-          errorMessage.textContent = "Błąd sieci. Spróbuj ponownie.";
-          errorMessage.classList.remove("hidden");
-        }
+      } catch {
+        showError("Błąd sieci. Spróbuj ponownie.");
       } finally {
-        if (submitBtn) submitBtn.disabled = false;
-        isUploading = false;
-        if (successMessage && statusMessage && !successMessage.textContent) {
-          statusMessage.textContent = "";
-        }
+        resetForm();
       }
     });
-  </script>
-</Layout>
+  }
+</script>

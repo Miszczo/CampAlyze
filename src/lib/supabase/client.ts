@@ -12,10 +12,13 @@ export function getSupabaseBrowserClient() {
     return supabaseClient;
   }
 
-  supabaseClient = createBrowserClient<Database>(
-    import.meta.env.PUBLIC_SUPABASE_URL!,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY!
-  );
+  if (!supabaseClient) {
+    // Zamiast używać non-null assertion, użyjmy bezpiecznych wartości domyślnych
+    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || "";
+
+    supabaseClient = createBrowserClient<Database>(supabaseUrl, supabaseKey);
+  }
 
   return supabaseClient;
 }

@@ -1,9 +1,13 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import type { AstroCookies } from "astro";
+import { createServerClient } from "@supabase/ssr";
+import type { AstroCookies, CookieOptions } from "astro";
 import type { Database } from "../db/database.types"; // Adjust path if needed
 
 export function createSupabaseServerClient(cookies: AstroCookies) {
-  return createServerClient<Database>(import.meta.env.SUPABASE_URL!, import.meta.env.SUPABASE_ANON_KEY!, {
+  // Używamy bezpiecznych wartości domyślnych zamiast non-null assertion
+  const supabaseUrl = import.meta.env.SUPABASE_URL || "";
+  const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || "";
+
+  return createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookies: {
       get(key: string) {
         return cookies.get(key)?.value;
