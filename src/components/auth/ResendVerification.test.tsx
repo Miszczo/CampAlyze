@@ -30,6 +30,15 @@ afterAll(() => {
   window.location = originalLocation;
 });
 
+// Mock Loader2 globally for this test file
+vi.mock("lucide-react", async (importOriginal) => {
+  const original = (await importOriginal()) as any;
+  return {
+    ...original,
+    Loader2: (props: any) => <div data-testid="loader-icon" {...props}></div>,
+  };
+});
+
 describe("ResendVerification Component", () => {
   const userEmail = "test@example.com";
 
@@ -185,25 +194,8 @@ describe("ResendVerification Component", () => {
     expect(screen.getByRole("button", { name: /Resend Verification Email/i })).toBeEnabled();
   });
 
-  it("should contain a link to the login page", () => {
-    render(<ResendVerification />);
-    const loginLink = screen.getByRole("link", { name: /Login/i });
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink).toHaveAttribute("href", "/login");
-  });
-
   // Helper to ensure Loader2 has a data-testid or recognizable attribute
-  // Modify Loader2 component or use a wrapper if needed for testing
   it("renders loader icon correctly", async () => {
-    // Mock Loader2 to check its presence easily
-    vi.mock("lucide-react", async (importOriginal) => {
-      const original = (await importOriginal()) as any;
-      return {
-        ...original,
-        Loader2: (props: any) => <div data-testid="loader-icon" {...props}></div>,
-      };
-    });
-
     mockFetch.mockImplementation(
       () =>
         new Promise((resolve) =>

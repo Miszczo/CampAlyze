@@ -13,10 +13,11 @@ export type LoginFormValues = z.infer<typeof loginFormSchema>;
 interface LoginFormProps {
   initialMessage?: string | null;
   messageType?: "success" | "error" | null;
+  navigate?: (path: string) => void;
 }
 
 export function useLoginForm(props?: LoginFormProps) {
-  const { initialMessage = null, messageType = null } = props || {};
+  const { initialMessage = null, messageType = null, navigate = (path) => (window.location.href = path) } = props || {};
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialMessage && messageType === "error" ? initialMessage : null);
   const [successMessage, setSuccessMessage] = useState<string | null>(
@@ -42,70 +43,73 @@ export function useLoginForm(props?: LoginFormProps) {
   }, [form.watch]);
   */
 
-  const onSubmit = useCallback(async (values: LoginFormValues) => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-    // Nie resetujemy requiresVerification tutaj, zostanie ustawione na podstawie odpowiedzi API
+  const onSubmit = useCallback(
+    async (values: LoginFormValues) => {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage(null);
+      // Nie resetujemy requiresVerification tutaj, zostanie ustawione na podstawie odpowiedzi API
 
-    try {
-      console.log("[LoginForm] Submitting login request", { email: values.email });
+      try {
+        console.log("[LoginForm] Submitting login request", { email: values.email });
 
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
+        const response = await fetch("/api/auth/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        });
 
-      const result = await response.json();
-      console.log("[LoginForm] Login response", {
-        status: response.status,
-        result,
-        requiresVerification: result.requiresVerification || false,
-      });
+        const result = await response.json();
+        console.log("[LoginForm] Login response", {
+          status: response.status,
+          result,
+          requiresVerification: result.requiresVerification || false,
+        });
 
-      if (!response.ok) {
-        if (result.requiresVerification) {
-          setRequiresVerification(true);
-          const errorMsg = result.error || "Please verify your email address first.";
-          console.log("[LoginForm-Debug] Setting error state for verification:", errorMsg);
-          setError(errorMsg);
-          console.log("[LoginForm] Email verification required", { email: values.email });
-        } else {
-          // Tylko resetujemy flagę requiresVerification przy INNYCH błędach niż weryfikacja
-          setRequiresVerification(false);
-
-          if (response.status === 404) {
-            const errorMsg = result.error || "User not found. Please check your email address.";
-            console.log("[LoginForm-Debug] Setting error state for 404:", errorMsg);
+        if (!response.ok) {
+          if (result.requiresVerification) {
+            setRequiresVerification(true);
+            const errorMsg = result.error || "Please verify your email address first.";
+            console.log("[LoginForm-Debug] Setting error state for verification:", errorMsg);
             setError(errorMsg);
-            console.log("[LoginForm] User not found", { email: values.email });
-          } else if (response.status === 401) {
-            const errorMsg = result.error || "Invalid credentials. Please check your email and password.";
-            console.log("[LoginForm-Debug] Setting error state for 401:", errorMsg);
-            setError(errorMsg);
-            console.log("[LoginForm] Invalid credentials", { email: values.email });
+            console.log("[LoginForm] Email verification required", { email: values.email });
           } else {
-            const errorMsg = result.error || "Login failed. Please check your credentials.";
-            console.log("[LoginForm-Debug] Setting error state for other error:", errorMsg);
-            setError(errorMsg);
-            console.log("[LoginForm] Login failed", { error: result.error, status: response.status });
+            // Tylko resetujemy flagę requiresVerification przy INNYCH błędach niż weryfikacja
+            setRequiresVerification(false);
+
+            if (response.status === 404) {
+              const errorMsg = result.error || "User not found. Please check your email address.";
+              console.log("[LoginForm-Debug] Setting error state for 404:", errorMsg);
+              setError(errorMsg);
+              console.log("[LoginForm] User not found", { email: values.email });
+            } else if (response.status === 401) {
+              const errorMsg = result.error || "Invalid credentials. Please check your email and password.";
+              console.log("[LoginForm-Debug] Setting error state for 401:", errorMsg);
+              setError(errorMsg);
+              console.log("[LoginForm] Invalid credentials", { email: values.email });
+            } else {
+              const errorMsg = result.error || "Login failed. Please check your credentials.";
+              console.log("[LoginForm-Debug] Setting error state for other error:", errorMsg);
+              setError(errorMsg);
+              console.log("[LoginForm] Login failed", { error: result.error, status: response.status });
+            }
           }
+        } else {
+          // Login successful
+          setRequiresVerification(false); // Reset tylko przy sukcesie
+          console.log("[LoginForm] Login successful, redirecting to dashboard");
+          navigate("/dashboard");
         }
-      } else {
-        // Login successful
-        setRequiresVerification(false); // Reset tylko przy sukcesie
-        console.log("[LoginForm] Login successful, redirecting to dashboard");
-        window.location.href = "/dashboard"; // Przekierowanie po udanym logowaniu
+      } catch (err) {
+        console.error("[LoginForm] Login request failed:", err);
+        setRequiresVerification(false); // Reset przy wyjątkach
+        setError("An unexpected error occurred. Please try again later.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("[LoginForm] Login request failed:", err);
-      setRequiresVerification(false); // Reset przy wyjątkach
-      setError("An unexpected error occurred. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [navigate]
+  );
 
   const handleResendVerification = useCallback(
     async (providedEmail?: string) => {

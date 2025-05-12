@@ -6,7 +6,8 @@ import { useLoginForm } from "./useLoginForm";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock window.location
+// Mock window.location - USUWAMY
+/*
 const originalLocation = window.location;
 beforeAll(() => {
   delete (window as any).location;
@@ -16,12 +17,13 @@ beforeAll(() => {
 afterAll(() => {
   window.location = originalLocation;
 });
+*/
 
 describe("useLoginForm hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockClear();
-    window.location.href = "/login";
+    // window.location.href = "/login"; // Niepotrzebne już
   });
 
   it("should initialize with default values", () => {
@@ -43,7 +45,7 @@ describe("useLoginForm hook", () => {
     } as Response);
 
     const mockNavigate = vi.fn();
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     // Set form values
     result.current.form.setValue("email", "test@example.com");
@@ -75,7 +77,8 @@ describe("useLoginForm hook", () => {
       }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm());
+    const mockNavigateForError = vi.fn();
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigateForError }));
 
     // Set form values
     result.current.form.setValue("email", "test@example.com");
@@ -90,6 +93,7 @@ describe("useLoginForm hook", () => {
     expect(result.current.requiresVerification).toBe(true);
     expect(result.current.error).toBe("Email not verified");
     expect(result.current.isLoading).toBe(false);
+    expect(mockNavigateForError).not.toHaveBeenCalled();
   });
 
   it("should handle resend verification success", async () => {
@@ -98,7 +102,8 @@ describe("useLoginForm hook", () => {
       json: async () => ({ message: "Verification email sent successfully." }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm());
+    const mockNavigateForResend = vi.fn();
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigateForResend }));
 
     // Set form values
     result.current.form.setValue("email", "test@example.com");
@@ -117,5 +122,6 @@ describe("useLoginForm hook", () => {
 
     expect(result.current.successMessage).toContain("Verification email sent successfully");
     expect(result.current.isLoading).toBe(false);
+    expect(mockNavigateForResend).not.toHaveBeenCalled();
   });
 });
