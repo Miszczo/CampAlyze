@@ -19,7 +19,7 @@ describe("useLoginForm", () => {
   });
 
   it("should initialize with default values", () => {
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -35,7 +35,7 @@ describe("useLoginForm", () => {
       json: async () => ({ success: true }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     await act(async () => {
       await result.current.onSubmit({ email: "test@example.com", password: "Password123!" });
@@ -62,7 +62,7 @@ describe("useLoginForm", () => {
       }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     await act(async () => {
       await result.current.onSubmit({ email: "unverified@example.com", password: "Password123!" });
@@ -88,7 +88,7 @@ describe("useLoginForm", () => {
       }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     await act(async () => {
       await result.current.onSubmit({ email: "test@example.com", password: "WrongPassword" });
@@ -113,7 +113,7 @@ describe("useLoginForm", () => {
       }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     await act(async () => {
       await result.current.onSubmit({ email: "nonexistent@example.com", password: "Password123!" });
@@ -135,7 +135,7 @@ describe("useLoginForm", () => {
       json: async () => ({ message: "Verification email sent successfully." }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     // Set requiresVerification to true to test resend
     act(() => {
@@ -166,7 +166,7 @@ describe("useLoginForm", () => {
       }),
     } as Response);
 
-    const { result } = renderHook(() => useLoginForm(mockNavigate));
+    const { result } = renderHook(() => useLoginForm({ navigate: mockNavigate }));
 
     // Set requiresVerification to true to test resend
     act(() => {

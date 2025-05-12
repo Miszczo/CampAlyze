@@ -9,11 +9,15 @@ const isTestEnvironment =
   (typeof process !== "undefined" && (process.env.IS_TEST_ENV === "true" || process.env.NODE_ENV === "test"));
 
 // Użyj zmiennych środowiskowych dla rzeczywistej bazy E2E lub normalnej konfiguracji
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY; // Używamy SUPABASE_KEY zgodnie z .env.test
+let supabaseUrl = import.meta.env.SUPABASE_URL;
+let supabaseAnonKey = import.meta.env.SUPABASE_KEY; // Używamy SUPABASE_KEY zgodnie z .env.test
 
-// Log informacyjny pokazujący użycie konfiguracji
-if (isTestEnvironment) {
+// Domyślne wartości dla testów jednostkowych, jeśli zmienne nie są ustawione
+if (isTestEnvironment && (!supabaseUrl || !supabaseAnonKey)) {
+  console.log("[Supabase Client] Using dummy Supabase configuration for unit tests");
+  supabaseUrl = "http://localhost:54321";
+  supabaseAnonKey = "dummy-key-for-unit-tests";
+} else if (isTestEnvironment) {
   console.log("[Supabase Client] Using E2E Supabase configuration (from .env.test)");
 } else {
   console.log("[Supabase Client] Using real Supabase configuration (from .env)");
