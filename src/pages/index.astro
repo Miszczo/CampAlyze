@@ -1,8 +1,165 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check } from "lucide-react";
+import { FeatureTabs } from "@/components/FeatureTabs";
+
+// Wykorzystanie sesji użytkownika z middleware
+const { session } = Astro.locals;
+const isLoggedIn = !!session;
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="campAlyze - Narzędzie analityczne do kampanii reklamowych">
+  <div class="w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900">
+    <div class="container mx-auto px-4 py-12 md:py-24 flex flex-col items-center">
+      <!-- Hero Section -->
+      <div data-testid="hero-section" class="text-center mb-16">
+        <h1 data-testid="hero-heading" class="text-4xl md:text-6xl font-bold mb-6 text-white">
+          Analiza kampanii reklamowych <span
+            class="bg-gradient-to-r from-blue-200 to-purple-200 text-transparent bg-clip-text">w jednym miejscu</span
+          >
+        </h1>
+        <p class="text-xl text-blue-100/90 mb-8 max-w-3xl mx-auto">
+          Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki i otrzymuj inteligentne rekomendacje AI dla
+          optymalizacji Twoich kampanii reklamowych.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          {
+            isLoggedIn ? (
+              <a href="/dashboard" data-testid="go-to-dashboard-link">
+                <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Przejdź do dashboardu
+                </Button>
+              </a>
+            ) : (
+              <>
+                <a href="/login">
+                  <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+                    Zaloguj się
+                  </Button>
+                </a>
+                <a href="/register">
+                  <Button
+                    client:only="react"
+                    variant="outline"
+                    size="lg"
+                    className="border-white text-white hover:bg-white/10"
+                  >
+                    Zarejestruj się
+                  </Button>
+                </a>
+              </>
+            )
+          }
+        </div>
+      </div>
+
+      <!-- Feature Highlights -->
+      <div class="w-full max-w-5xl mb-16">
+        <FeatureTabs client:only="react" />
+      </div>
+
+      <!-- Value Proposition Cards -->
+      <div data-testid="value-proposition-section" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-16">
+        <Card className="bg-white/5 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle data-testid="card-title-time-saving">Oszczędność czasu</CardTitle>
+            <CardDescription className="text-blue-100/70">Krótszy czas analizy kampanii</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Zredukuj czas poświęcany na analizę danych i raportowanie o minimum 40% dzięki zautomatyzowanym
+              narzędziom.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle data-testid="card-title-better-decisions">Lepsze decyzje</CardTitle>
+            <CardDescription className="text-blue-100/70">Oparte na danych ze wszystkich platform</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Podejmuj lepsze decyzje dzięki kompleksowemu widokowi wszystkich kampanii w jednym miejscu i automatycznym
+              alertom.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle data-testid="card-title-smart-recommendations">Inteligentne rekomendacje</CardTitle>
+            <CardDescription className="text-blue-100/70">Sugestie optymalizacji od AI</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Wykorzystuj moc sztucznej inteligencji do automatycznego wykrywania trendów i otrzymywania rekomendacji
+              optymalizacyjnych.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Features List -->
+      <div data-testid="features-list-section" class="w-full max-w-3xl mb-16">
+        <h2 data-testid="features-list-heading" class="text-3xl font-bold mb-8 text-center text-white">
+          Główne funkcje <span class="bg-gradient-to-r from-blue-200 to-purple-200 text-transparent bg-clip-text"
+            >campAlyze</span
+          >
+        </h2>
+
+        <div data-testid="features-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {
+            [
+              "Import danych z CSV/XLSX z Google Ads i Meta Ads",
+              "Interaktywny dashboard z kluczowymi metrykami",
+              "Porównanie platform reklamowych",
+              "System alertów dla problematycznych kampanii",
+              "Dziennik zmian wprowadzonych w kampaniach",
+              "Automatyczne podsumowania i rekomendacje AI",
+              "Eksport raportów do CSV/PDF/XLSX",
+              "Bezpieczne zarządzanie kontami użytkowników",
+            ].map((feature, index) => (
+              <div data-testid={`feature-item-${index}`} class="flex items-start space-x-3 p-3 rounded-lg bg-white/5">
+                <div class="mt-0.5">
+                  <Check client:only="react" className="h-5 w-5 text-green-400" />
+                </div>
+                <span class="text-white">{feature}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div
+        data-testid="cta-section"
+        class="w-full max-w-3xl text-center bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10"
+      >
+        <h2 class="text-3xl font-bold mb-4 text-white">Gotowy na optymalizację swoich kampanii?</h2>
+        <p class="text-xl text-blue-100/80 mb-6">
+          Dołącz do grona specjalistów korzystających z campAlyze i zacznij podejmować lepsze decyzje oparte na danych.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/register">
+            <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+              Zarejestruj się za darmo
+            </Button>
+          </a>
+          <a href="/login">
+            <Button
+              client:only="react"
+              variant="outline"
+              size="lg"
+              className="border-white text-white hover:bg-white/10"
+            >
+              Zaloguj się
+            </Button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </Layout>

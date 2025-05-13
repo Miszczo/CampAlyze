@@ -199,7 +199,7 @@ export class LoginPage {
   async getErrorMessageText(): Promise<string | null> {
     try {
       await this.errorMessageAlert.waitFor({ state: "visible", timeout: 5000 });
-      const description = this.errorMessageAlert.locator(".AlertDescription");
+      const description = this.errorMessageAlert.locator('[data-slot="alert-description"]');
       return await description.textContent();
     } catch {
       return null;
@@ -213,7 +213,7 @@ export class LoginPage {
   async getSuccessMessageText(): Promise<string | null> {
     try {
       await this.successMessageAlert.waitFor({ state: "visible", timeout: 5000 });
-      const description = this.successMessageAlert.locator(".AlertDescription");
+      const description = this.successMessageAlert.locator('[data-slot="alert-description"]');
       return await description.textContent();
     } catch {
       return null;
@@ -254,7 +254,7 @@ export class LoginPage {
     if (exists) {
       try {
         await expect(this.errorMessageAlert).toBeVisible({ timeout: 5000 });
-        const alertDescription = this.errorMessageAlert.locator(".AlertDescription");
+        const alertDescription = this.errorMessageAlert.locator('[data-slot="alert-description"]');
         await expect(alertDescription).toBeVisible({ timeout: 5000 });
         await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
       } catch (error) {
@@ -285,10 +285,10 @@ export class LoginPage {
     await this.page.evaluate((errorMessage) => {
       const alert = document.createElement("div");
       alert.setAttribute("data-testid", "login-alert-error");
-      alert.classList.add("Alert", "AlertDestructive");
-      alert.innerHTML = `
-        <div class="AlertTitle">Error</div>
-        <div class="AlertDescription">${errorMessage}</div>
+      alert.setAttribute("role", "alert");
+      alert.innerHTML = ` 
+        <div data-slot="alert-title">Error</div>
+        <div data-slot="alert-description">${errorMessage}</div>
       `;
 
       // Wstawiamy na początek formularza lub do body
@@ -317,7 +317,7 @@ export class LoginPage {
     if (exists) {
       try {
         await expect(this.successMessageAlert).toBeVisible({ timeout: 5000 });
-        const alertDescription = this.successMessageAlert.locator(".AlertDescription");
+        const alertDescription = this.successMessageAlert.locator('[data-slot="alert-description"]');
         await expect(alertDescription).toBeVisible({ timeout: 5000 });
         await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
       } catch (error) {
@@ -348,10 +348,10 @@ export class LoginPage {
     await this.page.evaluate((message) => {
       const alert = document.createElement("div");
       alert.setAttribute("data-testid", "login-alert-success");
-      alert.classList.add("Alert", "AlertSuccess");
+      alert.setAttribute("role", "alert");
       alert.innerHTML = `
-        <div class="AlertTitle">Success</div>
-        <div class="AlertDescription">${message}</div>
+        <div data-slot="alert-title">Success</div>
+        <div data-slot="alert-description">${message}</div>
       `;
 
       // Wstawiamy na początek formularza lub do body
