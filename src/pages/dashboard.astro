@@ -1,0 +1,426 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import {
+  AlertTriangle,
+  Clock,
+  Download,
+  Upload,
+  BrainCircuit,
+  Settings,
+  Home,
+  LineChart,
+  Bell,
+  Calendar,
+} from "lucide-react";
+import PlatformTabs from "@/components/PlatformTabs.tsx";
+
+// Sprawdzenie sesji (middleware powinno już przekierować niezalogowanych)
+const { session } = Astro.locals;
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+// Dane użytkownika
+const userFullName = session.user?.user_metadata?.full_name || session.user?.email || "Użytkownik";
+
+// Przykładowe dane (w prawdziwej aplikacji pochodziłyby z bazy danych)
+const metrics = {
+  cpc: { value: "1.24 PLN", change: "+5.2%", trend: "up" },
+  ctr: { value: "2.38%", change: "-0.7%", trend: "down" },
+  konwersje: { value: "583", change: "+12.3%", trend: "up" },
+  kosztKonwersji: { value: "32.18 PLN", change: "-4.1%", trend: "up" },
+  roas: { value: "3.75", change: "+1.2%", trend: "up" },
+};
+
+// Przykładowe alerty
+const alerts = [
+  {
+    id: 1,
+    campaign: "Lato 2023 - Buty",
+    platform: "Google Ads",
+    issue: "Wysoki koszt konwersji",
+    value: "47.21 PLN",
+    threshold: "35.00 PLN",
+    severity: "high",
+  },
+  {
+    id: 2,
+    campaign: "Promocja - Plecaki",
+    platform: "Meta Ads",
+    issue: "Niski CTR",
+    value: "0.82%",
+    threshold: "1.5%",
+    severity: "medium",
+  },
+  {
+    id: 3,
+    campaign: "Back to School",
+    platform: "Google Ads",
+    issue: "Spadek ROAS",
+    value: "2.1",
+    threshold: "3.0",
+    severity: "high",
+  },
+];
+
+// Przykładowe nadchodzące weryfikacje
+const upcomingVerifications = [
+  {
+    id: 1,
+    campaign: "Lato 2023 - Buty",
+    platform: "Google Ads",
+    change: "Zwiększenie budżetu o 20%",
+    implementation: "2023-08-15",
+    verification: "2023-08-22",
+  },
+  {
+    id: 2,
+    campaign: "Promocja - Akcesoria",
+    platform: "Meta Ads",
+    change: "Nowe targetowanie demograficzne",
+    implementation: "2023-08-18",
+    verification: "2023-08-25",
+  },
+];
+---
+
+<Layout title="Dashboard | campAlyze">
+  <div class="flex h-screen overflow-hidden bg-gray-100">
+    <!-- Sidebar -->
+    <div class="hidden md:flex md:flex-shrink-0">
+      <div class="flex flex-col w-64 bg-white shadow-lg">
+        <div class="flex items-center justify-center h-20 px-4 border-b border-gray-200">
+          <h1 class="text-xl font-bold text-purple-700">campAlyze</h1>
+        </div>
+        <div class="flex flex-col flex-grow p-4 overflow-y-auto">
+          <nav class="flex-1 space-y-2">
+            <a
+              href="/dashboard"
+              class="flex items-center px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-md"
+            >
+              <Home className="w-5 h-5 mr-3 text-white" />
+              Dashboard
+            </a>
+            <a
+              href="/import"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <Upload className="w-5 h-5 mr-3 text-gray-500" />
+              Import Danych
+            </a>
+            <a
+              href="/kampanie"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <LineChart className="w-5 h-5 mr-3 text-gray-500" />
+              Kampanie
+            </a>
+            <a
+              href="/dziennik-zmian"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+              Dziennik Zmian
+            </a>
+            <a
+              href="/alerty"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <Bell className="w-5 h-5 mr-3 text-gray-500" />
+              Alerty
+            </a>
+            <a
+              href="/eksport"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <Download className="w-5 h-5 mr-3 text-gray-500" />
+              Eksport Danych
+            </a>
+            <a
+              href="/ai-insights"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+            >
+              <BrainCircuit className="w-5 h-5 mr-3 text-gray-500" />
+              AI Insights
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Główna zawartość -->
+    <div class="flex flex-col flex-1 overflow-hidden">
+      <!-- Nagłówek -->
+      <header class="flex items-center justify-between p-4 bg-white shadow-sm">
+        <div class="flex md:hidden">
+          <button type="button" class="text-gray-500 hover:text-gray-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-center">
+          <span class="text-sm font-medium text-gray-700">Witaj, {userFullName}</span>
+        </div>
+        <div class="flex items-center">
+          <form method="POST" action="/api/auth/signout">
+            <Button type="submit" variant="outline" size="sm" className="flex items-center"> Wyloguj się </Button>
+          </form>
+        </div>
+      </header>
+
+      <!-- Zawartość dashboardu -->
+      <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
+        <div class="max-w-7xl mx-auto">
+          <!-- Status MVP -->
+          <div class="mb-8">
+            <Alert>
+              <div class="flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                <p class="text-sm">
+                  To jest wersja MVP dashboardu. Dane są przykładowe. W pełnej wersji zobaczysz dane z Twoich
+                  zaimportowanych kampanii.
+                </p>
+              </div>
+            </Alert>
+          </div>
+
+          <!-- Filtry i akcje -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div class="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="bg-white">
+                <Calendar className="h-4 w-4 mr-2" />
+                Ostatnie 7 dni
+              </Button>
+              <Button size="sm" variant="outline" className="bg-white"> Wszystkie platformy </Button>
+              <Button size="sm" variant="outline" className="bg-white">
+                <Settings className="h-4 w-4 mr-2" />
+                Filtry
+              </Button>
+            </div>
+            <div class="flex gap-2">
+              <a href="/import">
+                <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importuj dane
+                </Button>
+              </a>
+              <a href="/ai-insights">
+                <Button size="sm" variant="outline" className="bg-white">
+                  <BrainCircuit className="h-4 w-4 mr-2" />
+                  Generuj raport AI
+                </Button>
+              </a>
+            </div>
+          </div>
+
+          <!-- Metryki -->
+          <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">Kluczowe metryki</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">CPC</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold">{metrics.cpc.value}</span>
+                    <span
+                      class={`ml-2 text-xs font-medium ${metrics.cpc.trend === "up" ? (metrics.cpc.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.cpc.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                    >
+                      {metrics.cpc.change}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">CTR</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold">{metrics.ctr.value}</span>
+                    <span
+                      class={`ml-2 text-xs font-medium ${metrics.ctr.trend === "up" ? (metrics.ctr.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.ctr.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                    >
+                      {metrics.ctr.change}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Konwersje</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold">{metrics.konwersje.value}</span>
+                    <span
+                      class={`ml-2 text-xs font-medium ${metrics.konwersje.trend === "up" ? (metrics.konwersje.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.konwersje.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                    >
+                      {metrics.konwersje.change}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">Koszt/Konwersję</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold">{metrics.kosztKonwersji.value}</span>
+                    <span
+                      class={`ml-2 text-xs font-medium ${metrics.kosztKonwersji.trend === "down" ? (metrics.kosztKonwersji.change.startsWith("+") ? "text-red-500" : "text-green-500") : metrics.kosztKonwersji.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}
+                    >
+                      {metrics.kosztKonwersji.change}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">ROAS</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div class="flex items-baseline">
+                    <span class="text-2xl font-bold">{metrics.roas.value}</span>
+                    <span
+                      class={`ml-2 text-xs font-medium ${metrics.roas.trend === "up" ? (metrics.roas.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.roas.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                    >
+                      {metrics.roas.change}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <!-- Przegląd platform -->
+          <div class="mb-8">
+            <PlatformTabs client:visible />
+          </div>
+
+          <!-- Alerty i weryfikacje -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Alerty -->
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Alerty kampanii</h2>
+                <a href="/alerty" class="text-sm text-purple-600 hover:text-purple-700">Zobacz wszystkie</a>
+              </div>
+              <Card>
+                <CardContent className="p-0">
+                  {
+                    alerts.length > 0 ? (
+                      <ul class="divide-y divide-gray-200">
+                        {alerts.map((alert) => (
+                          <li class="p-4 hover:bg-gray-50">
+                            <div class="flex items-start">
+                              <div
+                                class={`flex-shrink-0 h-3 w-3 rounded-full mt-1 ${alert.severity === "high" ? "bg-red-500" : alert.severity === "medium" ? "bg-yellow-500" : "bg-blue-500"}`}
+                              />
+                              <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">{alert.campaign}</p>
+                                <p class="text-xs text-gray-500">
+                                  {alert.platform} | {alert.issue}: {alert.value} (próg: {alert.threshold})
+                                </p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div class="flex items-center justify-center h-40 bg-gray-50">
+                        <div class="text-center">
+                          <p class="text-sm text-gray-500">Brak alertów dla kampanii.</p>
+                        </div>
+                      </div>
+                    )
+                  }
+                </CardContent>
+              </Card>
+            </div>
+
+            <!-- Nadchodzące weryfikacje -->
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Nadchodzące weryfikacje</h2>
+                <a href="/dziennik-zmian" class="text-sm text-purple-600 hover:text-purple-700">Zobacz wszystkie</a>
+              </div>
+              <Card>
+                <CardContent className="p-0">
+                  {
+                    upcomingVerifications.length > 0 ? (
+                      <ul class="divide-y divide-gray-200">
+                        {upcomingVerifications.map((verification) => (
+                          <li class="p-4 hover:bg-gray-50">
+                            <div class="flex items-start">
+                              <div class="flex-shrink-0">
+                                <Clock className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">{verification.campaign}</p>
+                                <p class="text-xs text-gray-500">
+                                  {verification.platform} | {verification.change}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                  Weryfikacja: {new Date(verification.verification).toLocaleDateString("pl-PL")}
+                                </p>
+                              </div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div class="flex items-center justify-center h-40 bg-gray-50">
+                        <div class="text-center">
+                          <p class="text-sm text-gray-500">Brak nadchodzących weryfikacji.</p>
+                        </div>
+                      </div>
+                    )
+                  }
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // @ts-nocheck // Ignorujemy sprawdzanie typów dla tego bloku skryptu
+  // Dodać kod skryptu idle timeout dla automatycznego wylogowania po okresie nieaktywności
+  let inactivityTimeout = null; // Inicjalizacja na null dla lintera
+  const resetInactivityTimer = () => {
+    if (inactivityTimeout) {
+      clearTimeout(inactivityTimeout);
+    }
+    inactivityTimeout = setTimeout(
+      () => {
+        // Przekieruj do strony wylogowania po 30 minutach nieaktywności
+        window.location.href = "/api/auth/signout";
+      },
+      30 * 60 * 1000
+    ); // 30 minut
+  };
+
+  // Resetuj timer przy aktywności
+  ["mousemove", "keydown", "touchstart", "click"].forEach((event) => {
+    document.addEventListener(event, resetInactivityTimer, false);
+  });
+
+  // Rozpocznij timer
+  resetInactivityTimer();
+</script>

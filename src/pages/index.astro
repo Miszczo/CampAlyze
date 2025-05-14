@@ -6,8 +6,12 @@ import { Check } from "lucide-react";
 import { FeatureTabs } from "@/components/FeatureTabs";
 
 // Wykorzystanie sesji użytkownika z middleware
-const { session } = Astro.locals;
+const { session, isTestEnvironment, testMode } = Astro.locals;
 const isLoggedIn = !!session;
+
+console.log("[index.astro] Astro.locals.session:", JSON.stringify(session));
+console.log("[index.astro] isLoggedIn:", isLoggedIn);
+console.log("[index.astro] Test Environment:", isTestEnvironment, "Test Mode:", testMode);
 ---
 
 <Layout title="campAlyze - Narzędzie analityczne do kampanii reklamowych">
@@ -143,21 +147,33 @@ const isLoggedIn = !!session;
           Dołącz do grona specjalistów korzystających z campAlyze i zacznij podejmować lepsze decyzje oparte na danych.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="/register">
-            <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
-              Zarejestruj się za darmo
-            </Button>
-          </a>
-          <a href="/login">
-            <Button
-              client:only="react"
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white/10"
-            >
-              Zaloguj się
-            </Button>
-          </a>
+          {
+            isLoggedIn ? (
+              <a href="/dashboard">
+                <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Przejdź do dashboardu
+                </Button>
+              </a>
+            ) : (
+              <>
+                <a href="/register">
+                  <Button client:only="react" size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
+                    Zarejestruj się za darmo
+                  </Button>
+                </a>
+                <a href="/login">
+                  <Button
+                    client:only="react"
+                    variant="outline"
+                    size="lg"
+                    className="border-white text-white hover:bg-white/10"
+                  >
+                    Zaloguj się
+                  </Button>
+                </a>
+              </>
+            )
+          }
         </div>
       </div>
     </div>

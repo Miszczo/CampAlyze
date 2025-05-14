@@ -1,136 +1,157 @@
 import { defineMiddleware } from "astro:middleware";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { Database } from "@/db/database.types";
 import { type SupabaseClient, type Session } from "@supabase/supabase-js";
-
-// Extend Astro locals type
-declare global {
-  namespace App {
-    interface Locals {
-      supabase: SupabaseClient<Database> | null;
-      session: Session | null;
-      isTestEnvironment: boolean;
-      testMode: "mock" | "integration" | null;
-    }
-  }
-}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const supabaseUrl = import.meta.env.SUPABASE_URL;
   const supabaseKey = import.meta.env.SUPABASE_KEY;
 
-  // Sprawdź, czy jesteśmy w środowisku testowym
   const isTestEnvironment =
     import.meta.env.IS_TEST_ENV === "true" ||
     import.meta.env.MODE === "test" ||
     process.env.IS_TEST_ENV === "true" ||
     process.env.NODE_ENV === "test";
 
-  // Określ tryb testowy
   const testMode = isTestEnvironment
     ? import.meta.env.TEST_MODE === "mock" || process.env.TEST_MODE === "mock"
       ? "mock"
       : "integration"
     : null;
 
-  // Ustaw flagi środowiska testowego w kontekście
   context.locals.isTestEnvironment = isTestEnvironment;
   context.locals.testMode = testMode;
 
-  // Logger middleware
   console.log(`[Middleware] ${context.request.method} ${new URL(context.request.url).pathname}`);
-
   if (isTestEnvironment) {
     console.log(`[Middleware] Running in test environment, mode: ${testMode}`);
+
+    // DEBUG: Log incoming cookie keys to help diagnose auth cookie issues during tests.
+    const rawCookieHeader = context.request.headers.get("cookie") || "";
+    console.log(`[Middleware][DEBUG] Cookie header: ${rawCookieHeader}`);
   }
 
-  // Jeśli zmienne środowiskowe Supabase nie są dostępne lub jesteśmy w trybie testowym mock
-  if (!supabaseUrl || !supabaseKey || (isTestEnvironment && testMode === "mock")) {
-    if (!supabaseUrl || !supabaseKey) {
-      console.warn(`[Middleware] Supabase URL or Key missing, skipping Supabase initialization`);
-    } else if (isTestEnvironment && testMode === "mock") {
-      console.log(`[Middleware] Using mock mode, skipping real Supabase initialization`);
-    }
-
-    // Inicjalizuj puste wartości dla kontekstu
-    context.locals.supabase = null;
+  if (isTestEnvironment && testMode === "mock") {
+    console.log(`[Middleware] Mock mode active. Checking for playwright_mock_session cookie.`);
+    context.locals.supabase = null; 
     context.locals.session = null;
 
-    // W środowisku testowym możemy użyć mocków lub ustawić domyślną sesję dla testów
-    if (isTestEnvironment) {
-      const url = new URL(context.request.url);
+    const cookies = context.cookies;
+    const mockCookie = cookies.get("playwright_mock_session");
+    const hasPlaywrightMockSessionCookie = mockCookie !== undefined;
 
-      // Opcjonalnie automatycznie ustaw mockowaną sesję dla określonych ścieżek w testach
-      if (
-        (url.pathname.startsWith("/dashboard") && url.searchParams.get("mockSession") === "true") ||
-        (testMode === "mock" && url.pathname.startsWith("/dashboard"))
-      ) {
-        console.log("[Middleware] Using mock session for test environment");
-        context.locals.session = {
-          access_token: "mock-token",
-          refresh_token: "mock-refresh",
-          expires_at: Date.now() + 3600,
-          expires_in: 3600,
-          user: {
-            id: "mock-user-id",
-            email: "test@example.com",
-            user_metadata: { full_name: "Test User" },
-          },
-        } as Session;
-      }
+    console.log(`[Middleware] Mock Mode: Has playwright_mock_session cookie: ${hasPlaywrightMockSessionCookie}`,
+                mockCookie ? `Value: ${mockCookie.value}` : '');
+
+    if (hasPlaywrightMockSessionCookie) {
+      console.log("[Middleware] Mock Mode: playwright_mock_session cookie FOUND. Setting mock session.");
+      context.locals.session = {
+        access_token: "mock-token",
+        refresh_token: "mock-refresh",
+        token_type: "bearer",
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        expires_in: 3600,
+        user: {
+          id: "mock-user-id",
+          email: "test@example.com",
+          user_metadata: { full_name: "Test User Mock From Cookie" },
+          app_metadata: {},
+          aud: "authenticated",
+          created_at: new Date().toISOString(),
+        },
+      } as unknown as Session;
+    } else {
+      console.log("[Middleware] Mock Mode: playwright_mock_session cookie NOT FOUND. Session remains null.");
     }
+    return next();
+  }
 
+  if (!supabaseUrl || !supabaseKey) {
+    console.warn(`[Middleware] Supabase URL or Key missing. Supabase client not initialized. Session will be null.`);
+    context.locals.supabase = null;
+    context.locals.session = null;
+    context.locals.supabaseInitializationError = new Error("Supabase URL or Key missing.");
     return next();
   }
 
   try {
+    const projectRef = (() => {
+      try {
+        const hostname = new URL(supabaseUrl).hostname;
+        if (hostname === "localhost" || hostname === "127.0.0.1") return "127";
+        return hostname.split(".")[0];
+      } catch {
+        return "unknown";
+      }
+    })();
+
     const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
+      cookieOptions: { name: `sb-${projectRef}-auth-token` },
       cookies: {
         get: (key) => context.cookies.get(key)?.value,
-        set: (key, value, options) => {
+        set: (key, value, options: CookieOptions) => {
           context.cookies.set(key, value, options);
         },
-        remove: (key, options) => {
+        remove: (key, options: CookieOptions) => {
           context.cookies.delete(key, options);
         },
       },
     });
-
-    // Dodaj klienta supabase do lokalnego kontekstu
     context.locals.supabase = supabase;
 
-    // Sprawdź sesję użytkownika
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    // Dodaj informacje o sesji do lokalnego kontekstu
+    const { data: { session } } = await supabase.auth.getSession();
     context.locals.session = session;
+    if (session) {
+      console.log("[Middleware] Real session found for:", session.user.email);
+    } else {
+      console.log("[Middleware] No real session found.");
+    }
 
-    // Obsługa ścieżek chronionych
     const url = new URL(context.request.url);
-    const isProtectedRoute = url.pathname.startsWith("/dashboard");
-    const isAuthRoute =
-      url.pathname.startsWith("/login") ||
-      url.pathname.startsWith("/register") ||
-      url.pathname.startsWith("/forgot-password") ||
-      url.pathname.startsWith("/reset-password");
+    const isProtectedRoute = protectedPaths.some(path => url.pathname.startsWith(path));
+    const isAuthRoute = authRoutes.some(path => url.pathname.startsWith(path));
+    const isPublicApiRoute = publicApiRoutes.some(path => url.pathname.startsWith(path));
 
-    // Przekierowanie dla chronionych ścieżek, gdy użytkownik nie jest zalogowany
+    if (isPublicApiRoute) {
+        console.log(`[Middleware] Public API route, allowing access: ${url.pathname}`);
+        return next();
+    }
+    
     if (isProtectedRoute && !session) {
+      console.log(`[Middleware] Redirecting to /login from protected route: ${url.pathname}`);
       return context.redirect("/login");
     }
 
-    // Przekierowanie dla ścieżek logowania, gdy użytkownik jest już zalogowany
     if (isAuthRoute && session) {
+      console.log(`[Middleware] Redirecting to /dashboard from auth route: ${url.pathname} (user already logged in)`);
       return context.redirect("/dashboard");
     }
   } catch (error) {
-    console.error("[Middleware] Error:", error);
-    // Ustaw puste wartości w przypadku błędu
+    console.error("[Middleware] Error during Supabase client initialization or session handling:", error);
     context.locals.supabase = null;
     context.locals.session = null;
+    if (error instanceof Error) {
+        context.locals.supabaseInitializationError = error;
+    } else {
+        context.locals.supabaseInitializationError = new Error(String(error));
+    }
   }
 
   return next();
 });
+
+const protectedPaths = ["/dashboard", "/import", "/kampanie", "/dziennik-zmian", "/alerty", "/eksport", "/ai-insights", "/api/data"];
+const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/callback"];
+const publicApiRoutes = ["/api/auth"];
+
+export function getSupabase(locals: App.Locals): SupabaseClient<Database> {
+  if (locals.supabaseInitializationError) {
+    console.error("Supabase client initialization previously failed.", locals.supabaseInitializationError);
+    throw new Error("Supabase client is not available due to an initialization error. Check middleware logs.");
+  }
+  if (!locals.supabase && !(locals.isTestEnvironment && locals.testMode === 'mock')) {
+     console.error("Supabase client is null and not in a mock test environment.");
+     throw new Error("Supabase client is not available and not in mock mode. Check middleware logs.");
+  }
+  return locals.supabase as SupabaseClient<Database>;
+}

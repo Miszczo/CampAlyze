@@ -45,8 +45,8 @@ export class HomePage {
       /Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i
     );
     this.goToDashboardButton = page.getByTestId("go-to-dashboard-link");
-    this.loginButtonHero = page.getByRole("link", { name: "Zaloguj się" }).first();
-    this.registerButtonHero = page.getByRole("link", { name: "Zarejestruj się" }).first();
+    this.loginButtonHero = page.getByTestId("hero-section").getByRole("link", { name: "Zaloguj się" });
+    this.registerButtonHero = page.getByTestId("hero-section").getByRole("link", { name: "Zarejestruj się" });
 
     // Tabs Section
     this.tabsList = page.getByTestId("tabs-list");
