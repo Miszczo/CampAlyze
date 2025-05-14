@@ -6,8 +6,9 @@ import { Check } from "lucide-react";
 import { FeatureTabs } from "@/components/FeatureTabs";
 
 // Wykorzystanie sesji użytkownika z middleware
-const { session, isTestEnvironment, testMode } = Astro.locals;
+const { session } = Astro.locals;
 const isLoggedIn = !!session;
+// console.log('Session:', session); // Ostrzeżenie: Unexpected console statement
 
 console.log("[index.astro] Astro.locals.session:", JSON.stringify(session));
 console.log("[index.astro] isLoggedIn:", isLoggedIn);
