@@ -1,6 +1,6 @@
 # TODO: campAlyze – Stan, Zadania i Wymagania
 
-**Wersja:** 2025-05-14 14:30:00
+**Wersja:** 2024-05-14 15:30:00
 
 ## 1. Aktualny stan (co mamy zaimplementowane)
 
@@ -41,6 +41,7 @@
 - Utworzyć endpointy GET `/api/dashboard/metrics` bazujące na widoku `campaign_metrics_derived`
 - Obsłużyć parametry filtrów: zakres dat, platforma, kampania
 - W `.astro` pobierać dane (np. `Astro.server.fetch` lub fetch w React) i zastąpić hardkod
+- Wyświetlać nowe metryki: Zasięg (reach) i Typ wyniku (conversion_type) dla platform, które je dostarczają
 - Zaimplementować wykresy (np. Chart.js lub Recharts) dla trendów i porównań okresów
 - Odświeżanie dashboardu po imporcie (webhook, polling lub SSE)
 
@@ -48,7 +49,18 @@
 - Endpoint `GET /api/imports` – lista importów z paginacją i filtrowaniem
 - Endpoint `DELETE /api/imports/:id` lub `PATCH /api/imports/:id` (cancel, retry)
 - UI: strona `/imports` lub `/history-imports` z tabelą historii importów, akcjami (usun, retry)
+- Zaimplementować parser Meta Ads CSV z mapowaniem kolumn:
+  * "Nazwa kampanii" → identyfikator kampanii (wyszukać lub utworzyć w tabeli `campaigns`)
+  * "Dzień" → `metrics.date`
+  * "Kliknięcia linku" → `metrics.clicks` 
+  * "Zasięg" → `metrics.reach` (nowe pole)
+  * "Wyświetlenia" → `metrics.impressions`
+  * "Typ wyniku" → `metrics.conversion_type` (nowe pole)
+  * "Wyniki" → `metrics.conversions`
+  * "Wydana kwota (PLN)" → `metrics.spend`
+- Uwzględnić obsługę pustych pól (NULL) w CSV
 - Testy unit + E2E dla CRUD importów (upload → lista → usuń)
+- Dodać testy dla parsera CSV Meta Ads
 
 ### 2.3 CRUD zasobu Campaigns
 - DB + API: tabele `campaigns`, endpointy CRUD w `src/pages/api/campaigns/*`

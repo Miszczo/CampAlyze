@@ -69,7 +69,9 @@ CREATE TABLE metrics (
   impressions BIGINT NOT NULL DEFAULT 0,
   clicks BIGINT NOT NULL DEFAULT 0,
   spend DECIMAL(12, 2) NOT NULL DEFAULT 0,
+  reach BIGINT NOT NULL DEFAULT 0, -- Zasięg z Meta Ads
   conversions BIGINT NOT NULL DEFAULT 0,
+  conversion_type TEXT, -- Typ wyniku z Meta Ads (np. "Wyświetlenia strony docelowej")
   revenue DECIMAL(12, 2) NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -193,7 +195,9 @@ SELECT
   m.impressions,
   m.clicks,
   m.spend,
+  m.reach,
   m.conversions,
+  m.conversion_type,
   m.revenue,
   CASE WHEN m.clicks > 0 THEN m.spend / m.clicks ELSE 0 END AS cpc,
   CASE WHEN m.impressions > 0 THEN (m.clicks::float / m.impressions) * 100 ELSE 0 END AS ctr,

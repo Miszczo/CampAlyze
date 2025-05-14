@@ -21,7 +21,7 @@ Testy E2E **nie** powinny zastępować testów jednostkowych czy integracyjnych.
 ## 2. Konfiguracja Playwright
 
 -   **Przeglądarki:** Domyślnie konfiguruj i uruchamiaj testy na **Desktop Chromium**. Okresowo przeprowadzaj testy na innych kluczowych przeglądarkach (Firefox, Webkit/Safari) zgodnie z `campalyze_test_plan.md`, szczególnie przed wydaniem.
--   **Środowisko:** Głównym środowiskiem do uruchamiania pełnych testów E2E jest **Staging**. Testy "smoke" mogą być uruchamiane na środowisku produkcyjnym po wdrożeniu.
+-   **Środowisko:** Głównym środowiskiem do uruchamPiania pełnych testów E2E jest **Staging**. Testy "smoke" mogą być uruchamiane na środowisku produkcyjnym po wdrożeniu.
 -   **Izolacja:** Używaj **kontekstów przeglądarki (`browser.newContext()`)**, aby izolować stan między testami (np. sesje, local storage). Unikaj współdzielenia stanu między plikami testowymi, chyba że jest to celowe (np. przez `storageState`).
 
 ## 3. Struktura i Utrzymanie Testów
