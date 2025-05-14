@@ -1,5 +1,3 @@
-Na podstawie dostarczonego kodu HTML z lekcji kursowej oraz dodatkowego kontekstu z PRD i Tech Stacku, przygotowałem szczegółowe instrukcje dotyczące wdrożenia Twojej aplikacji Astro na darmowych chmurach frontendowych, ze szczególnym uwzględnieniem Cloudflare Pages. Zgodnie z prośbą, instrukcje te nie obejmują wdrożenia za pomocą Dockera.
-
 ## Linki do Dokumentacji (do pobrania za pomocą `curl`)
 
 Poniżej znajdują się linki do relevantnych dokumentacji, które zostały zidentyfikowane w przesłanym materiale. Możesz użyć `curl`, aby pobrać ich treść (pamiętaj, że `curl` pobierze surowy HTML/tekst strony, co może wymagać dalszego przetworzenia do czytelnej formy):

@@ -62,6 +62,13 @@ export default tseslint.config(
   {
     // Ignorowane pliki - problemy z linterem
     ignores: [
+      // Katalogi generowane i zależności
+      "node_modules/",
+      "dist/",
+      ".astro/",
+      "playwright-report/",
+      "build/",
+
       // Pliki binarne lub generowane
       "src/db/database.types.ts",
 
