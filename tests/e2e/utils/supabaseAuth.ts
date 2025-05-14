@@ -10,6 +10,13 @@ dotenv.config({ path: ".env.test" });
 async function globalSetup(config: FullConfig) {
   const { SUPABASE_URL, SUPABASE_KEY, TEST_USER_EMAIL, TEST_USER_PASSWORD } = process.env;
 
+  // Added for debugging:
+  // console.log("[globalSetup] Attempting to load .env.test variables:");
+  // console.log("[globalSetup] SUPABASE_URL:", SUPABASE_URL);
+  // console.log("[globalSetup] SUPABASE_KEY:", SUPABASE_KEY ? "Set (first 10 chars: " + SUPABASE_KEY.substring(0, 10) + "...)" : "Not Set or Empty");
+  // console.log("[globalSetup] TEST_USER_EMAIL:", TEST_USER_EMAIL ? "Set" : "Not Set or Empty");
+  // End of added for debugging
+
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("SUPABASE_URL or SUPABASE_KEY env vars missing for globalSetup");
   }
@@ -39,6 +46,12 @@ async function globalSetup(config: FullConfig) {
     if (signUpError && signUpError.status !== 400 /* 400 = already registered */) {
       throw new Error(`Supabase test user sign-up failed: ${signUpError.message}`);
     }
+    
+    // Dodajmy log dla lepszego debugowania
+    // if (signUpError && signUpError.status === 400) {
+    //   console.log("[globalSetup] User already registered, continuing with sign-in...");
+    // }
+    
     session = await trySignIn();
     if (!session) {
       throw new Error("Failed to obtain session for test user after sign-up.");
@@ -114,7 +127,7 @@ async function globalSetup(config: FullConfig) {
   await fs.promises.mkdir("playwright/.auth", { recursive: true });
   await contextBrowser.storageState({ path: storagePath });
   await browser.close();
-  console.log(`[globalSetup] Saved authenticated storage state to ${storagePath}`);
+  // console.log(`[globalSetup] Saved authenticated storage state to ${storagePath}`);
 }
 
 export default globalSetup;
