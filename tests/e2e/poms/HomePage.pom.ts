@@ -41,9 +41,7 @@ export class HomePage {
 
     // Hero Section
     this.heroHeading = page.getByTestId("hero-heading");
-    this.heroDescription = page.getByText(
-      /Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i
-    );
+    this.heroDescription = page.getByText(/Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i);
     this.goToDashboardButton = page.getByTestId("go-to-dashboard-link");
     this.loginButtonHero = page.getByTestId("hero-section").getByRole("link", { name: "Zaloguj się" });
     this.registerButtonHero = page.getByTestId("hero-section").getByRole("link", { name: "Zarejestruj się" });
@@ -53,7 +51,7 @@ export class HomePage {
     this.dashboardTabTrigger = this.tabsList.getByRole("tab", { name: "Dashboard" });
     this.importsTabTrigger = this.tabsList.getByRole("tab", { name: "Import danych" });
     this.aiInsightsTabTrigger = this.tabsList.getByRole("tab", { name: "AI Insights" });
-    
+
     this.dashboardTabContent = page.getByTestId("dashboard-tab-content");
     this.importsTabContent = page.getByTestId("imports-tab-content");
     this.aiInsightsTabContent = page.getByTestId("ai-insights-tab-content");
@@ -73,9 +71,7 @@ export class HomePage {
     this.ctaHeading = this.ctaSection.getByRole("heading", {
       name: /Gotowy na optymalizację swoich kampanii?/i,
     });
-    this.ctaDescription = this.ctaSection.getByText(
-      /Dołącz do grona specjalistów korzystających z campAlyze/i
-    );
+    this.ctaDescription = this.ctaSection.getByText(/Dołącz do grona specjalistów korzystających z campAlyze/i);
     this.registerButtonCTA = this.ctaSection.getByRole("link", {
       name: "Zarejestruj się za darmo",
     });
@@ -102,4 +98,4 @@ export class HomePage {
   getFeatureListItem(text: string | RegExp): Locator {
     return this.featuresListItems.filter({ hasText: text });
   }
-} 
+}

@@ -6,10 +6,10 @@ import path from "path";
 dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
 
 // Sprawdź, czy zmienne środowiskowe zostały poprawnie załadowane
-console.log("CONFIG: Loaded Playwright environment variables:");
-console.log(`- PLAYWRIGHT_BASE_URL: ${process.env.PLAYWRIGHT_BASE_URL || "not set"}`);
-console.log(`- TEST_USER_EMAIL: ${process.env.TEST_USER_EMAIL ? "set (hidden)" : "not set"}`);
-console.log(`- TEST_MODE: ${process.env.TEST_MODE || "mock (default)"}`);
+// console.log("CONFIG: Loaded Playwright environment variables:");
+// console.log(`- PLAYWRIGHT_BASE_URL: ${process.env.PLAYWRIGHT_BASE_URL || "not set"}`);
+// console.log(`- TEST_USER_EMAIL: ${process.env.TEST_USER_EMAIL ? "set (hidden)" : "not set"}`);
+// console.log(`- TEST_MODE: ${process.env.TEST_MODE || "mock (default)"}`);
 
 export default defineConfig({
   testDir: "tests/e2e",

@@ -12,17 +12,12 @@ Poniżej znajdują się konkretne implementacje poprawek dla naprawy błędów z
   <TabsList data-testid="tabs-list" className="w-full max-w-lg mx-auto mb-8 bg-white/10">
     <TabsTrigger
       value="dashboard"
-      className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
-      >Dashboard</TabsTrigger
+      className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">Dashboard</TabsTrigger
     >
-    <TabsTrigger
-      value="imports"
-      className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
+    <TabsTrigger value="imports" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
       >Import danych</TabsTrigger
     >
-    <TabsTrigger
-      value="ai"
-      className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
+    <TabsTrigger value="ai" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
       >AI Insights</TabsTrigger
     >
   </TabsList>
@@ -62,10 +57,7 @@ export function FeatureTabs() {
         >
           Import danych
         </TabsTrigger>
-        <TabsTrigger
-          value="ai"
-          className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
-        >
+        <TabsTrigger value="ai" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">
           AI Insights
         </TabsTrigger>
       </TabsList>
@@ -143,9 +135,7 @@ Dodanie atrybutów `data-testid` do wszystkich kluczowych elementów testowanych
 <div class="text-center mb-16" data-testid="hero-section">
   <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white" data-testid="hero-heading">
     Analiza kampanii reklamowych
-    <span class="bg-gradient-to-r from-blue-200 to-purple-200 text-transparent bg-clip-text">
-      w jednym miejscu
-    </span>
+    <span class="bg-gradient-to-r from-blue-200 to-purple-200 text-transparent bg-clip-text"> w jednym miejscu </span>
   </h1>
   <!-- Reszta sekcji hero bez zmian -->
 </div>
@@ -198,11 +188,9 @@ export class HomePage {
     this.heroHeading = page.getByTestId("hero-heading");
     // Alternatywny selektor z fallbackiem
     // this.heroHeading = page.locator('[data-testid="hero-heading"], h1:has-text("Analiza kampanii reklamowych")');
-    
-    this.heroDescription = page.getByText(
-      /Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i
-    );
-    
+
+    this.heroDescription = page.getByText(/Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i);
+
     // Przyciski w hero - bez zmian
     this.goToDashboardButton = page.getByRole("link", { name: "Przejdź do dashboardu" });
     this.loginButtonHero = page.getByRole("link", { name: "Zaloguj się" }).first();
@@ -212,12 +200,12 @@ export class HomePage {
     this.tabsList = page.getByTestId("tabs-list");
     // Fallback z użyciem alternatywnych selektorów
     // this.tabsList = page.locator('[data-testid="tabs-list"], [role="tablist"]');
-    
+
     // Selektory zakładek pozostają bez zmian dla zachowania kompatybilności
     this.dashboardTabTrigger = page.getByRole("tab", { name: "Dashboard" });
     this.importsTabTrigger = page.getByRole("tab", { name: "Import danych" });
     this.aiInsightsTabTrigger = page.getByRole("tab", { name: "AI Insights" });
-    
+
     // Zawartość zakładek - zaktualizowane selektory
     this.dashboardTabContent = page.getByTestId("dashboard-tab-content");
     this.importsTabContent = page.getByTestId("imports-tab-content");
@@ -261,7 +249,7 @@ interface Props {
 const {
   title,
   description = "Narzędzie analityczne do kampanii reklamowych dla specjalistów marketingu i reklamy.",
-  ogImage = "/images/og-image.jpg" // Zakładając, że istnieje taki obrazek
+  ogImage = "/images/og-image.jpg", // Zakładając, że istnieje taki obrazek
 } = Astro.props;
 
 // Utworzenie pełnego URL dla Open Graph
@@ -277,28 +265,28 @@ const ogImageURL = new URL(ogImage, Astro.site);
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    
+
     <!-- Kanoniczny URL -->
     <link rel="canonical" href={canonicalURL} />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={canonicalURL} />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={ogImageURL} />
-    
+
     <!-- Dodatkowe meta tagi dla SEO -->
     <meta name="generator" content={Astro.generator} />
     <meta name="robots" content="index, follow" />
-    
+
     <!-- Slot dla dodatkowych meta tagów specyficznych dla strony -->
     <slot name="head" />
   </head>
@@ -311,21 +299,26 @@ const ogImageURL = new URL(ogImage, Astro.site);
 ## 5. Zestawienie zmian do wykonania
 
 ### 1. Rozwiązanie problemu hydratacji:
+
 - Zamiana `client:load` na `client:only="react"` dla komponentu Tabs lub
 - Utworzenie dedykowanego komponentu React `FeatureTabs.jsx` i użycie go w index.astro
 
 ### 2. Dodanie atrybutów data-testid:
+
 - Do sekcji hero, zakładek, listy funkcji i CTA w index.astro
 
 ### 3. Aktualizacja selektorów w HomePage.pom.ts:
+
 - Użycie selektorów opartych na data-testid
 - Dodanie alternatywnych selektorów jako fallback
 
 ### 4. Dodanie metadanych SEO:
+
 - Uzupełnienie meta tagów w Layout.astro
 - Dodanie Open Graph i Twitter Card meta tagów
 
 Po wprowadzeniu tych zmian, testy E2E powinny przechodzić poprawnie, ponieważ:
+
 1. Problem hydratacji Radix UI zostanie rozwiązany przez pełną hydratację komponentów React
 2. Selektory będą trafiać w odpowiednie elementy dzięki atrybutom data-testid
-3. Testy metadanych SEO będą przechodziły dzięki kompletnym meta tagom 
+3. Testy metadanych SEO będą przechodziły dzięki kompletnym meta tagom

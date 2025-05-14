@@ -9,9 +9,9 @@ Poniżej znajdują się dokładne zmiany, które należy wprowadzić w poszczeg�
 ```astro
 <!-- Było: -->
 <Tabs client:load defaultValue="dashboard" className="w-full">
-
-<!-- Powinno być: -->
-<Tabs client:only="react" defaultValue="dashboard" className="w-full">
+  <!-- Powinno być: -->
+  <Tabs client:only="react" defaultValue="dashboard" className="w-full" /></Tabs
+>
 ```
 
 ### Zmiana 2: Dodanie atrybutów data-testid do TabsList i TabsContent
@@ -19,30 +19,27 @@ Poniżej znajdują się dokładne zmiany, które należy wprowadzić w poszczeg�
 ```astro
 <!-- Było: -->
 <TabsList className="w-full max-w-lg mx-auto mb-8 bg-white/10">
-
-<!-- Powinno być: -->
-<TabsList data-testid="tabs-list" className="w-full max-w-lg mx-auto mb-8 bg-white/10">
-
-
-<!-- Było: -->
-<TabsContent value="dashboard" className="p-2">
-
-<!-- Powinno być: -->
-<TabsContent data-testid="dashboard-tab-content" value="dashboard" className="p-2">
-
-
-<!-- Było: -->
-<TabsContent value="imports" className="p-2">
-
-<!-- Powinno być: -->
-<TabsContent data-testid="imports-tab-content" value="imports" className="p-2">
-
-
-<!-- Było: -->
-<TabsContent value="ai" className="p-2">
-
-<!-- Powinno być: -->
-<TabsContent data-testid="ai-insights-tab-content" value="ai" className="p-2">
+  <!-- Powinno być: -->
+  <TabsList data-testid="tabs-list" className="w-full max-w-lg mx-auto mb-8 bg-white/10">
+    <!-- Było: -->
+    <TabsContent value="dashboard" className="p-2">
+      <!-- Powinno być: -->
+      <TabsContent data-testid="dashboard-tab-content" value="dashboard" className="p-2">
+        <!-- Było: -->
+        <TabsContent value="imports" className="p-2">
+          <!-- Powinno być: -->
+          <TabsContent data-testid="imports-tab-content" value="imports" className="p-2">
+            <!-- Było: -->
+            <TabsContent value="ai" className="p-2">
+              <!-- Powinno być: -->
+              <TabsContent data-testid="ai-insights-tab-content" value="ai" className="p-2" /></TabsContent
+            ></TabsContent
+          ></TabsContent
+        ></TabsContent
+      ></TabsContent
+    ></TabsList
+  ></TabsList
+>
 ```
 
 ### Zmiana 3: Dodanie atrybutów data-testid do sekcji Hero
@@ -50,16 +47,15 @@ Poniżej znajdują się dokładne zmiany, które należy wprowadzić w poszczeg�
 ```astro
 <!-- Było: -->
 <div class="text-center mb-16">
-
-<!-- Powinno być: -->
-<div data-testid="hero-section" class="text-center mb-16">
-
-
-<!-- Było: -->
-<h1 class="text-4xl md:text-6xl font-bold mb-6 text-white">
-
-<!-- Powinno być: -->
-<h1 data-testid="hero-heading" class="text-4xl md:text-6xl font-bold mb-6 text-white">
+  <!-- Powinno być: -->
+  <div data-testid="hero-section" class="text-center mb-16">
+    <!-- Było: -->
+    <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white">
+      <!-- Powinno być: -->
+      <h1 data-testid="hero-heading" class="text-4xl md:text-6xl font-bold mb-6 text-white"></h1>
+    </h1>
+  </div>
+</div>
 ```
 
 ### Zmiana 4: Dodanie atrybutów data-testid do sekcji Features List
@@ -67,30 +63,27 @@ Poniżej znajdują się dokładne zmiany, które należy wprowadzić w poszczeg�
 ```astro
 <!-- Było: -->
 <div class="w-full max-w-3xl mb-16">
-
-<!-- Powinno być: -->
-<div data-testid="features-list-section" class="w-full max-w-3xl mb-16">
-
-
-<!-- Było: -->
-<h2 class="text-3xl font-bold mb-8 text-center text-white">
-
-<!-- Powinno być: -->
-<h2 data-testid="features-list-heading" class="text-3xl font-bold mb-8 text-center text-white">
-
-
-<!-- Było: -->
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-<!-- Powinno być: -->
-<div data-testid="features-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <!-- Powinno być: -->
+  <div data-testid="features-list-section" class="w-full max-w-3xl mb-16">
+    <!-- Było: -->
+    <h2 class="text-3xl font-bold mb-8 text-center text-white">
+      <!-- Powinno być: -->
+      <h2 data-testid="features-list-heading" class="text-3xl font-bold mb-8 text-center text-white">
+        <!-- Było: -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Powinno być: -->
+          <div data-testid="features-list-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+      </h2>
+    </h2>
+  </div>
+</div>
 ```
 
 ### Zmiana 5: Dodanie atrybutów data-testid do poszczególnych elementów listy funkcji
 
 ```astro
-<!-- Było: -->
-{
+<!-- Było: -->{
   [
     "Import danych z CSV/XLSX z Google Ads i Meta Ads",
     "Interaktywny dashboard z kluczowymi metrykami",
@@ -134,10 +127,10 @@ interface Props {
   ogImage?: string;
 }
 
-const { 
-  title = "campAlyze - Narzędzie analityczne", 
+const {
+  title = "campAlyze - Narzędzie analityczne",
   description = "CampAlyze - Twoje centrum analizy kampanii reklamowych. Importuj, analizuj i optymalizuj wyniki z Google Ads i Meta Ads w jednym miejscu.",
-  ogImage = "/images/og-image.jpg" 
+  ogImage = "/images/og-image.jpg",
 } = Astro.props;
 
 // Utworzenie pełnego URL dla Open Graph
@@ -155,33 +148,34 @@ const { session } = Astro.locals; // Get session from middleware
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    
+
     <!-- Metadane SEO -->
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={canonicalURL} />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={ogImageURL} />
-    
+
     <!-- Dodatkowe meta tagi -->
     <meta name="robots" content="index, follow" />
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="/src/styles/global.css" />
   </head>
-  
+
   <!-- Reszta pliku bez zmian -->
+</html>
 ```
 
 ## 3. tests/e2e/poms/HomePage.pom.ts
@@ -197,7 +191,7 @@ constructor(page: Page) {
   this.heroDescription = page.getByText(
     /Importuj dane z Google Ads i Meta Ads, analizuj kluczowe metryki/i
   );
-  
+
   // Przyciski w Hero - bez zmian
   this.goToDashboardButton = page.getByRole("link", { name: "Przejdź do dashboardu" });
   this.loginButtonHero = page.getByRole("link", { name: "Zaloguj się" }).first();
@@ -205,12 +199,12 @@ constructor(page: Page) {
 
   // Tabs Section - zaktualizowane selektory
   this.tabsList = page.getByTestId("tabs-list");
-  
+
   // Triggery zakładek - bez zmian
   this.dashboardTabTrigger = page.getByRole("tab", { name: "Dashboard" });
   this.importsTabTrigger = page.getByRole("tab", { name: "Import danych" });
   this.aiInsightsTabTrigger = page.getByRole("tab", { name: "AI Insights" });
-  
+
   // Zawartość zakładek - zaktualizowane selektory
   this.dashboardTabContent = page.getByTestId("dashboard-tab-content");
   this.importsTabContent = page.getByTestId("imports-tab-content");
@@ -265,14 +259,11 @@ export function FeatureTabs() {
         >
           Import danych
         </TabsTrigger>
-        <TabsTrigger
-          value="ai"
-          className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900"
-        >
+        <TabsTrigger value="ai" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">
           AI Insights
         </TabsTrigger>
       </TabsList>
-      
+
       <TabsContent data-testid="dashboard-tab-content" value="dashboard" className="p-2">
         <div className="w-full h-[400px] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 relative overflow-hidden flex items-center justify-center">
           <div className="text-center text-white">
@@ -298,11 +289,11 @@ export function FeatureTabs() {
           </div>
         </div>
       </TabsContent>
-      
+
       <TabsContent data-testid="imports-tab-content" value="imports" className="p-2">
         {/* Zawartość zakładki Import danych */}
       </TabsContent>
-      
+
       <TabsContent data-testid="ai-insights-tab-content" value="ai" className="p-2">
         {/* Zawartość zakładki AI Insights */}
       </TabsContent>
@@ -351,14 +342,17 @@ const isLoggedIn = !!session;
 Główne zmiany do wprowadzenia:
 
 1. **Zmiana w hydratacji komponentów Radix UI**
+
    - Użyj `client:only="react"` zamiast `client:load` dla komponentu Tabs
    - Alternatywnie, utwórz dedykowany komponent React i użyj go w pliku .astro
 
 2. **Dodanie atrybutów data-testid**
+
    - Dodaj atrybuty data-testid do wszystkich kluczowych elementów UI
    - Szczególnie dla sekcji testowanych w testach E2E
 
 3. **Aktualizacja selektorów w Page Object Models**
+
    - Zaktualizuj selektory w HomePage.pom.ts, aby używały atrybutów data-testid
    - Unikaj polegania wyłącznie na rolach ARIA
 
@@ -367,6 +361,7 @@ Główne zmiany do wprowadzenia:
    - Zapewnij, że każda strona ma unikalne i odpowiednie metadane
 
 Po wprowadzeniu tych zmian, testy E2E powinny przechodzić pomyślnie, ponieważ:
+
 - Komponenty Radix UI będą poprawnie hydratowane
 - Selektory testów będą wskazywać na odpowiednie elementy
-- Wszystkie wymagane metadane SEO będą obecne 
+- Wszystkie wymagane metadane SEO będą obecne

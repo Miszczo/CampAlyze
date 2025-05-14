@@ -10,7 +10,7 @@ test.describe("Login Page E2E Tests", () => {
 
   test.beforeAll(({}, testInfo) => {
     // Skip entire suite for logged-in project because /login redirects to /dashboard
-    test.skip(testInfo.project.name === 'chromium-logged-in');
+    test.skip(testInfo.project.name === "chromium-logged-in");
   });
 
   test.beforeEach(async ({ page }) => {

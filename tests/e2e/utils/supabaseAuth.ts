@@ -2,18 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import { chromium, type FullConfig } from "@playwright/test";
 import fs from "fs";
 import dotenv from "dotenv";
-dotenv.config({ path: '.env.test' });
+dotenv.config({ path: ".env.test" });
 
 // Global setup for Playwright.
 // Logs test user into Supabase and saves storageState with sb-localhost-auth-token cookie.
 
 async function globalSetup(config: FullConfig) {
-  const {
-    SUPABASE_URL,
-    SUPABASE_KEY,
-    TEST_USER_EMAIL,
-    TEST_USER_PASSWORD,
-  } = process.env;
+  const { SUPABASE_URL, SUPABASE_KEY, TEST_USER_EMAIL, TEST_USER_PASSWORD } = process.env;
 
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("SUPABASE_URL or SUPABASE_KEY env vars missing for globalSetup");
@@ -122,4 +117,4 @@ async function globalSetup(config: FullConfig) {
   console.log(`[globalSetup] Saved authenticated storage state to ${storagePath}`);
 }
 
-export default globalSetup; 
+export default globalSetup;

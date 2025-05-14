@@ -9,6 +9,7 @@ Pliki w tym folderze dokumentują różne aspekty procesu naprawy testów E2E:
 ### [e2e-tests-fix-plan.md](./e2e-tests-fix-plan.md)
 
 Ten dokument zawiera kompleksowy plan naprawy błędów w testach E2E, w tym:
+
 - Identyfikację problemów
 - Analizę przyczyn
 - Proponowane rozwiązania
@@ -18,6 +19,7 @@ Ten dokument zawiera kompleksowy plan naprawy błędów w testach E2E, w tym:
 ### [implementacja-poprawek.md](./implementacja-poprawek.md)
 
 Szczegółowy opis konkretnych implementacji poprawek, które należy wprowadzić, w tym:
+
 - Kod do naprawy problemu hydratacji komponentów Radix UI
 - Kod do dodania atrybutów data-testid do kluczowych elementów
 - Kod do aktualizacji selektorów w Page Object Models
@@ -26,6 +28,7 @@ Szczegółowy opis konkretnych implementacji poprawek, które należy wprowadzi�
 ### [przebieg-naprawy-testow.md](./przebieg-naprawy-testow.md)
 
 Dokument szczegółowo opisujący przebieg naprawy:
+
 - Wykryte problemy
 - Etapy analizy przyczyn
 - Proces implementacji poprawek
@@ -35,6 +38,7 @@ Dokument szczegółowo opisujący przebieg naprawy:
 ### [zmiany-w-plikach.md](./zmiany-w-plikach.md)
 
 Dokładne zmiany, które należy wprowadzić w poszczególnych plikach:
+
 - src/pages/index.astro
 - src/layouts/Layout.astro
 - tests/e2e/poms/HomePage.pom.ts
@@ -45,28 +49,34 @@ Dokładne zmiany, które należy wprowadzić w poszczególnych plikach:
 ### Problem 1: Hydratacja komponentów Radix UI w Astro
 
 **Objawy:**
+
 - Błędy w konsoli: `TabsContent must be used within Tabs`
 
 **Rozwiązanie:**
+
 - Zmiana dyrektywy hydratacji z `client:load` na `client:only="react"`
 - Alternatywnie: utworzenie dedykowanego komponentu React
 
 ### Problem 2: Selektory w testach E2E
 
 **Objawy:**
+
 - Nieznalezione elementy w testach: `Locator: getByRole('tablist')`
 - Timeout podczas oczekiwania na elementy
 
 **Rozwiązanie:**
+
 - Dodanie atrybutów `data-testid` do kluczowych elementów
 - Aktualizacja selektorów w Page Object Models
 
 ### Problem 3: Brakujące metadane SEO
 
 **Objawy:**
+
 - Niepowodzenie testów sprawdzających metadane SEO
 
 **Rozwiązanie:**
+
 - Uzupełnienie meta tagów w Layout.astro
 - Dodanie Open Graph i Twitter Card meta tagów
 
@@ -99,6 +109,7 @@ Dla przyszłego rozwoju aplikacji campAlyze zalecamy:
 ## 6. Uruchamianie tylko zmienionych testów
 
 Po wprowadzeniu zmian w następujących plikach aplikacji i POM:
+
 - `src/pages/index.astro`
 - `src/pages/login.astro`
 - `src/pages/register.astro`
@@ -123,4 +134,4 @@ Wtedy uruchomienie będzie wyglądać tak:
 
 ```bash
 npm run test:e2e:changed
-``` 
+```

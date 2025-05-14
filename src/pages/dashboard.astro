@@ -398,28 +398,3 @@ const upcomingVerifications = [
     </div>
   </div>
 </Layout>
-
-<script>
-  // Dodać kod skryptu idle timeout dla automatycznego wylogowania po okresie nieaktywności
-  let inactivityTimeout: number | null = null; // Inicjalizacja na null dla lintera
-  const resetInactivityTimer = () => {
-    if (inactivityTimeout) {
-      window.clearTimeout(inactivityTimeout);
-    }
-    inactivityTimeout = window.setTimeout(
-      () => {
-        // Przekieruj do strony wylogowania po 30 minutach nieaktywności
-        window.location.href = "/api/auth/signout";
-      },
-      30 * 60 * 1000
-    ); // 30 minut
-  };
-
-  // Resetuj timer przy aktywności
-  ["mousemove", "keydown", "touchstart", "click"].forEach((event) => {
-    document.addEventListener(event, resetInactivityTimer, false);
-  });
-
-  // Rozpocznij timer
-  resetInactivityTimer();
-</script>

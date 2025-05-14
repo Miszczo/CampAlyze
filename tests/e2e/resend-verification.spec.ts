@@ -10,7 +10,7 @@ test.describe("Resend Verification E2E Tests", () => {
 
   test.beforeAll(({}, testInfo) => {
     // Skip resend verification tests in logged-in project (redirects from /login)
-    test.skip(testInfo.project.name === 'chromium-logged-in');
+    test.skip(testInfo.project.name === "chromium-logged-in");
   });
 
   test.beforeEach(async ({ page }) => {

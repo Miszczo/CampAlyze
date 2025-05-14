@@ -3,20 +3,24 @@
 ## 1. Przygotowanie projektu
 
 1. Upewnij się, że Twój projekt Node.js posiada następujące skrypty w pliku `package.json`:
+
    - `lint` - do sprawdzania zgodności kodu ze standardami
    - `test` - do uruchamiania testów jednostkowych
    - `test:e2e` - do uruchamiania testów E2E (jeśli używasz)
    - `build` - do budowania aplikacji produkcyjnej
 
 2. Utwórz katalog `.github/workflows` w głównym katalogu projektu:
+
    ```
    mkdir -p .github/workflows
    ```
 
 3. Przygotuj plik `.gitignore` aby wykluczyć niepotrzebne pliki:
+
    - Upewnij się, że zawiera `node_modules`, `.env`, `.env.local`, pliki z sekretami
 
 4. Przygotuj skrypty testowe:
+
    - Upewnij się, że testy są niezależne od zewnętrznych zasobów lub użyj mocków
    - Dla testów E2E zaplanuj sposób obsługi zmiennych środowiskowych
 
@@ -30,6 +34,7 @@
 1. Otwórz swoje repozytorium na GitHub i przejdź do zakładki "Settings".
 
 2. Skonfiguruj ochronę głównego brancha:
+
    - Przejdź do "Branches" > "Branch protection rules" > "Add rule"
    - Wpisz nazwę głównego brancha (np. `main` lub `master`)
    - Zaznacz "Require a pull request before merging"
@@ -37,6 +42,7 @@
    - Po utworzeniu pierwszego workflow, wróć i wybierz jego status checks jako wymagane
 
 3. Skonfiguruj sekrety potrzebne do testów i wdrożenia:
+
    - Przejdź do "Secrets and variables" > "Actions"
    - Kliknij "New repository secret"
    - Dodaj następujące sekrety (dostosuj do swoich potrzeb):
@@ -71,7 +77,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run linter
@@ -86,7 +92,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run unit tests
@@ -101,7 +107,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browsers
@@ -123,7 +129,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Build
@@ -159,7 +165,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -188,7 +194,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Build
@@ -225,7 +231,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -247,6 +253,7 @@ jobs:
 ## 5. Weryfikacja działania CI/CD
 
 1. Sprawdź działanie workflow CI:
+
    - Utwórz nowy branch: `git checkout -b feature/test-ci`
    - Wprowadź zmiany do kodu
    - Zatwierdź zmiany: `git commit -am "Test CI workflow"`
@@ -255,6 +262,7 @@ jobs:
    - Weryfikuj, czy workflow CI został uruchomiony i wszystkie kroki przeszły pomyślnie
 
 2. Sprawdź działanie workflow CD:
+
    - Po zatwierdzeniu i scaleniu PR z branchem głównym
    - Przejdź do zakładki "Actions" na GitHub
    - Zweryfikuj, czy workflow CD został uruchomiony
@@ -301,4 +309,4 @@ jobs:
 1. Używaj cache'owania - szczególnie dla `node_modules`
 2. Uruchamiaj tylko niezbędne testy w workflow PR
 3. Równoległe uruchamianie zadań, które nie są od siebie zależne
-4. Ogranicz liczbę kroków lub optymalizuj istniejące 
+4. Ogranicz liczbę kroków lub optymalizuj istniejące

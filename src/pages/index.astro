@@ -9,10 +9,6 @@ import { FeatureTabs } from "@/components/FeatureTabs";
 const { session } = Astro.locals;
 const isLoggedIn = !!session;
 // console.log('Session:', session); // Ostrzeżenie: Unexpected console statement
-
-console.log("[index.astro] Astro.locals.session:", JSON.stringify(session));
-console.log("[index.astro] isLoggedIn:", isLoggedIn);
-console.log("[index.astro] Test Environment:", isTestEnvironment, "Test Mode:", testMode);
 ---
 
 <Layout title="campAlyze - Narzędzie analityczne do kampanii reklamowych">

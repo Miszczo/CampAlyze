@@ -34,7 +34,7 @@ export const ForgotPasswordForm: React.FC = () => {
       }
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, error]);
+  }, [form, error]);
 
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setIsLoading(true);

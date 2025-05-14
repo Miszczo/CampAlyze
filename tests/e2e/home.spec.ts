@@ -20,12 +20,8 @@ test.describe("Strona główna (index.astro)", () => {
 
     test("powinien wyświetlić poprawne teksty w sekcji Hero", async ({ page }) => {
       const homePage = new HomePage(page);
-      await expect(homePage.heroHeading).toContainText(
-        /Analiza kampanii reklamowych w jednym miejscu/i
-      );
-      await expect(homePage.heroDescription).toContainText(
-        /Importuj dane z Google Ads i Meta Ads/i
-      );
+      await expect(homePage.heroHeading).toContainText(/Analiza kampanii reklamowych w jednym miejscu/i);
+      await expect(homePage.heroDescription).toContainText(/Importuj dane z Google Ads i Meta Ads/i);
     });
 
     test("powinien wyświetlić poprawne nazwy zakładek", async ({ page }) => {
@@ -36,10 +32,10 @@ test.describe("Strona główna (index.astro)", () => {
     });
 
     test("powinien domyślnie wyświetlać zawartość zakładki Dashboard", async ({ page }) => {
-        const homePage = new HomePage(page);
-        await expect(homePage.dashboardTabContent).toBeVisible();
-        await expect(homePage.importsTabContent).not.toBeVisible();
-        await expect(homePage.aiInsightsTabContent).not.toBeVisible();
+      const homePage = new HomePage(page);
+      await expect(homePage.dashboardTabContent).toBeVisible();
+      await expect(homePage.importsTabContent).not.toBeVisible();
+      await expect(homePage.aiInsightsTabContent).not.toBeVisible();
     });
 
     test("powinien wyświetlić poprawne tytuły na kartach wartości", async ({ page }) => {
@@ -99,7 +95,7 @@ test.describe("Strona główna (index.astro)", () => {
   test.describe("Przyciski CTA (stan niezalogowany)", () => {
     test.beforeEach(({}, testInfo) => {
       // Skip these tests when running in logged-in project
-      test.skip(testInfo.project.name === 'chromium-logged-in');
+      test.skip(testInfo.project.name === "chromium-logged-in");
     });
 
     // These tests run without mocking the session
@@ -132,7 +128,9 @@ test.describe("Strona główna (index.astro)", () => {
       await expect(page).toHaveURL(/.*\/register/);
     });
 
-    test("powinien nawigować do /register po kliknięciu przycisku 'Zarejestruj się za darmo' w CTA", async ({ page }) => {
+    test("powinien nawigować do /register po kliknięciu przycisku 'Zarejestruj się za darmo' w CTA", async ({
+      page,
+    }) => {
       const homePage = new HomePage(page);
       await homePage.registerButtonCTA.click();
       await expect(page).toHaveURL(/.*\/register/);
@@ -143,13 +141,12 @@ test.describe("Strona główna (index.astro)", () => {
       await homePage.loginButtonCTA.click();
       await expect(page).toHaveURL(/.*\/login/);
     });
-
   });
 
   test.describe("Przyciski CTA (stan zalogowany)", () => {
-    test.beforeEach(({ }, testInfo) => {
+    test.beforeEach(({}, testInfo) => {
       // Skip this suite when not using the logged-in project
-      test.skip(testInfo.project.name !== 'chromium-logged-in');
+      test.skip(testInfo.project.name !== "chromium-logged-in");
     });
 
     // Te testy korzystają z projektu Playwright skonfigurowanego z storageState (chromium-logged-in)
@@ -158,87 +155,85 @@ test.describe("Strona główna (index.astro)", () => {
     }) => {
       const homePage = new HomePage(page);
       await homePage.goto();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState("networkidle");
       await expect(homePage.goToDashboardButton).toBeVisible();
       await expect(homePage.loginButtonHero).not.toBeVisible();
       await expect(homePage.registerButtonHero).not.toBeVisible();
     });
 
-    test("powinien nawigować do /dashboard po kliknięciu przycisku 'Przejdź do dashboardu'", async ({
-      page,
-    }) => {
+    test("powinien nawigować do /dashboard po kliknięciu przycisku 'Przejdź do dashboardu'", async ({ page }) => {
       const homePage = new HomePage(page);
       await homePage.goto();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState("networkidle");
       await homePage.goToDashboardButton.click();
       await expect(page).toHaveURL(/.*\/dashboard/);
     });
   });
 
   // Nowe testy sprawdzające dostępność
-  test.describe('Dostępność', () => {
+  test.describe("Dostępność", () => {
     test.beforeEach(({}, testInfo) => {
       // Skip accessibility tests that assert logged-out UI when in logged-in project
-      test.skip(testInfo.project.name === 'chromium-logged-in');
+      test.skip(testInfo.project.name === "chromium-logged-in");
     });
 
-    test('powinien mieć poprawną hierarchię nagłówków', async ({ page }) => {
+    test("powinien mieć poprawną hierarchię nagłówków", async ({ page }) => {
       // Sprawdzanie czy strona ma prawidłową strukturę nagłówków (h1, h2, h3)
       // h1 powinien być jeden na stronie
-      const h1Count = await page.getByRole('heading', { level: 1 }).count();
+      const h1Count = await page.getByRole("heading", { level: 1 }).count();
       expect(h1Count).toBe(1);
 
       // Wszystkie nagłówki h2 powinny być widoczne
-      const h2Elements = page.getByRole('heading', { level: 2 });
+      const h2Elements = page.getByRole("heading", { level: 2 });
       const h2Count = await h2Elements.count();
       expect(h2Count).toBeGreaterThan(0);
-      
-      for(let i = 0; i < h2Count; i++) {
+
+      for (let i = 0; i < h2Count; i++) {
         await expect(h2Elements.nth(i)).toBeVisible();
       }
     });
 
-    test('powinien mieć dostępne przyciski z odpowiednim kontrastem', async ({ page }) => {
+    test("powinien mieć dostępne przyciski z odpowiednim kontrastem", async ({ page }) => {
       const homePage = new HomePage(page);
       // Sprawdzamy czy przyciski mają odpowiednie atrybuty dostępności
       await expect(homePage.loginButtonHero).toBeVisible();
-      
+
       // Sprawdzamy przyciski zakładek
-      await expect(homePage.dashboardTabTrigger).toHaveAttribute('role', 'tab');
-      await expect(homePage.importsTabTrigger).toHaveAttribute('role', 'tab');
-      await expect(homePage.aiInsightsTabTrigger).toHaveAttribute('role', 'tab');
-      
+      await expect(homePage.dashboardTabTrigger).toHaveAttribute("role", "tab");
+      await expect(homePage.importsTabTrigger).toHaveAttribute("role", "tab");
+      await expect(homePage.aiInsightsTabTrigger).toHaveAttribute("role", "tab");
+
       // Sprawdzamy czy panele zakładek mają poprawne atrybuty
-      await expect(homePage.dashboardTabContent).toHaveAttribute('role', 'tabpanel');
+      await expect(homePage.dashboardTabContent).toHaveAttribute("role", "tabpanel");
     });
 
-    test('powinien być nawigowany klawiaturą', async ({ page }) => {
+    test("powinien być nawigowany klawiaturą", async ({ page }) => {
       // Test nawigacji klawiaturą - sprawdzamy czy możemy przejść do przycisku TAB-em
-      await page.keyboard.press('Tab');
-      
+      await page.keyboard.press("Tab");
+
       // Pierwsze Tab powinno przenieść fokus na pierwszy link
       const focusedElement = await page.evaluate(() => {
         const activeElement = document.activeElement;
         return activeElement ? activeElement.tagName : null;
       });
-      
-      expect(focusedElement).toBe('A');
+
+      expect(focusedElement).toBe("A");
     });
   });
 
   // Nowe testy dla responsywności
-  test.describe('Responsywność', () => {
-    test('powinien dostosować układ do małego ekranu', async ({ page }) => {
+  test.describe("Responsywność", () => {
+    test("powinien dostosować układ do małego ekranu", async ({ page }) => {
       // Ustawiamy widok na ekran mobilny
       await page.setViewportSize({ width: 375, height: 667 });
-      
+
       const homePage = new HomePage(page);
       await homePage.goto(); // Przeładowujemy stronę z nowym rozmiarem viewport
-      
+
       // Sprawdzamy czy wszystkie kluczowe elementy są nadal widoczne
       await expect(homePage.heroHeading).toBeVisible();
       await expect(homePage.tabsList).toBeVisible();
-      
+
       // Na małym ekranie karty wartości powinny być układane pionowo (po 1 w wierszu)
       // Sprawdzamy czy wszystkie karty są widoczne
       await expect(homePage.timeSavingCardTitle).toBeVisible();
@@ -246,13 +241,13 @@ test.describe("Strona główna (index.astro)", () => {
       await expect(homePage.smartRecommendationsCardTitle).toBeVisible();
     });
 
-    test('powinien dostosować układ do dużego ekranu', async ({ page }) => {
+    test("powinien dostosować układ do dużego ekranu", async ({ page }) => {
       // Ustawiamy widok na duży ekran
       await page.setViewportSize({ width: 1200, height: 800 });
-      
+
       const homePage = new HomePage(page);
       await homePage.goto(); // Przeładowujemy stronę z nowym rozmiarem viewport
-      
+
       // Na dużym ekranie karty wartości powinny być układane poziomo (po 3 w wierszu)
       // Bez specyficznego selektora dla układu kart, możemy tylko sprawdzić widoczność
       await expect(homePage.valuePropositionCards).toBeVisible();
@@ -260,40 +255,40 @@ test.describe("Strona główna (index.astro)", () => {
   });
 
   // Test wizualny
-  test('powinien zgadzać się wizualnie ze wzorcem', async ({ page }) => {
+  test("powinien zgadzać się wizualnie ze wzorcem", async ({ page }) => {
     // Możemy zdefiniować konkretne wymiary dla testu wizualnego
     await page.setViewportSize({ width: 1280, height: 720 });
-    
+
     const homePage = new HomePage(page);
     await homePage.goto();
-    
+
     // Czekamy aż cała strona będzie widoczna i się załaduje
-    await page.waitForLoadState('networkidle');
-    
+    await page.waitForLoadState("networkidle");
+
     // Ustaw opcje dla porównania zrzutów ekranu - dodajmy więcej tolerancji
     const screenshotOptions = {
       maxDiffPixelRatio: 0.2, // 20% pikseli może się różnić
-      threshold: 0.3,         // 30% tolerancji na różnice pikseli
-      animations: 'disabled' as const, // Wyłącz animacje
+      threshold: 0.3, // 30% tolerancji na różnice pikseli
+      animations: "disabled" as const, // Wyłącz animacje
     };
-    
+
     // Porównanie zrzutu ekranu z bardziej liberalnymi ustawieniami
     // NOTE: Przy pierwszym uruchomieniu tego testu, zostanie utworzony wzorcowy zrzut ekranu
     // Przy kolejnych uruchomieniach, zrzuty będą porównywane z wzorcem
-    await expect(page).toHaveScreenshot('home-page.png', screenshotOptions);
+    await expect(page).toHaveScreenshot("home-page.png", screenshotOptions);
   });
 
   // Test metadanych SEO
-  test('powinien mieć odpowiednie metadane SEO', async ({ page }) => {
+  test("powinien mieć odpowiednie metadane SEO", async ({ page }) => {
     // Sprawdzamy tytuł strony
     await expect(page).toHaveTitle(/campAlyze - Narzędzie analityczne/);
-    
+
     // Sprawdzamy inne metadane (użyj evaluateHandle aby zbadać elementy meta)
-    const description = await page.$eval('meta[name="description"]', (meta) => meta.getAttribute('content'));
+    const description = await page.$eval('meta[name="description"]', (meta) => meta.getAttribute("content"));
     expect(description).toBeTruthy();
-    
+
     // Sprawdzamy czy są podstawowe OG tagi dla social media
-    const ogTitle = await page.$eval('meta[property="og:title"]', (meta) => meta.getAttribute('content'));
+    const ogTitle = await page.$eval('meta[property="og:title"]', (meta) => meta.getAttribute("content"));
     expect(ogTitle).toBeTruthy();
   });
-}); 
+});
