@@ -1,6 +1,6 @@
 # TODO: campAlyze – Stan, Zadania i Wymagania
 
-**Wersja:** 2024-05-14 15:30:00
+**Wersja:** 2025-05-14 21:56:00
 
 ## 1. Aktualny stan (co mamy zaimplementowane)
 
@@ -21,10 +21,16 @@
   - Unit-testy dla uploadu (`upload.test.ts`)
   - E2E-testy przepływu upload + nawigacja (`home.spec.ts`, etc.)
 
-### Dashboard (UI)
-- Plik: `src/pages/dashboard.astro`
-- Pokazuje sidebar, nagłówek, filtry, przyciski, metryki, alerty, weryfikacje – wszystkie dane są hardkodowane (przykładowe)
-- Komponent `PlatformTabs.tsx` z placeholderami dla wykresów platform
+### Dashboard (UI + Backend)
+- UI:
+  - Plik: `src/pages/dashboard.astro`
+  - Pokazuje sidebar, nagłówek, filtry, przyciski, metryki, alerty, weryfikacje – wszystkie dane są hardkodowane (przykładowe)
+  - Komponent `PlatformTabs.tsx` z placeholderami dla wykresów platform
+- Backend:
+  - Endpoint `GET /api/dashboard/metrics` do pobierania danych z widoku `campaign_metrics_derived`
+  - Obsługa parametrów filtrowania: organization_id, zakres dat, platforma, kampania
+  - Szczegółowe testy jednostkowe dla endpointu (`metrics.test.ts`)
+  - Rozszerzone typy TS dla struktur danych dashboardu
 
 ### Struktura CI/CD
 - `.github/workflows/pull-request.yml`: lint → unit-tests → e2e-tests → build + artefakty
@@ -32,14 +38,18 @@
 
 ### Testy globalne i konfiguracyjne
 - Vitest + Playwright skonfigurowane (`vitest.config.ts`, `playwright.config.ts`)
-- Skrypty `npm run test:unit`, `npm run test:e2e`, `npm run lint`, `npm run build`
+- Skrypty `npm run test:unit`, `npm run test:e2e`, `npm run test:e2e:snap` , `npm run lint`, `npm run build`
 
 
 ## 2. Co należy zrobić (zadania do realizacji przed MVP)
 
-### 2.1 Dashboard – integracja z backendem i dynamiczne dane
-- Utworzyć endpointy GET `/api/dashboard/metrics` bazujące na widoku `campaign_metrics_derived`
-- Obsłużyć parametry filtrów: zakres dat, platforma, kampania
+### ✅ 2.1 Dashboard – integracja z backendem i dynamiczne dane
+- ✅ Utworzenie endpointu GET `/api/dashboard/metrics` bazującego na widoku `campaign_metrics_derived`
+- ✅ Obsługa parametrów filtrów: zakres dat, platforma, kampania
+- ✅ Rozszerzenie typów w `src/types.ts` o interfejsy dla dashboardu
+- ✅ Implementacja testów jednostkowych dla endpointu
+
+Pozostałe zadania do wykonania w przyszłości:
 - W `.astro` pobierać dane (np. `Astro.server.fetch` lub fetch w React) i zastąpić hardkod
 - Wyświetlać nowe metryki: Zasięg (reach) i Typ wyniku (conversion_type) dla platform, które je dostarczają
 - Zaimplementować wykresy (np. Chart.js lub Recharts) dla trendów i porównań okresów
@@ -105,7 +115,7 @@ Aby projekt został zaliczony jako praca zaliczeniowa, musi spełniać następuj
    • Proponowany zasób: imports
 
 4. Działający, sensowny test:  
-   • Unit-test dla co najmniej jednej funkcji lub endpointu – ✔️ (auth, upload)  
+   • Unit-test dla co najmniej jednej funkcji lub endpointu – ✔️ (auth, upload, dashboard metrics)  
    • E2E-test pokrywający przepływ użytkownika (np. upload + lista importów) – częściowo (auth)  ❌ (do uzupełnienia)
 
 5. Scenariusz CI/CD na GitHub Actions (uruchamianie testów automatycznie) – ✔️
