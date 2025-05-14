@@ -18,7 +18,7 @@ export default defineConfig({
   fullyParallel: true,
   globalSetup: "./tests/e2e/utils/supabaseAuth.ts",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     trace: "retain-on-failure",
     video: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -40,7 +40,7 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run dev:e2e",
-    url: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001",
+    url: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     stdout: "pipe",
