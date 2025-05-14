@@ -21,6 +21,7 @@ export interface BaseMetricsDTO {
   spend: number;
   conversions: number;
   revenue: number;
+  reach?: number | null;
 }
 
 export interface DerivedMetricsDTO extends BaseMetricsDTO {
@@ -414,3 +415,52 @@ export interface DashboardData {
   metrics: Record<string, string | number>;
   comparisons: Record<string, number>;
 }
+
+// Dashboard Specific Types Start
+export type DashboardMetricKey =
+  | "impressions"
+  | "clicks"
+  | "spend"
+  | "conversions"
+  | "revenue"
+  | "ctr"
+  | "cpc"
+  | "cost_per_conversion"
+  | "roas"
+  | "reach"
+  | "conversion_type";
+
+export type DashboardMetricValue = number | string | null;
+
+export interface DailyMetricDataPoint extends BaseMetricsDTO {
+  date: string;
+  platform_id?: string;
+  campaign_id?: string;
+  conversion_type?: string | null;
+  // Derived metrics that might be calculated if not directly from DB view
+  ctr?: number | null;
+  cpc?: number | null;
+  cost_per_conversion?: number | null;
+  roas?: number | null;
+}
+
+export interface AggregatedMetrics extends DerivedMetricsDTO {
+  // DerivedMetricsDTO already includes: impressions, clicks, spend, conversions, revenue, ctr, cpc, cost_per_conversion, roas
+  // reach is inherited from BaseMetricsDTO via DerivedMetricsDTO
+  unique_conversion_types?: string[];
+}
+
+export interface DashboardMetricsQueryParams {
+  dateFrom: string; // ISO 8601 date string e.g., "2024-01-01"
+  dateTo: string; // ISO 8601 date string e.g., "2024-01-31"
+  platform?: string | string[];
+  campaignId?: string | string[];
+  organization_id: string; // Should be inferred from user session server-side
+}
+
+export interface DashboardMetricsResponse {
+  summaryMetrics: AggregatedMetrics;
+  timeSeriesData: DailyMetricDataPoint[];
+  filtersApplied: DashboardMetricsQueryParams;
+}
+// Dashboard Specific Types End
