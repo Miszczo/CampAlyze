@@ -1,0 +1,65 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+
+// Sprawdzenie sesji (middleware powinno już przekierować niezalogowanych)
+const { session } = Astro.locals;
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+// Dane użytkownika
+const userFullName = session.user?.user_metadata?.full_name || session.user?.email || "Użytkownik";
+---
+
+<Layout title="Import Danych | campAlyze">
+  <div class="flex min-h-screen flex-col">
+    <!-- Nagłówek -->
+    <header class="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-4 md:px-6">
+      <div class="flex items-center">
+        <a href="/dashboard" class="text-lg font-bold text-purple-700 mr-6">campAlyze</a>
+        <h1 class="text-lg font-semibold">Import Danych</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-muted-foreground">Witaj, {userFullName}</span>
+        <form method="POST" action="/api/auth/signout">
+          <Button type="submit" variant="outline" size="sm"> Wyloguj się </Button>
+        </form>
+      </div>
+    </header>
+
+    <!-- Zawartość główna -->
+    <main class="flex-1 p-4 md:p-6">
+      <div class="mx-auto max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Import Danych z Plików CSV/XLSX</CardTitle>
+            <CardDescription>
+              Zaimportuj dane z platform Google Ads i Meta Ads, aby przeanalizować ich skuteczność
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div
+              class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg"
+            >
+              <Upload className="h-10 w-10 text-gray-400 mb-4" />
+              <h3 class="text-lg font-medium mb-2">Funkcja w przygotowaniu</h3>
+              <p class="text-sm text-gray-500 text-center max-w-md mb-6">
+                Możliwość importu danych będzie dostępna wkrótce. W pełnej wersji będziesz mógł importować dane z plików
+                CSV/XLSX z Google Ads i Meta Ads.
+              </p>
+              <Button variant="outline" disabled> Wybierz pliki </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+
+    <!-- Stopka -->
+    <footer class="border-t bg-gray-50 p-4 text-center text-sm text-gray-500">
+      <p>campAlyze © 2024 - MVP version</p>
+    </footer>
+  </div>
+</Layout>

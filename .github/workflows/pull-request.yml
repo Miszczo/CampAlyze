@@ -1,8 +1,17 @@
 name: Pull Request Validation
 
 on:
+  push:
+    branches: ["**"]
   pull_request:
-    branches: [master, main]
+    branches: ["**"]
+  workflow_dispatch:
+    inputs:
+      update-snapshots:
+        description: 'Aktualizuj snapshoty testowe?'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   lint:
@@ -13,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run linter
@@ -28,7 +37,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run unit tests
@@ -46,11 +55,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+        
+      # Konfiguracja cache dla snapshotów
+      - name: Set up snapshot cache
+        id: snapshot-cache
+        uses: actions/cache@v4
+        with:
+          path: tests/e2e/**/*-snapshots/**
+          key: snapshots-${{ runner.os }}-${{ hashFiles('tests/e2e/**/*.ts') }}
+          restore-keys: |
+            snapshots-${{ runner.os }}-
+            
+      # Generuj/aktualizuj snapshoty jeśli:
+      # 1. Użytkownik wymusił aktualizację poprzez workflow_dispatch
+      # 2. Cache nie został znaleziony (pierwsze uruchomienie lub zmiany w testach)
+      - name: Update snapshots if needed
+        if: ${{ github.event.inputs.update-snapshots == 'true' || steps.snapshot-cache.outputs.cache-hit != 'true' }}
+        run: npx playwright test --update-snapshots
+        env:
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.E2E_SUPABASE_KEY }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          
+      # Standardowe uruchomienie testów E2E
       - name: Run E2E tests
         run: npm run test:e2e
         env:
@@ -58,6 +91,17 @@ jobs:
           SUPABASE_KEY: ${{ secrets.E2E_SUPABASE_KEY }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          
+      # Zapisz wyniki testów jako artefakty (zawsze, nawet przy niepowodzeniu)
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
@@ -68,7 +112,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Build
@@ -78,4 +122,4 @@ jobs:
         with:
           name: build
           path: dist/
-          retention-days: 7 
+          retention-days: 7

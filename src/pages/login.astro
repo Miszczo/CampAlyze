@@ -13,6 +13,6 @@ let messageType: "success" | "error" | null = message ? "success" : error ? "err
 
 <Layout title="Login | CampAlyze">
   <div class="flex min-h-[calc(100vh-theme(spacing.16))] flex-1 flex-col items-center justify-center p-4">
-    <LoginForm client:load initialMessage={initialMessage} messageType={messageType} />
+    <LoginForm client:only="react" initialMessage={initialMessage} messageType={messageType} />
   </div>
 </Layout>

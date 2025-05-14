@@ -3,20 +3,55 @@ import "../styles/global.css";
 
 interface Props {
   title?: string;
+  description?: string;
+  ogImage?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const {
+  title = "campAlyze - Narzędzie analityczne",
+  description = "CampAlyze - Twoje centrum analizy kampanii reklamowych. Importuj, analizuj i optymalizuj wyniki z Google Ads i Meta Ads w jednym miejscu.",
+  ogImage = "/images/og-image.jpg",
+} = Astro.props;
+
+// Utworzenie pełnego URL dla Open Graph
+const canonicalURL = new URL(Astro.url.toString());
+const ogImageURL = new URL(ogImage, Astro.url);
+
 const { session } = Astro.locals; // Get session from middleware
 ---
 
 <!doctype html>
-<html lang="en" class="h-full">
+<html lang="pl" class="h-full">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+
+    <!-- Metadane SEO -->
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL.href} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL.href} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL.href} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={ogImageURL.href} />
+
+    <!-- Dodatkowe meta tagi -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
   </head>
   <body class="flex flex-col h-full">
     {/* Basic Header for Sign Out */}

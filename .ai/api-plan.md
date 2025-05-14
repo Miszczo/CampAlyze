@@ -339,6 +339,11 @@
 - **Path**: `/api/imports/upload`
 - **Description**: Upload data file
 - **Request Body**: Multipart form with file
+  ```
+  file: CSV/XLSX file
+  platform_id: "uuid"
+  organization_id: "uuid"
+  ```
 - **Response Body**:
   ```json
   {
@@ -347,6 +352,17 @@
     "status": "pending"
   }
   ```
+- **Processing Logic**:
+  - **Meta Ads CSV Mapping**:
+    - "Nazwa kampanii" → identyfikator kampanii (lookup/create w `campaigns`)
+    - "Dzień" → `metrics.date`
+    - "Kliknięcia linku" → `metrics.clicks`
+    - "Zasięg" → `metrics.reach`
+    - "Wyświetlenia" → `metrics.impressions`
+    - "Typ wyniku" → `metrics.conversion_type`
+    - "Wyniki" → `metrics.conversions`
+    - "Wydana kwota (PLN)" → `metrics.spend`
+  - **Obsługa pustych pól**: Konwertuj puste pola na wartości domyślne (0 dla liczb, null dla tekstów)
 - **Success**: 201 Created
 - **Errors**: 400 Bad Request, 413 Payload Too Large
 

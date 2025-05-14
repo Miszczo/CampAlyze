@@ -8,6 +8,11 @@ console.log(`[Login Test] Running in ${process.env.TEST_MODE || "mock"} mode (de
 test.describe("Login Page E2E Tests", () => {
   let loginPage: LoginPageE2E;
 
+  test.beforeAll(({}, testInfo) => {
+    // Skip entire suite for logged-in project because /login redirects to /dashboard
+    test.skip(testInfo.project.name === "chromium-logged-in");
+  });
+
   test.beforeEach(async ({ page }) => {
     // Najpierw przechwytujemy API - to musi być przed nawigacją
     await setupApiInterception(page);

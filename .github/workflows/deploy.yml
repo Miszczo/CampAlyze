@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
+          cache: "npm"
       - name: Install dependencies
         run: npm ci
       - name: Run tests
@@ -33,4 +33,4 @@ jobs:
           args: deploy --dir=dist --prod
         env:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
-          NETLIFY_AUTH_TOKEN: ${{ secrets.DEPLOY_TOKEN }} 
+          NETLIFY_AUTH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}

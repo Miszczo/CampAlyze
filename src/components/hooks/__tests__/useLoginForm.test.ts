@@ -47,7 +47,7 @@ describe("useLoginForm", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: "test@example.com", password: "Password123!" }),
     });
-    
+
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
