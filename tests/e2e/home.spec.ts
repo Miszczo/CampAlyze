@@ -97,6 +97,11 @@ test.describe("Strona główna (index.astro)", () => {
   });
 
   test.describe("Przyciski CTA (stan niezalogowany)", () => {
+    test.beforeEach(({}, testInfo) => {
+      // Skip these tests when running in logged-in project
+      test.skip(testInfo.project.name === 'chromium-logged-in');
+    });
+
     // These tests run without mocking the session
     test("powinien wyświetlać przyciski 'Zaloguj się' i 'Zarejestruj się' w Hero dla niezalogowanego użytkownika", async ({
       page,
@@ -172,6 +177,11 @@ test.describe("Strona główna (index.astro)", () => {
 
   // Nowe testy sprawdzające dostępność
   test.describe('Dostępność', () => {
+    test.beforeEach(({}, testInfo) => {
+      // Skip accessibility tests that assert logged-out UI when in logged-in project
+      test.skip(testInfo.project.name === 'chromium-logged-in');
+    });
+
     test('powinien mieć poprawną hierarchię nagłówków', async ({ page }) => {
       // Sprawdzanie czy strona ma prawidłową strukturę nagłówków (h1, h2, h3)
       // h1 powinien być jeden na stronie

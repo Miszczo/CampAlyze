@@ -8,6 +8,11 @@ console.log(`[Resend Verification Test] Running in ${process.env.TEST_MODE || "m
 test.describe("Resend Verification E2E Tests", () => {
   let loginPage: LoginPage;
 
+  test.beforeAll(({}, testInfo) => {
+    // Skip resend verification tests in logged-in project (redirects from /login)
+    test.skip(testInfo.project.name === 'chromium-logged-in');
+  });
+
   test.beforeEach(async ({ page }) => {
     // Najpierw ustawiamy interceptor API
     await setupApiInterception(page);
