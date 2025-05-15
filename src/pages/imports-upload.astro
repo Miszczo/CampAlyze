@@ -1,146 +1,62 @@
 ---
 import Layout from "../layouts/Layout.astro";
-// Usuwam nieużywany import
+import ImportForm from "../components/ImportForm";
+import { ToastProvider, Toaster } from "../components/hooks/useToast";
+import { supabaseServerClient } from "../db/supabase.server";
+
+// Ochrona przed dostępem niezalogowanych użytkowników
+const supabase = supabaseServerClient(Astro);
+const { data: { session } } = await supabase.auth.getSession();
+
+if (!session) {
+  return Astro.redirect("/login");
+}
 ---
 
 <Layout title="Importuj plik danych">
-  <!-- Karta uploadu pliku importu -->
-  <div class="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm max-w-md mx-auto mt-12">
-    <div class="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6">
-      <div class="leading-none font-semibold">Importuj plik danych</div>
-      <div class="text-muted-foreground text-sm">Wybierz plik do importu i prześlij go do systemu.</div>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold">Importuj dane</h1>
+      <p class="text-slate-500 mt-1">
+        Zaimportuj dane z pliku CSV lub XLSX do analizy
+      </p>
     </div>
-    <div class="px-6">
-      <form id="import-form" autocomplete="off" aria-label="Formularz importu pliku">
-        <input
-          id="file-input"
-          name="file"
-          type="file"
-          class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-neutral-50 file:text-neutral-700 hover:file:bg-neutral-100 mb-4"
-          required
-          aria-describedby="file-desc"
-        />
-        <div id="file-desc" class="sr-only">Wybierz plik do importu. Maksymalny rozmiar: 10MB.</div>
-        <div id="error-message" class="text-destructive text-sm mb-2 hidden" aria-live="assertive"></div>
-        <div id="success-message" class="text-success text-sm mb-2 hidden" aria-live="polite"></div>
-        <button
-          id="submit-btn"
-          type="submit"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 w-full bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 py-2 px-4"
-          >Importuj</button
-        >
-      </form>
+    
+    <div class="flex justify-between items-center mb-6">
+      <a 
+        href="/imports" 
+        class="text-primary hover:underline flex items-center"
+      >
+        ← Powrót do listy importów
+      </a>
     </div>
-    <div class="flex items-center px-6">
-      <div id="status-message" class="text-muted-foreground text-xs" aria-live="polite"></div>
+    
+    <ToastProvider client:load>
+      <ImportForm 
+        client:load
+        onImportSuccess={(data) => {
+          window.location.href = `/imports/${data.id}`;
+        }}
+      />
+      <Toaster client:load />
+    </ToastProvider>
+    
+    <div class="mt-8 bg-slate-50 rounded-lg p-6 border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+      <h2 class="text-lg font-medium mb-4">Wskazówki dotyczące importu plików</h2>
+      <ul class="space-y-2 list-disc list-inside text-slate-700 dark:text-slate-300">
+        <li>Upewnij się, że plik jest w formacie CSV lub XLSX</li>
+        <li>Maksymalny rozmiar pliku to 10MB</li>
+        <li>Dane powinny zawierać następujące kolumny:
+          <ul class="pl-6 mt-1 space-y-1 list-disc">
+            <li>Data</li>
+            <li>Nazwa kampanii</li>
+            <li>Wyświetlenia</li>
+            <li>Kliknięcia</li>
+            <li>Wydatki</li>
+          </ul>
+        </li>
+        <li>Po imporcie możesz przejrzeć i analizować wyniki w sekcji Kampanie</li>
+      </ul>
     </div>
   </div>
 </Layout>
-
-<script lang="ts">
-  // Deklaracja typów dla elementów formularza
-  const form = document.getElementById("import-form") as HTMLFormElement;
-  const fileInput = document.getElementById("file-input") as HTMLInputElement;
-  const errorMessage = document.getElementById("error-message") as HTMLDivElement;
-  const successMessage = document.getElementById("success-message") as HTMLDivElement;
-  const statusMessage = document.getElementById("status-message") as HTMLDivElement;
-  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
-
-  // Flaga blokująca wielokrotne wysyłanie
-  let isUploading = false;
-
-  // Funkcja obsługująca błędy
-  function showError(message: string) {
-    if (errorMessage) {
-      errorMessage.textContent = message;
-      errorMessage.classList.remove("hidden");
-    }
-  }
-
-  // Funkcja obsługująca sukces
-  function showSuccess(message: string) {
-    if (successMessage) {
-      successMessage.textContent = message;
-      successMessage.classList.remove("hidden");
-    }
-  }
-
-  // Funkcja ustawiająca status
-  function setStatus(message: string) {
-    if (statusMessage) {
-      statusMessage.textContent = message;
-    }
-  }
-
-  // Funkcja reset formularza
-  function resetForm() {
-    if (submitBtn) submitBtn.disabled = false;
-    isUploading = false;
-  }
-
-  // Obsługa zdarzenia submit formularza
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      // Blokada wielokrotnego wysyłania
-      if (isUploading) return;
-
-      // Reset komunikatów
-      if (errorMessage) errorMessage.classList.add("hidden");
-      if (successMessage) successMessage.classList.add("hidden");
-      setStatus("");
-
-      // Blokada przycisku
-      if (submitBtn) submitBtn.disabled = true;
-      isUploading = true;
-
-      // Status uploadu
-      setStatus("Wysyłanie pliku...");
-
-      // Sprawdzenie czy plik został wybrany
-      const file = fileInput?.files?.[0];
-      if (!file) {
-        showError("Wybierz plik do importu.");
-        resetForm();
-        return;
-      }
-
-      // Przygotowanie formularza do wysłania
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        // Wysłanie żądania
-        const res = await fetch("/api/imports/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        // Obsługa odpowiedzi
-        if (res.status === 201) {
-          const data = await res.json();
-          if (typeof window !== "undefined") {
-            window.location.href = `/dashboard?pendingImportId=${data.id}`;
-          }
-        } else if (res.status === 400) {
-          const errorData = await res.json();
-          showError(errorData.error || "Nieprawidłowe dane lub brak pliku.");
-        } else if (res.status === 401) {
-          const errorData = await res.json();
-          showError(errorData.error || "Musisz być zalogowany, aby importować pliki.");
-        } else if (res.status === 413) {
-          const errorData = await res.json();
-          showError(errorData.error || "Plik jest zbyt duży.");
-        } else {
-          const errorData = await res.json().catch(() => ({ error: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie." }));
-          showError(errorData.error || "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
-        }
-      } catch (err) {
-        showError("Błąd sieci. Spróbuj ponownie.");
-      } finally {
-        resetForm();
-      }
-    });
-  }
-</script>

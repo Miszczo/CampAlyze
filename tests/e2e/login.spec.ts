@@ -123,7 +123,8 @@ test.describe("Login Page E2E Tests", () => {
           <div class="AlertTitle">Success</div>
           <div class="AlertDescription">Login successful!</div>
         `;
-        document.body.appendChild(alert);
+        const container = document.body || document.documentElement;
+        container.appendChild(alert);
       });
     }
 

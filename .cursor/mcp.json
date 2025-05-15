@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-ebcb8ee46c684501aa060cec53c9187e"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "memory-bank": {
+      "command": "cmd",
+      "args": ["/c", "npm", "exec", "--yes", "@allpepper/memory-bank-mcp"],
+      "env": {
+        "MEMORY_BANK_ROOT": "D:\\www\\campAlyze\\memory-bank",
+        "APPDATA": "%APPDATA%"
+      }
+    },
+    "memory": {
+      "command": "cmd",
+      "args": [
+        "/c", 
+        "npm",
+        "exec",
+        "--yes",
+        "@itseasy21/mcp-knowledge-graph"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "D:\\www\\campAlyze\\@campalyze_knowledge.jsonl",
+        "APPDATA": "%APPDATA%"
+      }
+    }
+  }
+} 

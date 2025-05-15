@@ -131,10 +131,53 @@ Aby projekt został zaliczony jako praca zaliczeniowa, musi spełniać następuj
 
 5. Scenariusz CI/CD na GitHub Actions (uruchamianie testów automatycznie) – ✔️
 
+## 4. Minimal MVP (na ostatni moment przed terminem)
+
+Aby spełnić wymagania projektu zaliczeniowego z minimalnym nakładem pracy, należy skupić się na następujących zadaniach:
+
+### 4.1 CRUD dla importów (minimalny zakres) ✅
+- ✅ Endpoint `GET /api/imports` – lista importów (bez paginacji)
+- ✅ Endpoint `DELETE /api/imports/:id` – usunięcie importu
+- ✅ UI: prosta strona `/imports` z tabelą importów i przyciskiem usunięcia
+- ⏱️ Zrealizowano w czasie: ok. 3 godziny
+
+### 4.2 Test E2E dla przepływu użytkownika ✅
+- ✅ Test E2E (Playwright) obejmujący:
+  - Logowanie użytkownika
+  - Przejście do listy importów
+  - Usunięcie importu
+- ⏱️ Zrealizowano w czasie: ok. 2 godziny
+
+### 4.3 Prosta analiza AI z OpenRouter ✅
+- ✅ Prosty endpoint `POST /api/ai-insights/analyze` analizujący dane z importu
+- ✅ Integracja z OpenRouter używając gpt-3.5-turbo
+- ✅ Podstawowy prompt systemowy dla analizy kampanii
+- ✅ Prosty UI pokazujący wyniki analizy
+- ✅ Strona szczegółów importu (`/imports/[id]`) z listą kampanii i przyciskiem analizy AI
+- ✅ Testy jednostkowe dla endpointu i komponentu UI
+- ⏱️ Zrealizowano w czasie: ok. 3 godziny
+
+### 4.4 Plan implementacji na ostatnią chwilę ✅
+1. ✅ Implementacja endpointów CRUD dla importów
+2. ✅ Utworzenie UI z listą importów
+3. ✅ Implementacja testu E2E dla przepływu
+4. ✅ Dodanie prostej analizy AI (OpenRouter)
+5. ✅ Upewnienie się, że wszystkie testy przechodzą
+
+✅ **Wykonano:** Wszystkie wymagania projektu zaliczeniowego zostały spełnione! Mamy działające:
+- Obsługę logowania użytkownika (Auth)
+- Podstawową logikę biznesową - import pliku CSV i zapis do bazy
+- CRUD dla importów (Create z uploadu, Read z listy, Delete)
+- Testy jednostkowe dla endpointów
+- Test E2E dla przepływu użytkownika
+- Scenariusz CI/CD na GitHub Actions
+- Dodatkowo: analiza AI kampanii z integracją OpenRouter
+
+⚠️ **Uwaga:** Ten plan minimum skupia się tylko na spełnieniu formalnych wymogów zaliczenia. Po zaliczeniu warto wrócić do pełnej listy zadań z sekcji 2.
 
 ---
 
-_Zaktualizowano: 2025-05-17. Pomyślnie ukończono integrację dashboardu z API, wszystkie testy jednostkowe dla endpointów dashboardu przechodzą._ 
+_Zaktualizowano: 2025-05-18. Pomyślnie ukończono integrację dashboardu z API, wszystkie testy jednostkowe dla endpointów dashboardu przechodzą._ 
 
 ## 2024-05-18 – Postęp prac: testy filtrów dashboardu
 
@@ -232,3 +275,70 @@ Zamiast testowania bezpośredniej interakcji z kalendarzem, zaimplementowano alt
 4.  **Przejście do kolejnego priorytetu: CRUD dla importów (sekcja 2.2).**
 
 --- 
+
+## 2024-05-19 - Wdrożenie Minimal MVP na ostatnią chwilę
+
+### Podsumowanie wykonanych prac
+- **CRUD dla importów:**
+  - Zaimplementowano endpoint `GET /api/imports` z podstawową funkcjonalnością listowania
+  - Zaimplementowano endpoint `DELETE /api/imports/:id` do usuwania importów
+  - Utworzono stronę `/imports` z tabelą importów i przyciskami usuwania
+- **Test E2E:**
+  - Dodano kompleksowy test E2E pokrywający flow "logowanie → lista importów → usunięcie importu"
+  - Test przechodzi pomyślnie w lokalnym środowisku oraz w CI/CD
+- **Analiza AI z OpenRouter:**
+  - Zaimplementowano endpoint `POST /api/ai-insights/analyze` integrujący się z OpenRouter
+  - Dodano przycisk "Analizuj" na stronie szczegółów importu
+  - Wyniki analizy wyświetlane są w formie karty z podsumowaniem i rekomendacjami
+
+### Stan realizacji wymogów projektu
+- ✅ Obsługa logowania użytkownika (Auth)
+- ✅ Podstawowa logika biznesowa - import pliku CSV i zapis do bazy
+- ✅ CRUD dla importów (Create z uploadu, Read z listy, Delete)
+- ✅ Testy jednostkowe dla endpointów
+- ✅ Test E2E dla przepływu użytkownika
+- ✅ Scenariusz CI/CD na GitHub Actions
+
+### Dalsze kroki po zaliczeniu
+Po zaliczeniu projektu warto wrócić do pełnej listy zadań z sekcji 2 i kontynuować rozwój aplikacji zgodnie z pierwotnym planem. 
+
+## 4A. Minimalne wymagania frontendowe MVP (2024-05-18)
+
+Aby MVP było zaliczone, frontend musi spełniać następujące warunki:
+
+1. **Widok importu danych (upload)**
+   - [x] Formularz umożliwiający wybór pliku CSV/XLSX (input type="file")
+   - [x] Przycisk "Importuj" wywołujący upload do endpointu `/api/imports/upload`
+   - [x] Prosta obsługa sukcesu/błędu (komunikat tekstowy lub alert)
+   - [x] Widoczny placeholder lub disabled, jeśli funkcja nie jest dostępna
+
+2. **Lista importów**
+   - [x] Strona `/imports` z tabelą wszystkich importów
+   - [x] Link do szczegółów importu (np. "Szczegóły")
+   - [x] Przycisk "Usuń" przy każdym imporcie
+
+3. **Szczegóły importu**
+   - [x] Strona `/imports/[id]` z informacjami o imporcie
+   - [x] Lista powiązanych kampanii
+   - [x] Przycisk do analizy AI dla każdej kampanii (AIAnalysisButton)
+   - [x] Wyświetlanie przykładowych metryk
+
+4. **Analiza AI**
+   - [x] Komponent React do wywołania analizy AI i prezentacji wyniku
+   - [x] Obsługa stanu ładowania, sukcesu i błędu
+
+5. **Testy frontendowe**
+   - [x] Testy jednostkowe dla kluczowych komponentów (np. AIAnalysisButton)
+   - [x] Test E2E: logowanie → upload/import → lista → szczegóły → analiza AI
+
+6. **Dostępność i UX**
+   - [x] Responsywny layout (Tailwind)
+   - [x] Podstawowe komunikaty dla użytkownika (sukces/błąd)
+   - [x] Przejrzysta nawigacja między widokami
+
+---
+
+**Uwaga:**
+- Wersja MVP nie wymaga zaawansowanej walidacji plików, podglądu danych przed importem ani rozbudowanego UI.
+- Kluczowe jest, aby każda funkcja backendowa miała odzwierciedlenie w prostym, działającym widoku frontendowym.
+- Po zaliczeniu MVP można rozbudować UI o dodatkowe funkcje i lepszy UX. 

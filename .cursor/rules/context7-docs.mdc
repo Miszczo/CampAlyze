@@ -1,0 +1,57 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Rule: Automatyczne Pobieranie Dokumentacji Bibliotek przez Context7
+
+## Cel
+Ta reguła ma na celu zautomatyzowanie i ustandaryzowanie procesu pobierania dokumentacji dla bibliotek programistycznych przy użyciu serwera MCP `context7`, gdy użytkownik o to poprosi lub gdy AI uzna to za pomocne.
+
+## Wyzwalacze (Przykładowe frazy użytkownika)
+AI powinno rozważyć aktywację tej logiki, gdy użytkownik używa fraz podobnych do:
+- "Pobierz dokumentację dla [nazwa biblioteki]"
+- "Dokumentacja [nazwa biblioteki]"
+- "Jak używać [nazwa biblioteki]?"
+- "Pokaż mi API dla [nazwa biblioteki]"
+- "Co wiesz o bibliotece [nazwa biblioteki]?"
+- "Potrzebuję informacji o [nazwa biblioteki]"
+- Zapytania dotyczące konkretnych funkcji lub modułów biblioteki, gdzie nazwa biblioteki jest jasno wskazana.
+
+## Kroki postępowania dla AI
+
+1.  **Identyfikacja Nazwy Biblioteki**:
+    *   Dokładnie zidentyfikuj nazwę biblioteki, o którą pyta użytkownik lub która jest relevantna w kontekście zadania.
+
+2.  **Poinformuj Użytkownika (Opcjonalnie, ale zalecane dla przejrzystości)**:
+    *   "Spróbuję znaleźć dokumentację dla biblioteki `[nazwa biblioteki]` używając `context7`."
+
+3.  **Krok 1: Rozwiązanie ID Biblioteki**:
+    *   Użyj narzędzia `mcp_context7_resolve-library-id`.
+    *   **Argumenty**:
+        *   `libraryName`: `[zidentyfikowana nazwa biblioteki]`
+    *   **Postępowanie**:
+        *   Jeśli narzędzie zwróci listę bibliotek, wybierz najbardziej pasującą na podstawie nazwy, opisu i popularności (jeśli dostępne są takie dane).
+        *   Zanotuj `context7CompatibleLibraryID` wybranej biblioteki.
+
+4.  **Krok 2: Pobranie Dokumentacji**:
+    *   Jeśli `context7CompatibleLibraryID` zostało pomyślnie uzyskane:
+        *   Użyj narzędzia `mcp_context7_get-library-docs`.
+        *   **Argumenty**:
+            *   `context7CompatibleLibraryID`: `[uzyskane ID]`
+            *   `topic` (opcjonalnie): Jeśli użytkownik sprecyzował temat lub kontekst (np. "hooki w React"), spróbuj użyć tego argumentu.
+            *   `tokens` (opcjonalnie): Można zostawić domyślną wartość lub dostosować w razie potrzeby.
+        *   **Postępowanie**:
+            *   Przedstaw pobraną dokumentację użytkownikowi w czytelny sposób lub wykorzystaj ją do sformułowania odpowiedzi na pytanie użytkownika.
+
+5.  **Obsługa Błędów / Brak Wyników**:
+    *   Jeśli nie można rozwiązać ID biblioteki (krok 3 nie powiódł się):
+        *   Poinformuj użytkownika: "Niestety, nie udało mi się znaleźć biblioteki `[nazwa biblioteki]` za pomocą `context7`."
+        *   Zaproponuj alternatywne działania, np. sprawdzenie nazwy, wyszukiwanie w internecie (`web_search`).
+    *   Jeśli dokumentacja nie mogła zostać pobrana (krok 4 nie powiódł się pomimo poprawnego ID):
+        *   Poinformuj użytkownika: "Wystąpił problem podczas pobierania dokumentacji dla `[nazwa biblioteki]`."
+
+## Dodatkowe Wskazówki
+-   Bądź proaktywny: Jeśli kontekst rozmowy wskazuje na potrzebę zrozumienia działania jakiejś biblioteki, rozważ samodzielne zainicjowanie tego procesu, informując o tym użytkownika.
+-   Pamiętaj o zasadach korzystania z pamięci MCP: Jeśli pobrane informacje są kluczowe, rozważ ich zapisanie (np. krótkie podsumowanie w Banku Pamięci lub kluczowe elementy w Pamięci Grafowej, jeśli dotyczą architektury projektu).
+
