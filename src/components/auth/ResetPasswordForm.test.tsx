@@ -306,6 +306,7 @@ describe("ResetPasswordForm Component", () => {
 
   it("should display network error message", async () => {
     mockFetch.mockRejectedValue(new Error("Network request failed"));
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Mock console.error
 
     render(<ResetPasswordForm />);
     await fillAndSubmitForm();
@@ -314,6 +315,8 @@ describe("ResetPasswordForm Component", () => {
       expect(screen.getByText("An unexpected error occurred. Please try again later.")).toBeInTheDocument();
     });
     expect(screen.getByRole("button", { name: /Set New Password/i })).toBeEnabled();
+
+    consoleErrorSpy.mockRestore(); // Przywróć oryginalną implementację console.error
   });
 
   it("should hide form and show error if PASSWORD_RECOVERY event indicates issue (simulated)", async () => {
