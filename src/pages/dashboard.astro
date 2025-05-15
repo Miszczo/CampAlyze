@@ -13,9 +13,12 @@ import {
   Home,
   LineChart,
   Bell,
-  Calendar,
+  Calendar as CalendarIconLucide,
 } from "lucide-react";
 import PlatformTabs from "@/components/PlatformTabs.tsx";
+import type { DashboardMetricsResponse, SelectOption } from "../types";
+import { DatePicker } from "@/components/DatePicker.tsx";
+import { DropdownSelect } from "@/components/DropdownSelect.tsx";
 
 // Sprawdzenie sesji (middleware powinno już przekierować niezalogowanych)
 const { session } = Astro.locals;
@@ -26,13 +29,133 @@ if (!session) {
 // Dane użytkownika
 const userFullName = session.user?.user_metadata?.full_name || session.user?.email || "Użytkownik";
 
-// Przykładowe dane (w prawdziwej aplikacji pochodziłyby z bazy danych)
+// Pobieranie organizacji użytkownika (w MVP zakładamy, że użytkownik ma tylko jedną organizację)
+const { data: userOrgs } = await Astro.locals.supabase
+  .from("user_organizations")
+  .select("organization_id")
+  .eq("user_id", session.user.id)
+  .limit(1);
+
+const organizationId = userOrgs?.[0]?.organization_id;
+
+// Pobieranie domyślnych danych z API (ostatnie 7 dni)
+const today = new Date();
+const sevenDaysAgo = new Date(today);
+sevenDaysAgo.setDate(today.getDate() - 7);
+
+// Stan dla filtrów
+let dateFromState = Astro.url.searchParams.get("dateFrom") || sevenDaysAgo.toISOString().split("T")[0];
+let dateToState = Astro.url.searchParams.get("dateTo") || today.toISOString().split("T")[0];
+let selectedPlatformState = Astro.url.searchParams.get("platform") || "all";
+let selectedCampaignState = Astro.url.searchParams.get("campaign") || "all";
+
+// Przykładowe opcje dla filtrów
+const platformOptions: SelectOption[] = [
+  { value: "all", label: "Wszystkie platformy" },
+  { value: "google", label: "Google Ads" },
+  { value: "meta", label: "Meta Ads" },
+  // Można dodać więcej platform dynamicznie
+];
+
+// Na razie kampanie będą statyczne, docelowo powinny być pobierane na podstawie wybranej platformy i dat
+const campaignOptions: SelectOption[] = [
+  { value: "all", label: "Wszystkie kampanie" },
+  // Przykładowe kampanie (powinny być dynamiczne)
+  { value: "campaign1", label: "Kampania Google 1" },
+  { value: "campaign2", label: "Kampania Meta 1" },
+];
+
+let metricsData: DashboardMetricsResponse | null = null;
+let error: string | null = null;
+
+if (organizationId) {
+  try {
+    // Zaktualizowano URL, aby uwzględniał nowe parametry filtrowania
+    const apiUrl = new URL(`/api/dashboard/metrics`, Astro.url.origin);
+    apiUrl.searchParams.set("organization_id", organizationId);
+    apiUrl.searchParams.set("dateFrom", dateFromState);
+    apiUrl.searchParams.set("dateTo", dateToState);
+    if (selectedPlatformState !== "all") {
+      apiUrl.searchParams.set("platform", selectedPlatformState);
+    }
+    if (selectedCampaignState !== "all") {
+      apiUrl.searchParams.set("campaign_id", selectedCampaignState); // Zakładając, że API akceptuje campaign_id
+    }
+
+    const response = await fetch(apiUrl.toString(), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      error = errorData.error || "Błąd pobierania danych";
+    } else {
+      metricsData = await response.json();
+    }
+  } catch (err) {
+    error = "Błąd połączenia z serwerem";
+    // Zakomentowałem console.error zgodnie z regułami lintera
+    // console.error("Error fetching dashboard metrics:", err);
+  }
+}
+
+// Funkcja formatująca liczby do wyświetlenia
+function formatMetric(value: number | undefined | null, type = "number"): string {
+  if (value === undefined || value === null) return "-";
+
+  if (type === "currency") {
+    return `${value.toFixed(2)} PLN`;
+  } else if (type === "percentage") {
+    return `${(value * 100).toFixed(2)}%`;
+  } else if (type === "decimal") {
+    return value.toFixed(2);
+  }
+
+  return value.toString();
+}
+
+// Metryki z API lub przykładowe jeśli brak danych
+const summaryMetrics = metricsData?.summaryMetrics || {
+  ctr: 0.0238,
+  cpc: 1.24,
+  impressions: 0,
+  clicks: 0,
+  spend: 0,
+  conversions: 583,
+  cost_per_conversion: 32.18,
+  roas: 3.75,
+  revenue: 0,
+};
+
+// Symulowane zmiany (placeholder - w pełnej implementacji będą pobierane z API)
 const metrics = {
-  cpc: { value: "1.24 PLN", change: "+5.2%", trend: "up" },
-  ctr: { value: "2.38%", change: "-0.7%", trend: "down" },
-  konwersje: { value: "583", change: "+12.3%", trend: "up" },
-  kosztKonwersji: { value: "32.18 PLN", change: "-4.1%", trend: "up" },
-  roas: { value: "3.75", change: "+1.2%", trend: "up" },
+  cpc: {
+    value: formatMetric(summaryMetrics.cpc, "currency"),
+    change: "+5.2%",
+    trend: "up" as const,
+  },
+  ctr: {
+    value: formatMetric(summaryMetrics.ctr, "percentage"),
+    change: "-0.7%",
+    trend: "down" as const,
+  },
+  konwersje: {
+    value: formatMetric(summaryMetrics.conversions),
+    change: "+12.3%",
+    trend: "up" as const,
+  },
+  kosztKonwersji: {
+    value: formatMetric(summaryMetrics.cost_per_conversion, "currency"),
+    change: "-4.1%",
+    trend: "up" as const,
+  },
+  roas: {
+    value: formatMetric(summaryMetrics.roas, "decimal"),
+    change: "+1.2%",
+    trend: "up" as const,
+  },
 };
 
 // Przykładowe alerty
@@ -85,6 +208,9 @@ const upcomingVerifications = [
     verification: "2023-08-25",
   },
 ];
+
+// Formatowanie wybranego okresu - użyjemy dateFromState i dateToState
+const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL")} - ${new Date(dateToState).toLocaleDateString("pl-PL")}`;
 ---
 
 <Layout title="Dashboard | campAlyze">
@@ -122,7 +248,7 @@ const upcomingVerifications = [
               href="/dziennik-zmian"
               class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
             >
-              <Calendar className="w-5 h-5 mr-3 text-gray-500" />
+              <CalendarIconLucide className="w-5 h-5 mr-3 text-gray-500" />
               Dziennik Zmian
             </a>
             <a
@@ -182,26 +308,29 @@ const upcomingVerifications = [
       <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
         <div class="max-w-7xl mx-auto">
           <!-- Status MVP -->
-          <div class="mb-8">
-            <Alert>
-              <div class="flex items-center">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                <p class="text-sm">
-                  To jest wersja MVP dashboardu. Dane są przykładowe. W pełnej wersji zobaczysz dane z Twoich
-                  zaimportowanych kampanii.
-                </p>
+          {
+            error && (
+              <div class="mb-8">
+                <Alert>
+                  <div class="flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    <p class="text-sm text-red-500">Błąd: {error}</p>
+                  </div>
+                </Alert>
               </div>
-            </Alert>
-          </div>
+            )
+          }
 
           <!-- Filtry i akcje -->
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <div class="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" className="bg-white">
-                <Calendar className="h-4 w-4 mr-2" />
-                Ostatnie 7 dni
+                <CalendarIconLucide className="h-4 w-4 mr-2" />
+                {formattedDateRange}
               </Button>
-              <Button size="sm" variant="outline" className="bg-white"> Wszystkie platformy </Button>
+              <Button size="sm" variant="outline" className="bg-white">
+                {metricsData?.filtersApplied?.platform ? metricsData.filtersApplied.platform : "Wszystkie platformy"}
+              </Button>
               <Button size="sm" variant="outline" className="bg-white">
                 <Settings className="h-4 w-4 mr-2" />
                 Filtry
@@ -220,6 +349,41 @@ const upcomingVerifications = [
                   Generuj raport AI
                 </Button>
               </a>
+            </div>
+          </div>
+
+          <!-- Filtry -->
+          <div class="mb-6 p-4 bg-white rounded-lg shadow">
+            <h3 class="mb-3 text-lg font-semibold text-gray-700">Filtry</h3>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
+              <div class="flex flex-col space-y-1">
+                <label for="dateFrom" class="text-sm font-medium text-gray-700">Data od:</label>
+                <DatePicker client:load date={new Date(dateFromState)} paramName="dateFrom" />
+              </div>
+              <div class="flex flex-col space-y-1">
+                <label for="dateTo" class="text-sm font-medium text-gray-700">Data do:</label>
+                <DatePicker client:load date={new Date(dateToState)} paramName="dateTo" />
+              </div>
+              <div class="flex flex-col space-y-1">
+                <label for="platform" class="text-sm font-medium text-gray-700">Platforma:</label>
+                <DropdownSelect
+                  client:load
+                  options={platformOptions}
+                  value={selectedPlatformState}
+                  paramName="platform"
+                  placeholder="Wybierz platformę"
+                />
+              </div>
+              <div class="flex flex-col space-y-1">
+                <label for="campaign" class="text-sm font-medium text-gray-700">Kampania:</label>
+                <DropdownSelect
+                  client:load
+                  options={campaignOptions}
+                  value={selectedCampaignState}
+                  paramName="campaign"
+                  placeholder="Wybierz kampanię"
+                />
+              </div>
             </div>
           </div>
 
@@ -307,7 +471,7 @@ const upcomingVerifications = [
 
           <!-- Przegląd platform -->
           <div class="mb-8">
-            <PlatformTabs client:visible />
+            <PlatformTabs client:load timeSeriesData={metricsData?.timeSeriesData || []} />
           </div>
 
           <!-- Alerty i weryfikacje -->
