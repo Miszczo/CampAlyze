@@ -1,6 +1,6 @@
 # TODO: campAlyze – Stan, Zadania i Wymagania
 
-**Wersja:** 2025-05-17 12:00:00
+**Wersja:** 2025-05-18 (aktualizacja postępu prac nad dashboardem)
 
 ## 1. Aktualny stan (co mamy zaimplementowane)
 
@@ -56,9 +56,14 @@
 - ✅ Implementacja i przetestowanie komponentów UI do filtrowania (DatePicker, DropdownSelect)
 
 Zadania na kolejną iterację:
-- Dodanie wykresów (Chart.js lub Recharts) przedstawiających trendy i porównania okresów
-- Wdrożenie mechanizmu odświeżania dashboardu po imporcie (polling)
-- (Opcjonalnie) Dodanie testów E2E dla interakcji z filtrami (DatePicker, DropdownSelect) w rzeczywistym środowisku przeglądarki (Playwright)
+- ✅ Dodanie wykresów (Chart.js lub Recharts) przedstawiających trendy i porównania okresów - *częściowo zrealizowane (wykresy kliknięć dla Google/Meta, Recharts)*
+  - ✅ Instalacja Recharts i typów.
+  - ✅ Utworzenie komponentu `CampaignChart.tsx`.
+  - ✅ Integracja `CampaignChart` z `PlatformTabs.tsx`.
+  - ✅ Utworzenie testów jednostkowych dla `CampaignChart.tsx`.
+  - 🛠️ Drobne poprawki lintera i typów w `CampaignChart.tsx` (problem z CRLF, implicit any type - *w trakcie*).
+- 🔲 Wdrożenie mechanizmu odświeżania dashboardu po imporcie (polling)
+- 🔲 (Opcjonalnie) Dodanie testów E2E dla interakcji z filtrami (DatePicker, DropdownSelect) w rzeczywistym środowisku przeglądarki (Playwright)
 
 ### 2.2 CRUD dla importów (pełne zarządzanie) - NASTĘPNY PRIORYTET
 - Endpoint `GET /api/imports` – lista importów z paginacją i filtrowaniem
@@ -196,5 +201,34 @@ Zamiast testowania bezpośredniej interakcji z kalendarzem, zaimplementowano alt
    - Dodanie wykresów (Chart.js lub Recharts) do dashboardu
    - Wdrożenie mechanizmu odświeżania dashboardu po imporcie
    - Rozpoczęcie prac nad CRUD dla importów (/imports)
+
+---
+
+## 2024-05-18 (godz. popołudniowe) – Postęp prac: implementacja wykresów i poprawki w testach
+
+### Podsumowanie wykonanych prac
+- **Implementacja wykresów na dashboardzie:**
+  - Zainstalowano bibliotekę `Recharts` wraz z typami (`@types/recharts`).
+  - Utworzono komponent `src/components/CampaignChart.tsx` do wyświetlania wykresów liniowych.
+  - Zintegrowano `CampaignChart.tsx` z komponentem `src/components/PlatformTabs.tsx`, dodając wykresy trendu kliknięć dla Google Ads i Meta Ads.
+  - Utworzono plik testów jednostkowych `src/components/CampaignChart.test.tsx` z podstawowymi przypadkami testowymi, w tym mockowaniem `ResponsiveContainer` z Recharts.
+- **Naprawa środowiska testowego i zależności:**
+  - Zidentyfikowano i rozwiązano problem `Error: Cannot find module '@testing-library/dom'` poprzez instalację brakującej zależności `@testing-library/dom`.
+  - Testy dla `CampaignChart.test.tsx` przechodzą pomyślnie.
+- **Poprawki lintera i kodu:**
+  - Dodano plik `.gitattributes` i znormalizowano końcówki linii w projekcie na LF (wymaga zatwierdzenia zmian w Git).
+  - Poprawiono użycie cudzysłowów w JSX w `CampaignChart.tsx`.
+  - Zaktualizowano typy `CampaignChartProps` w `CampaignChart.tsx`, aby lepiej pasowały do `DailyMetricDataPoint` (usunięcie generycznej sygnatury indeksu i rozwiązanie problemu `implicit any` przy dostępie do `sampleDataPoint[metric]`).
+
+### Problemy i kolejne kroki (najbliższe zadania)
+
+1.  **Finalizacja poprawek lintera:**
+    *   Upewnić się, że wszystkie problemy z końcówkami linii (CRLF vs LF) zostały rozwiązane po zatwierdzeniu zmian i ewentualnej ponownej normalizacji w Git.
+2.  **Przegląd i poprawa mocków w testach `src/pages/api/imports/upload.test.ts`:**
+    *   Zgodnie z wcześniejszą analizą, testy dla endpointu `/api/imports/upload` zgłaszają błędy (Supabase Storage, DB, FormData). Należy zweryfikować i poprawić mocki, aby testy jednostkowe dla tego API były stabilne i wiarygodne.
+3.  **Kontynuacja zadań z iteracji dashboardu (zgodnie z sekcją 2.1):**
+    *   Wdrożenie mechanizmu odświeżania dashboardu po imporcie (polling).
+    *   (Opcjonalnie) Rozważenie dodania testów E2E dla interakcji z filtrami na dashboardzie.
+4.  **Przejście do kolejnego priorytetu: CRUD dla importów (sekcja 2.2).**
 
 --- 
