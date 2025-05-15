@@ -1,6 +1,6 @@
 # TODO: campAlyze – Stan, Zadania i Wymagania
 
-**Wersja:** 2025-05-14 21:56:00
+**Wersja:** 2025-05-17 12:00:00
 
 ## 1. Aktualny stan (co mamy zaimplementowane)
 
@@ -21,15 +21,17 @@
   - Unit-testy dla uploadu (`upload.test.ts`)
   - E2E-testy przepływu upload + nawigacja (`home.spec.ts`, etc.)
 
-### Dashboard (UI + Backend)
+### Dashboard (UI + Backend) - ✅ Ukończono integrację!
 - UI:
-  - Plik: `src/pages/dashboard.astro`
-  - Pokazuje sidebar, nagłówek, filtry, przyciski, metryki, alerty, weryfikacje – wszystkie dane są hardkodowane (przykładowe)
-  - Komponent `PlatformTabs.tsx` z placeholderami dla wykresów platform
+  - Plik: `src/pages/dashboard.astro` - w pełni zintegrowany z endpointem API, dynamiczne ładowanie danych
+  - Komponent `PlatformTabs.tsx` zaktualizowany do odbierania i renderowania danych z API
+  - Dodano formatowanie metryk, obsługę przypadków brzegowych i błędów API
+  - Implementacja warunkowego renderowania dla różnych platform i typów danych
+  - Wsparcie dla specyficznych dla Meta Ads metryk (zasięg, typy konwersji)
 - Backend:
   - Endpoint `GET /api/dashboard/metrics` do pobierania danych z widoku `campaign_metrics_derived`
   - Obsługa parametrów filtrowania: organization_id, zakres dat, platforma, kampania
-  - Szczegółowe testy jednostkowe dla endpointu (`metrics.test.ts`)
+  - Szczegółowe testy jednostkowe dla endpointu (`metrics.test.ts`) - wszystkie testy przechodzą
   - Rozszerzone typy TS dla struktur danych dashboardu
 
 ### Struktura CI/CD
@@ -45,20 +47,22 @@
 
 ### ✅ 2.1 Dashboard – integracja z backendem i dynamiczne dane
 - ✅ Utworzenie endpointu GET `/api/dashboard/metrics` bazującego na widoku `campaign_metrics_derived`
-- ✅ Obsługa parametrów filtrów: zakres dat, platforma, kampania
+- ✅ Obsługa parametrów filtrów: zakres dat, platforma, kampania 
 - ✅ Rozszerzenie typów w `src/types.ts` o interfejsy dla dashboardu
 - ✅ Implementacja testów jednostkowych dla endpointu
+- ✅ W `dashboard.astro` pobieranie danych z API i zastąpienie hardkodu
+- ✅ Aktualizacja komponentu `PlatformTabs.tsx` do dynamicznego wyświetlania danych z API
+- ✅ Obsługa filtrów daty, prezentacja danych dla różnych platform
 
-Pozostałe zadania do wykonania w przyszłości:
-- W `.astro` pobierać dane (np. `Astro.server.fetch` lub fetch w React) i zastąpić hardkod
-- Wyświetlać nowe metryki: Zasięg (reach) i Typ wyniku (conversion_type) dla platform, które je dostarczają
-- Zaimplementować wykresy (np. Chart.js lub Recharts) dla trendów i porównań okresów
-- Odświeżanie dashboardu po imporcie (webhook, polling lub SSE)
+Zadania na kolejną iterację:
+- Implementacja komponentów UI do filtrowania (DatePicker, DropdownSelect dla platform/kampanii)
+- Dodanie wykresów (Chart.js lub Recharts) przedstawiających trendy i porównania okresów
+- Wdrożenie mechanizmu odświeżania dashboardu po imporcie (polling)
 
-### 2.2 CRUD dla importów (pełne zarządzanie)
+### 2.2 CRUD dla importów (pełne zarządzanie) - NASTĘPNY PRIORYTET
 - Endpoint `GET /api/imports` – lista importów z paginacją i filtrowaniem
 - Endpoint `DELETE /api/imports/:id` lub `PATCH /api/imports/:id` (cancel, retry)
-- UI: strona `/imports` lub `/history-imports` z tabelą historii importów, akcjami (usun, retry)
+- UI: strona `/imports` lub `/history-imports` z tabelą historii importów, akcjami (usuń, retry)
 - Zaimplementować parser Meta Ads CSV z mapowaniem kolumn:
   * "Nazwa kampanii" → identyfikator kampanii (wyszukać lub utworzyć w tabeli `campaigns`)
   * "Dzień" → `metrics.date`
@@ -103,6 +107,7 @@ Pozostałe zadania do wykonania w przyszłości:
 - Obsługa błędów, spinnerów i toast notifications we wszystkich nowych widokach
 - Dodanie obsługi Dark Mode (opcjonalnie)
 - Dokumentacja kodu i uaktualnienie `README.md` z instrukcjami uruchomienia, testów, CI/CD
+- Rozbudowa testów E2E dla nowo zaimplementowanych funkcjonalności
 
 
 ## 3. Wymogi projektu zaliczeniowego
@@ -123,4 +128,4 @@ Aby projekt został zaliczony jako praca zaliczeniowa, musi spełniać następuj
 
 ---
 
-_Przygotowane na podstawie specyfikacji PRD (`prd.md`), UI-plan (`ui-plan.md`) oraz dotychczasowej implementacji w repozytorium._ 
+_Zaktualizowano: 2025-05-17. Pomyślnie ukończono integrację dashboardu z API, wszystkie testy jednostkowe dla endpointów dashboardu przechodzą._ 
