@@ -28,7 +28,7 @@ beforeEach(() => {
 afterEach(() => {
   Object.defineProperty(window, "location", {
     writable: true,
-    value: originalLocation, 
+    value: originalLocation,
   });
   vi.restoreAllMocks();
 });
@@ -43,25 +43,13 @@ const mockOptions: SelectOption[] = [
 
 describe("DropdownSelect", () => {
   it("powinien poprawnie renderować się z placeholderem", () => {
-    render(
-      <DropdownSelect
-        options={mockOptions}
-        paramName="platform"
-        placeholder="Wybierz platformę"
-      />
-    );
+    render(<DropdownSelect options={mockOptions} paramName="platform" placeholder="Wybierz platformę" />);
     const trigger = screen.getByRole("combobox");
     expect(trigger).toHaveTextContent("Wybierz platformę");
   });
 
   it("powinien wyświetlać wybraną wartość", () => {
-    render(
-      <DropdownSelect
-        options={mockOptions}
-        value="option1"
-        paramName="platform"
-      />
-    );
+    render(<DropdownSelect options={mockOptions} value="option1" paramName="platform" />);
     const trigger = screen.getByRole("combobox");
     expect(trigger).toHaveTextContent("Opcja 1");
   });
@@ -81,19 +69,19 @@ describe("DropdownSelect", () => {
 
   it("powinien próbować zmienić URL po wybraniu opcji", async () => {
     mockLocation.href = "http://localhost/test"; // Ustawienie początkowego URL dla tego testu
-    render(<DropdownSelect options={mockOptions} paramName="campaign" placeholder="Wybierz kampanię"/>);
+    render(<DropdownSelect options={mockOptions} paramName="campaign" placeholder="Wybierz kampanię" />);
     const trigger = screen.getByRole("combobox");
     fireEvent.click(trigger);
 
     const optionToSelect = await screen.findByRole("option", { name: "Opcja 2" });
     fireEvent.click(optionToSelect);
-    
+
     await waitFor(() => {
-        expect(mockLocation.href).toBe("http://localhost/test?campaign=option2");
+      expect(mockLocation.href).toBe("http://localhost/test?campaign=option2");
     });
   });
 
-   it("powinien usuwać parametr z URL po wybraniu opcji 'all'", async () => {
+  it("powinien usuwać parametr z URL po wybraniu opcji 'all'", async () => {
     mockLocation.href = "http://localhost/test?campaign=option1";
 
     render(<DropdownSelect options={mockOptions} value="option1" paramName="campaign" />);
@@ -104,7 +92,7 @@ describe("DropdownSelect", () => {
     fireEvent.click(allOption);
 
     await waitFor(() => {
-        expect(mockLocation.href).toBe("http://localhost/test");
+      expect(mockLocation.href).toBe("http://localhost/test");
     });
   });
-}); 
+});

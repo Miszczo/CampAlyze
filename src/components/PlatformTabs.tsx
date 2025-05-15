@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3 } from "lucide-react";
 import type { DailyMetricDataPoint } from "../types";
+import CampaignChart from "./CampaignChart";
 
 interface PlatformTabsProps {
   timeSeriesData: DailyMetricDataPoint[];
@@ -199,8 +200,14 @@ export function PlatformTabs({ timeSeriesData = [] }: PlatformTabsProps) {
                     </div>
                   </div>
                 </div>
-                <div className="h-40 bg-gray-50 rounded-md border border-dashed border-gray-300 flex items-center justify-center">
-                  <p className="text-sm text-gray-500">Wykresy Google Ads będą dostępne w pełnej wersji.</p>
+                <div className="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                  <h4 className="text-sm font-medium mb-2 text-gray-600">Trend kliknięć - Google Ads</h4>
+                  <CampaignChart
+                    data={platformData.google_ads}
+                    metric="clicks"
+                    metricLabel="Kliknięcia"
+                    color="#4285F4"
+                  />
                 </div>
               </div>
             ) : (
@@ -266,8 +273,14 @@ export function PlatformTabs({ timeSeriesData = [] }: PlatformTabsProps) {
                     )}
                   </div>
                 </div>
-                <div className="h-40 bg-gray-50 rounded-md border border-dashed border-gray-300 flex items-center justify-center">
-                  <p className="text-sm text-gray-500">Wykresy Meta Ads będą dostępne w pełnej wersji.</p>
+                <div className="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                  <h4 className="text-sm font-medium mb-2 text-gray-600">Trend kliknięć - Meta Ads</h4>
+                  <CampaignChart
+                    data={platformData.meta_ads}
+                    metric="clicks"
+                    metricLabel="Kliknięcia"
+                    color="#1877F2"
+                  />
                 </div>
               </div>
             ) : (
