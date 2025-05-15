@@ -53,11 +53,12 @@
 - ✅ W `dashboard.astro` pobieranie danych z API i zastąpienie hardkodu
 - ✅ Aktualizacja komponentu `PlatformTabs.tsx` do dynamicznego wyświetlania danych z API
 - ✅ Obsługa filtrów daty, prezentacja danych dla różnych platform
+- ✅ Implementacja i przetestowanie komponentów UI do filtrowania (DatePicker, DropdownSelect)
 
 Zadania na kolejną iterację:
-- Implementacja komponentów UI do filtrowania (DatePicker, DropdownSelect dla platform/kampanii)
 - Dodanie wykresów (Chart.js lub Recharts) przedstawiających trendy i porównania okresów
 - Wdrożenie mechanizmu odświeżania dashboardu po imporcie (polling)
+- (Opcjonalnie) Dodanie testów E2E dla interakcji z filtrami (DatePicker, DropdownSelect) w rzeczywistym środowisku przeglądarki (Playwright)
 
 ### 2.2 CRUD dla importów (pełne zarządzanie) - NASTĘPNY PRIORYTET
 - Endpoint `GET /api/imports` – lista importów z paginacją i filtrowaniem

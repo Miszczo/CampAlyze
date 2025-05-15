@@ -464,3 +464,9 @@ export interface DashboardMetricsResponse {
   filtersApplied: DashboardMetricsQueryParams;
 }
 // Dashboard Specific Types End
+
+// Nowy typ dla opcji w komponencie Select
+export interface SelectOption {
+  value: string;
+  label: string;
+}
