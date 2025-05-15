@@ -84,10 +84,28 @@ export interface UpdateUserRoleDTO {
 }
 
 // Import DTOs
+export interface ImportEntity {
+  id: string;
+  original_filename: string;
+  file_path: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  user_id: string;
+  organization_id: string;
+  platform_id: "meta" | "google";
+  created_at: string;
+  updated_at: string;
+  error_message?: string | null;
+}
+
 export interface ImportFileResponseDTO {
   id: string;
   original_filename: string;
-  status: string; // 'pending'
+  status: "pending" | "processing" | "completed" | "failed";
+}
+
+export interface ImportStatusResponseDTO {
+  status: "pending" | "processing" | "completed" | "failed";
+  message?: string;
 }
 
 export interface ProcessImportDTO {

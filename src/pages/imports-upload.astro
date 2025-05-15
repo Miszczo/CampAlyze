@@ -120,19 +120,23 @@ import Layout from "../layouts/Layout.astro";
         // Obsługa odpowiedzi
         if (res.status === 201) {
           const data = await res.json();
-          showSuccess(`Plik "${data.original_filename}" został przesłany. Status: ${data.status}`);
-          setStatus("Plik został poprawnie przesłany.");
-          form.reset();
+          if (typeof window !== "undefined") {
+            window.location.href = `/dashboard?pendingImportId=${data.id}`;
+          }
         } else if (res.status === 400) {
-          showError("Nieprawidłowe dane lub brak pliku.");
+          const errorData = await res.json();
+          showError(errorData.error || "Nieprawidłowe dane lub brak pliku.");
         } else if (res.status === 401) {
-          showError("Musisz być zalogowany, aby importować pliki.");
+          const errorData = await res.json();
+          showError(errorData.error || "Musisz być zalogowany, aby importować pliki.");
         } else if (res.status === 413) {
-          showError("Plik jest zbyt duży.");
+          const errorData = await res.json();
+          showError(errorData.error || "Plik jest zbyt duży.");
         } else {
-          showError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
+          const errorData = await res.json().catch(() => ({ error: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie." }));
+          showError(errorData.error || "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
         }
-      } catch {
+      } catch (err) {
         showError("Błąd sieci. Spróbuj ponownie.");
       } finally {
         resetForm();
