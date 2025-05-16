@@ -237,11 +237,14 @@ describe("RegisterForm.tsx", () => {
 
   it("powinien wyświetlić generyczny błąd, jeśli fetch rzuci wyjątek", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network Error"));
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}); // Mock console.error
 
     renderComponent();
     await fillAndSubmitForm();
 
     expect(await screen.findByText(/an unexpected error occurred. please try again later./i)).toBeInTheDocument();
+
+    consoleErrorSpy.mockRestore(); // Przywróć oryginalną implementację console.error
   });
 
   it("powinien pokazywać stan ładowania podczas wysyłania żądania", async () => {

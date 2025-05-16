@@ -1,0 +1,63 @@
+---
+import Layout from "../layouts/Layout.astro";
+// import { supabaseServerClient } from "../db/supabase.server"; // Usunięto - będziemy korzystać z Astro.locals
+import type { ImportListItemDTO } from "../types";
+// Usunięto nieużywane importy: ToastProvider, Toaster, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import ImportsDisplay from "../components/ImportsDisplay.tsx"; // Zaimportuj nowy komponent
+
+const { session } = Astro.locals; // Usunięto nieużywaną zmienną 'supabase'
+
+if (!session) {
+  // Jeśli nie ma sesji, przekieruj na stronę logowania
+  // (Middleware i tak by to zrobił, ale dla pewności można zostawić)
+  return Astro.redirect("/login?redirect_to=/imports");
+}
+
+// Pobranie listy importów z API
+// Użyj klienta supabase z Astro.locals do wykonania zapytań po stronie serwera,
+// lub, jak tutaj, zachowaj fetch do własnego API endpointu, co jest dobrą praktyką.
+// Jeśli fetchujesz własne API, upewnij się, że przekazujesz ciasteczka sesji.
+let imports: ImportListItemDTO[] = [];
+let fetchError: string | null = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/imports`, {
+    headers: {
+      // Przekazanie ciasteczek jest kluczowe, aby endpoint API mógł uwierzytelnić żądanie
+      Cookie: Astro.request.headers.get("cookie") || "",
+    },
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: "Failed to fetch imports and parse error" }));
+    throw new Error(errorData.error || `HTTP error ${response.status}`);
+  }
+  const json = await response.json();
+  imports = json.data || [];
+} catch (error) {
+  console.error("Error fetching imports:", error);
+  fetchError = error instanceof Error ? error.message : "An unknown error occurred while fetching imports.";
+}
+
+// Formatowanie daty nie jest już tutaj potrzebne, zostało przeniesione do ImportsDisplay.tsx
+---
+
+<Layout title="Historia importów">
+  <div class="container mx-auto px-4 py-8">
+    {
+      fetchError ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Błąd ładowania importów</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p class="text-red-500">{fetchError}</p>
+            <p class="mt-2">Spróbuj odświeżyć stronę lub skontaktuj się z administratorem.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <ImportsDisplay client:load imports={imports} />
+      )
+    }
+  </div>
+</Layout>

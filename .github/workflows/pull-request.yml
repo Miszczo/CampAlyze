@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       update-snapshots:
-        description: 'Aktualizuj snapshoty testowe?'
+        description: "Aktualizuj snapshoty testowe?"
         required: false
         type: boolean
         default: false
@@ -60,7 +60,7 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-        
+
       # Konfiguracja cache dla snapshotów
       - name: Set up snapshot cache
         id: snapshot-cache
@@ -70,7 +70,7 @@ jobs:
           key: snapshots-${{ runner.os }}-${{ hashFiles('tests/e2e/**/*.ts') }}
           restore-keys: |
             snapshots-${{ runner.os }}-
-            
+
       # Generuj/aktualizuj snapshoty jeśli:
       # 1. Użytkownik wymusił aktualizację poprzez workflow_dispatch
       # 2. Cache nie został znaleziony (pierwsze uruchomienie lub zmiany w testach)
@@ -82,7 +82,7 @@ jobs:
           SUPABASE_KEY: ${{ secrets.E2E_SUPABASE_KEY }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-          
+
       # Standardowe uruchomienie testów E2E
       - name: Run E2E tests
         run: npm run test:e2e
@@ -91,7 +91,7 @@ jobs:
           SUPABASE_KEY: ${{ secrets.E2E_SUPABASE_KEY }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-          
+
       # Zapisz wyniki testów jako artefakty (zawsze, nawet przy niepowodzeniu)
       - name: Upload test results
         if: always()

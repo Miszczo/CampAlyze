@@ -22,15 +22,12 @@ function calculateDerivedMetrics(data: {
 } {
   const ctr = data.impressions > 0 ? data.clicks / data.impressions : 0;
   const cpc = data.clicks > 0 ? data.spend / data.clicks : 0;
-  const cost_per_conversion =
-    data.conversions > 0 ? data.spend / data.conversions : 0;
+  const cost_per_conversion = data.conversions > 0 ? data.spend / data.conversions : 0;
   const roas = data.spend > 0 ? data.revenue / data.spend : 0;
   return { ctr, cpc, cost_per_conversion, roas };
 }
 
-export async function GET(
-  context: APIContext,
-): Promise<Response> {
+export async function GET(context: APIContext): Promise<Response> {
   // TODO: Docelowo organization_id powinno pochodzić z sesji użytkownika (np. context.locals.organizationId)
   //       To wymaga implementacji middleware do obsługi sesji i autoryzacji.
   //       Na potrzeby deweloperskie, można tymczasowo ustawić stałą wartość lub oczekiwać parametru.
@@ -43,17 +40,17 @@ export async function GET(
   const campaignIdParam = context.url.searchParams.get("campaignId");
 
   if (!organization_id) {
-    return new Response(
-      JSON.stringify({ error: "Missing organization_id parameter" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Missing organization_id parameter" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   if (!dateFrom || !dateTo) {
-    return new Response(
-      JSON.stringify({ error: "Missing dateFrom or dateTo parameters" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Missing dateFrom or dateTo parameters" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   // TODO: Dodać walidację formatu dat (np. ISO 8601)
@@ -62,14 +59,25 @@ export async function GET(
     organization_id,
     dateFrom,
     dateTo,
-    platform: platformParam ? platformParam.split(",").map(p => p.trim()).filter(p => p) : undefined,
-    campaignId: campaignIdParam ? campaignIdParam.split(",").map(c => c.trim()).filter(c => c) : undefined,
+    platform: platformParam
+      ? platformParam
+          .split(",")
+          .map((p) => p.trim())
+          .filter((p) => p)
+      : undefined,
+    campaignId: campaignIdParam
+      ? campaignIdParam
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c)
+      : undefined,
   };
 
   try {
     let query = supabaseClient
       .from("campaign_metrics_derived")
-      .select(`
+      .select(
+        `
         date,
         platform_name,
         campaign_id,
@@ -84,7 +92,8 @@ export async function GET(
         ctr,
         roas,
         campaigns!inner(organization_id) 
-      `)
+      `
+      )
       .eq("campaigns.organization_id", queryParams.organization_id)
       .gte("date", queryParams.dateFrom)
       .lte("date", queryParams.dateTo);
@@ -106,38 +115,36 @@ export async function GET(
           error: "Failed to fetch data from database",
           details: supabaseError.message,
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
     if (!rawDataFromSupabase) {
-        // Should not happen if supabaseError is null, but good for type safety
-        return new Response(
-            JSON.stringify({ error: "No data received from database"}),
-            { status: 500, headers: { "Content-Type": "application/json"}}
-        );
+      // Should not happen if supabaseError is null, but good for type safety
+      return new Response(JSON.stringify({ error: "No data received from database" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    const timeSeriesData: DailyMetricDataPoint[] = rawDataFromSupabase.map(
-      (row: any) => ({
-        date: row.date!,
-        platform_id: row.platform_name, // Matching DailyMetricDataPoint's platform_id with platform_name
-        campaign_id: row.campaign_id,
-        // campaign_name: row.campaign_name, // Available if needed, but not in DailyMetricDataPoint type
-        impressions: row.impressions || 0,
-        clicks: row.clicks || 0,
-        spend: row.spend || 0,
-        conversions: row.conversions || 0,
-        revenue: row.revenue || 0,
-        // TODO: Add reach and conversion_type when available in campaign_metrics_derived view
-        reach: row.reach || null, // Assuming it might be added later to the view
-        conversion_type: row.conversion_type || null, // Assuming it might be added later
-        ctr: row.ctr || 0,
-        cpc: row.cpc || 0,
-        cost_per_conversion: row.cost_per_conversion || 0,
-        roas: row.roas || 0,
-      }),
-    );
+    const timeSeriesData: DailyMetricDataPoint[] = rawDataFromSupabase.map((row: any) => ({
+      date: row.date!,
+      platform_id: row.platform_name, // Matching DailyMetricDataPoint's platform_id with platform_name
+      campaign_id: row.campaign_id,
+      // campaign_name: row.campaign_name, // Available if needed, but not in DailyMetricDataPoint type
+      impressions: row.impressions || 0,
+      clicks: row.clicks || 0,
+      spend: row.spend || 0,
+      conversions: row.conversions || 0,
+      revenue: row.revenue || 0,
+      // TODO: Add reach and conversion_type when available in campaign_metrics_derived view
+      reach: row.reach || null, // Assuming it might be added later to the view
+      conversion_type: row.conversion_type || null, // Assuming it might be added later
+      ctr: row.ctr || 0,
+      cpc: row.cpc || 0,
+      cost_per_conversion: row.cost_per_conversion || 0,
+      roas: row.roas || 0,
+    }));
 
     const summaryImpressions = timeSeriesData.reduce((sum, item) => sum + item.impressions, 0);
     const summaryClicks = timeSeriesData.reduce((sum, item) => sum + item.clicks, 0);
@@ -147,11 +154,11 @@ export async function GET(
     const summaryReach = timeSeriesData.reduce((sum, item) => sum + (item.reach || 0), 0);
 
     const derivedSummaryMetrics = calculateDerivedMetrics({
-        impressions: summaryImpressions,
-        clicks: summaryClicks,
-        spend: summarySpend,
-        conversions: summaryConversions,
-        revenue: summaryRevenue,
+      impressions: summaryImpressions,
+      clicks: summaryClicks,
+      spend: summarySpend,
+      conversions: summaryConversions,
+      revenue: summaryRevenue,
     });
 
     const summaryMetrics: AggregatedMetrics = {
@@ -184,11 +191,11 @@ export async function GET(
 
     let errorMessage = "An unexpected error occurred.";
     if (error instanceof Error) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
     return new Response(JSON.stringify({ error: "Failed to fetch dashboard metrics.", details: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
-} 
+}

@@ -46,12 +46,12 @@ async function globalSetup(config: FullConfig) {
     if (signUpError && signUpError.status !== 400 /* 400 = already registered */) {
       throw new Error(`Supabase test user sign-up failed: ${signUpError.message}`);
     }
-    
+
     // Dodajmy log dla lepszego debugowania
     // if (signUpError && signUpError.status === 400) {
     //   console.log("[globalSetup] User already registered, continuing with sign-in...");
     // }
-    
+
     session = await trySignIn();
     if (!session) {
       throw new Error("Failed to obtain session for test user after sign-up.");

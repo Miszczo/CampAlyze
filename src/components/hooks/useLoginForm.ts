@@ -117,16 +117,18 @@ export function useLoginForm(props?: LoginFormProps) {
       const email = providedEmail || form.getValues().email;
 
       if (!email) {
+        console.log("[useLoginForm] Resend verification: Email is empty, setting error.");
         setError("Please enter your email address to resend verification.");
         return;
       }
 
       setIsLoading(true);
       setError(null);
-      setSuccessMessage(null);
+      setSuccessMessage(null); // Wyczyszczenie poprzedniego komunikatu sukcesu
+      console.log("[useLoginForm] Resend verification: States cleared, starting request for email:", email);
 
       try {
-        console.log("[LoginForm] Resending verification email", { email });
+        console.log("[useLoginForm] Resending verification email API call", { email });
 
         const response = await fetch("/api/auth/resend-verification", {
           method: "POST",
@@ -135,21 +137,40 @@ export function useLoginForm(props?: LoginFormProps) {
         });
 
         const result = await response.json();
-        console.log("[LoginForm] Resend verification response", { status: response.status, result });
+        console.log("[useLoginForm] Resend verification API response", { status: response.status, result });
 
         if (!response.ok) {
-          setError(result.error || "Failed to resend verification email.");
-          console.log("[LoginForm] Resend verification failed", { error: result.error });
+          const errorMsg = result.error || "Failed to resend verification email.";
+          console.log(
+            "[useLoginForm] Resend verification API call !response.ok. Setting error:",
+            errorMsg,
+            "Result:",
+            result
+          );
+          setError(errorMsg);
+          console.log("[useLoginForm] Resend verification failed (network/server error)", { error: result.error });
         } else {
-          setSuccessMessage(result.message || "Verification email sent successfully.");
+          const successMsg = result.message || "Verification email sent successfully.";
+          console.log(
+            "[useLoginForm] Resend verification API call response.ok. Preparing to set success message:",
+            successMsg,
+            "Result:",
+            result
+          );
+          setSuccessMessage(successMsg);
+          // Sprawdzenie stanu zaraz po ustawieniu
+          // Uwaga: console.log bezpośrednio po setState może nie pokazać zaktualizowanej wartości z powodu asynchroniczności setState
+          // Lepiej obserwować w useEffect lub w logach renderowania komponentu LoginForm.tsx
+          console.log("[useLoginForm] Called setSuccessMessage with:", successMsg);
           setRequiresVerification(false); // Hide resend button after successful send
-          console.log("[LoginForm] Resend verification successful");
+          console.log("[useLoginForm] Resend verification successful (logic complete)");
         }
       } catch (err) {
-        console.error("[LoginForm] Resend verification failed:", err);
+        console.error("[useLoginForm] Resend verification request failed (catch block):", err);
         setError("An unexpected error occurred while sending verification email.");
       } finally {
         setIsLoading(false);
+        console.log("[useLoginForm] Resend verification finally block. isLoading set to false.");
       }
     },
     [form]

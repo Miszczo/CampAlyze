@@ -49,29 +49,42 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
-    // 6. Walidacja pozostałych pól: platform_id i organization_id
+    // 6. Walidacja pozostałych pól: platform_id
     const rawPlatform = form.get("platform_id");
-    const rawOrg = form.get("organization_id");
     const schema = z.object({
       platform_id: z.enum(["meta", "google"]),
-      organization_id: z.string().uuid(),
     });
     const parseResult = schema.safeParse({
       platform_id: rawPlatform,
-      organization_id: rawOrg,
     });
     if (!parseResult.success) {
-      return new Response(JSON.stringify({ error: "Invalid platform_id or organization_id" }), {
+      return new Response(JSON.stringify({ error: "Invalid platform_id" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-    const { platform_id, organization_id } = parseResult.data;
+    const { platform_id: platformName } = parseResult.data;
+
+    // Krok dodatkowy: Pobierz UUID platformy na podstawie jej nazwy
+    const { data: platformData, error: platformError } = await supabase
+      .from("platforms")
+      .select("id")
+      .eq("name", platformName) // Zakładając, że w tabeli platforms masz kolumnę 'name' z wartościami 'google', 'meta'
+      .single();
+
+    if (platformError || !platformData) {
+      console.error("Platform fetch error:", platformError);
+      return new Response(JSON.stringify({ error: "Invalid platform specified or platform not found." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const platform_uuid = platformData.id; // To jest teraz prawidłowy UUID
 
     // 7. Generowanie unikalnego ID dla pliku
     const fileId = randomUUID();
     const fileExtension = file.name.split(".").pop();
-    const storagePath = `${organization_id}/${platform_id}/${fileId}.${fileExtension}`;
+    const storagePath = `${session.user.id}/${platform_uuid}/${fileId}.${fileExtension}`;
 
     // 8. Konwersja pliku do ArrayBuffer
     const fileBuffer = await file.arrayBuffer();
@@ -102,8 +115,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         original_filename: file.name,
         file_path: filePath,
         status: "pending",
-        organization_id,
-        platform_id,
+        platform_id: platform_uuid,
         user_id: session.user.id,
       })
       .select("id, original_filename, status")

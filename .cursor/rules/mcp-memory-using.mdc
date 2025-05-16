@@ -1,0 +1,53 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## Zasady korzystania z pamięci MCP
+
+### Ogólne
+- Podczas sesji deweloperskich, AI powinno aktywnie wykorzystywać dostępne systemy pamięci MCP do przechowywania informacji zgodnie z ich przeznaczeniem.
+- Zawsze potwierdzaj zapisanie informacji do pamięci.
+- W przypadku wątpliwości co do miejsca lub sposobu zapisu, skonsultuj się z użytkownikiem.
+
+### Bank Pamięci (Memory Bank - serwer MCP: "memory-bank")
+*   **Przeznaczenie**: Do przechowywania bieżącego kontekstu rozmowy, tymczasowych notatek, listy zadań, ostatnio edytowanych plików i fragmentów kodu. Działa na zasadzie systemu plików/katalogów w ramach `MEMORY_BANK_ROOT`.
+*   **Kluczowe informacje do zapisu**:
+    *   Aktualnie realizowane zadanie (np. "Implementacja endpointu GET `/api/imports`" zapisane w pliku `current_task.txt` w projekcie `campAlyze_session`).
+    *   Lista ostatnio edytowanych plików (np. w pliku `edited_files.log` w projekcie `campAlyze_session`).
+    *   Krótkie notatki i fragmenty kodu na żądanie użytkownika (np. w pliku `scratchpad.txt` w projekcie `campAlyze_session`).
+*   **Interakcja z użytkownikiem (przykłady)**:
+    *   Użytkownik: "Zapamiętaj w Banku Pamięci, że musimy dodać walidację X dla formularza Y."
+    *   AI: (Potwierdzenie) "Zapisano notatkę o walidacji X dla formularza Y w Banku Pamięci (plik: `notes.txt`, projekt: `campAlyze_session`)."
+*   **Sposób użycia przez AI**:
+    *   AI powinno używać narzędzi `mcp_memory-bank_write` do tworzenia/aktualizacji plików z notatkami w odpowiednim projekcie w ramach `memory-bank`.
+    *   AI powinno używać `mcp_memory-bank_read` do odczytywania tych informacji.
+
+### Pamięć Grafowa (Knowledge Graph - serwer MCP: "memory")
+*   **Przeznaczenie**: Do budowania trwałej, ustrukturyzowanej wiedzy o projekcie, jego architekturze, zależnościach, kluczowych decyzjach. Wykorzystuje serwer `@itseasy21/mcp-knowledge-graph` i zapisuje dane w pliku `.jsonl` (`MEMORY_FILE_PATH`). Informacje są organizowane jako encje, relacje i obserwacje.
+*   **Kluczowe informacje do zapisu**:
+    *   **Encje**: Nowo tworzone komponenty, moduły, serwisy, typy danych, endpointy API.
+        *   Przykład: Encja: `CampaignChart.tsx`, Typ: `Komponent UI`.
+    *   **Relacje**: Zależności między encjami.
+        *   Przykład: Relacja: `CampaignChart.tsx` -> `wyświetla dane typu` -> `DailyMetricDataPoint`.
+        *   Przykład: Relacja: `SerwisA` -> `używa` -> `TypB`.
+    *   **Obserwacje**: Kluczowe fakty, decyzje, funkcjonalności powiązane z encjami.
+        *   Przykład: Obserwacja dla `AuthMiddleware`: "Weryfikuje sesję dla wszystkich endpointów w `src/pages/api/*`."
+    *   Ważne decyzje architektoniczne i ich uzasadnienie.
+*   **Interakcja z użytkownikiem (przykłady)**:
+    *   Użytkownik: "Dodaj do Pamięci Grafowej: moduł `AuthMiddleware` weryfikuje sesję dla endpointów w `src/pages/api/*`."
+    *   AI: (Potwierdzenie) "Zrozumiałem. Chcesz zapisać w Pamięci Grafowej: Encja: `AuthMiddleware`, Obserwacja: 'weryfikuje sesję dla endpointów w `src/pages/api/*`'. Zapisuję."
+    *   Użytkownik: "Co pamiętasz o komponencie `CampaignChart.tsx`?"
+*   **Sposób użycia przez AI (zgodnie z [forum Cursor](mdc:https:/forum.cursor.com/t/mcp-add-persistent-memory-in-cursor/57497))**:
+    *   Przed rozpoczęciem pracy nad zadaniem, AI powinno rozważyć odczytanie relevantnych informacji z Pamięci Grafowej (np. mówiąc "Pamiętam, że...").
+    *   Po zakończeniu zadania lub wprowadzeniu znaczących zmian, AI powinno:
+        1.  Sformułować informacje do zapisu jako Encje (Create/update entities).
+        2.  Sformułować Relacje między nimi (Define relationships).
+        3.  Sformułować Obserwacje dotyczące encji (Store observations).
+    *   AI powinno starać się proponować aktualizację Pamięci Grafowej po znaczących zmianach w strukturze projektu lub logice biznesowej.
+    *   Odwołuj się do tej wiedzy jako "Pamięć Grafowa" lub po prostu "pamięć", jeśli kontekst jest jasny.
+
+### Format komunikacji z AI dla Pamięci Grafowej
+-   **Zapisywanie**: Użytkownik mówi np. "Zapamiętaj, że...", "Dodaj do wiedzy o projekcie...", a AI formułuje to w postaci encji/relacji/obserwacji i potwierdza.
+
+-   **Odczytywanie**: Użytkownik mówi np. "Co wiesz o...", "Przypomnij mi zależności modułu X..."

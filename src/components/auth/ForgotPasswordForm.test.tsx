@@ -158,6 +158,8 @@ describe("ForgotPasswordForm.tsx", () => {
 
   it("powinien pokazać generyczny komunikat sukcesu, jeśli fetch rzuci wyjątek", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network Error"));
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}); // Mock console.error
+
     renderComponent();
     const emailInput = screen.getByLabelText(/email/i);
     const submitButton = screen.getByRole("button", { name: /send reset link/i });
@@ -174,6 +176,8 @@ describe("ForgotPasswordForm.tsx", () => {
       expect(alert).toHaveTextContent(expectedMessage);
     });
     expect(screen.queryByLabelText(/email/i)).not.toBeInTheDocument();
+
+    consoleErrorSpy.mockRestore(); // Przywróć oryginalną implementację console.error
   });
 
   it("powinien czyścić błąd walidacji po wpisaniu poprawnego emaila", async () => {

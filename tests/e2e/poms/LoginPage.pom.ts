@@ -38,10 +38,27 @@ export class LoginPage {
   }
 
   /**
+   * Alias for goto(), used in some tests
+   */
+  async navigate() {
+    await this.goto();
+  }
+
+  /**
+   * Checks if the login page is loaded
+   */
+  async isLoaded() {
+    await expect(this.emailInput).toBeVisible();
+    await expect(this.passwordInput).toBeVisible();
+    await expect(this.loginButton).toBeVisible();
+  }
+
+  /**
    * Fills the email input field.
    * @param email The email address to enter.
    */
   async fillEmail(email: string) {
+    await expect(this.emailInput).toBeVisible();
     await this.emailInput.clear();
     await this.emailInput.fill(email);
     await this.emailInput.press("Tab");
@@ -52,6 +69,7 @@ export class LoginPage {
    * @param password The password to enter.
    */
   async fillPassword(password: string) {
+    await expect(this.passwordInput).toBeVisible();
     await this.passwordInput.clear();
     await this.passwordInput.fill(password);
     await this.passwordInput.press("Tab");
@@ -105,90 +123,22 @@ export class LoginPage {
    * If the button doesn't exist, it will simulate the click.
    */
   async clickResendVerificationButton() {
-    const exists = (await this.resendVerificationButton.count()) > 0;
-    console.log(`[LoginPage] Resend button exists in DOM: ${exists}`);
+    // Check if the button exists in DOM
+    const buttonExists = (await this.resendVerificationButton.count()) > 0;
+    console.log("[LoginPage] Resend button exists in DOM:", buttonExists);
 
-    if (exists) {
-      console.log("[LoginPage] Attempting to check resend button visibility");
-      const isVisible = await this.resendVerificationButton.isVisible();
-      console.log(`[LoginPage] Resend button is visible: ${isVisible}`);
-
-      if (isVisible) {
-        console.log("[LoginPage] Clicking resend verification button");
-        await this.resendVerificationButton.waitFor({ state: "visible" });
-
-        // Klikamy przycisk bez oczekiwania na odpowiedź, bo to może powodować timeout w testach
-        await this.resendVerificationButton.click();
-
-        // Dajemy czas na przetworzenie interceptora
-        await this.page.waitForTimeout(500);
-
-        // Sprawdzamy jaki email jest aktualnie w polu
-        const email = await this.emailInput.inputValue();
-
-        // W środowisku testowym możemy sprawdzić wybór komunikatu na podstawie emaila
-        if (!email) {
-          // Pusty email - powinien być błąd
-          await this.expectErrorMessage("Please enter your email address to resend verification");
-        } else if (email === "error-prone@example.com") {
-          // Problematyczny email - powinien być błąd
-          await this.expectErrorMessage("Failed to resend verification email");
-        } else {
-          // Standardowy przypadek - sukces
-          await this.expectSuccessMessage("Verification email sent successfully");
-
-          // Ukryj przycisk resend po wysłaniu
-          await this.page.evaluate(() => {
-            const button = document.querySelector('[data-testid="login-button-resend-verification"]') as HTMLElement;
-            if (button) {
-              button.style.display = "none";
-            }
-          });
-        }
-      } else {
-        console.error("[LoginPage] Resend button exists but is not visible!");
-        // Podajmy więcej informacji diagnostycznych
-        const html = await this.page.evaluate(() => document.documentElement.outerHTML);
-        console.log("[LoginPage] Current page HTML snippet:", html.substring(0, 500) + "...");
-
-        // Dla celów testowych, wywołujemy API bezpośrednio
-        await this.simulateResendVerification();
-      }
+    if (buttonExists) {
+      // Check if it's visible and click
+      await expect(this.resendVerificationButton).toBeVisible({ timeout: 7000 }); // Zwiększony timeout dla pewności
+      await this.resendVerificationButton.click();
+      // Opcjonalna asercja: po sukcesie przycisk może zniknąć lub zmienić stan
+      // Na razie zostawiamy bez tej asercji, bo zależy to od konkretnego przepływu i mocka
+      // await expect(this.resendVerificationButton).not.toBeVisible();
     } else {
-      console.warn("[LoginPage] Resend button not found, simulating click action");
-      await this.simulateResendVerification();
-    }
-  }
-
-  /**
-   * Symuluje kliknięcie przycisku resend przez bezpośrednie wywołanie API.
-   * Ta metoda jest używana jako fallback w testach, gdy przycisk nie jest dostępny w DOM.
-   */
-  private async simulateResendVerification() {
-    // Pobieramy aktualną wartość emaila
-    const email = await this.emailInput.inputValue();
-    console.log(`[LoginPage] Simulating resend verification for email: ${email}`);
-
-    if (!email) {
-      // Pusty email - zawsze błąd
-      await this.expectErrorMessage("Please enter your email address to resend verification");
-      return;
-    }
-
-    if (email === "error-prone@example.com") {
-      // Problematyczny email - zawsze błąd
-      await this.expectErrorMessage("Failed to resend verification email");
-    } else {
-      // Standardowy przypadek - sukces
-      await this.expectSuccessMessage("Verification email sent successfully");
-
-      // Ukryj przycisk resend po symulowanym wysłaniu
-      await this.page.evaluate(() => {
-        const button = document.querySelector('[data-testid="login-button-resend-verification"]') as HTMLElement;
-        if (button) {
-          button.style.display = "none";
-        }
-      });
+      // Jeśli przycisk nie istnieje, test powinien to wykryć przez inne asercje
+      // np. oczekując na jego widoczność przed kliknięciem.
+      // Nie symulujemy tutaj błędu, pozwalamy testowi zawieść, jeśli oczekuje przycisku.
+      console.warn("[LoginPage] Resend verification button was not found in DOM. Test might fail if it expects it.");
     }
   }
 
@@ -247,124 +197,23 @@ export class LoginPage {
    * @param expectedText The expected text (can be a substring).
    */
   async expectErrorMessage(expectedText: string | RegExp) {
-    // Sprawdź, czy element istnieje w DOM
-    const exists = (await this.errorMessageAlert.count()) > 0;
-    console.log(`[LoginPage] Error message alert exists: ${exists}`);
-
-    if (exists) {
-      try {
-        await expect(this.errorMessageAlert).toBeVisible({ timeout: 5000 });
-        const alertDescription = this.errorMessageAlert.locator('[data-slot="alert-description"]');
-        await expect(alertDescription).toBeVisible({ timeout: 5000 });
-        await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
-      } catch (error) {
-        console.log(`[LoginPage] Error alert exists but checking content failed:`, error);
-        // Regenerujemy alert, aby zapewnić poprawną treść
-        await this.simulateErrorAlert(expectedText);
-      }
-    } else {
-      console.log(`[LoginPage] Error alert not found, simulating it for testing`);
-      await this.simulateErrorAlert(expectedText);
-    }
-  }
-
-  /**
-   * Pomocnicza metoda do symulowania alertu błędu w DOM
-   */
-  private async simulateErrorAlert(text: string | RegExp) {
-    const errorText = typeof text === "string" ? text : "Email not verified";
-    console.log(`[LoginPage] Creating error alert with text: ${errorText}`);
-
-    // Usuwamy istniejący alert jeśli jest
-    await this.page.evaluate(() => {
-      const existingError = document.querySelector('[data-testid="login-alert-error"]');
-      if (existingError) existingError.remove();
-    });
-
-    // Dodajemy element bezpośrednio do DOM
-    await this.page.evaluate((errorMessage) => {
-      const alert = document.createElement("div");
-      alert.setAttribute("data-testid", "login-alert-error");
-      alert.setAttribute("role", "alert");
-      alert.innerHTML = ` 
-        <div data-slot="alert-title">Error</div>
-        <div data-slot="alert-description">${errorMessage}</div>
-      `;
-
-      // Wstawiamy na początek formularza lub do body
-      const form = document.querySelector("form");
-      if (form) {
-        form.insertBefore(alert, form.firstChild);
-      } else {
-        document.body.appendChild(alert);
-      }
-    }, errorText);
-
-    // Weryfikujemy że element jest widoczny
-    await expect(this.errorMessageAlert).toBeVisible({ timeout: 5000 });
+    console.log(`[LoginPage] Expecting error message alert with text: ${expectedText}`);
+    await expect(this.errorMessageAlert).toBeVisible({ timeout: 7000 }); // Zwiększony timeout
+    const alertDescription = this.errorMessageAlert.locator('[data-slot="alert-description"]');
+    await expect(alertDescription).toBeVisible({ timeout: 5000 });
+    await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
   }
 
   /**
    * Asserts that the success message alert is visible and contains the expected text.
-   * If the alert is not present, it will be simulated.
    * @param expectedText The expected text (can be a substring).
    */
   async expectSuccessMessage(expectedText: string | RegExp) {
-    // Sprawdź, czy element istnieje w DOM
-    const exists = (await this.successMessageAlert.count()) > 0;
-    console.log(`[LoginPage] Success message alert exists: ${exists}`);
-
-    if (exists) {
-      try {
-        await expect(this.successMessageAlert).toBeVisible({ timeout: 5000 });
-        const alertDescription = this.successMessageAlert.locator('[data-slot="alert-description"]');
-        await expect(alertDescription).toBeVisible({ timeout: 5000 });
-        await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
-      } catch (error) {
-        console.log(`[LoginPage] Success alert exists but checking content failed:`, error);
-        // Regenerujemy alert, aby zapewnić poprawną treść
-        await this.simulateSuccessAlert(expectedText);
-      }
-    } else {
-      console.log(`[LoginPage] Success alert not found, simulating it for testing`);
-      await this.simulateSuccessAlert(expectedText);
-    }
-  }
-
-  /**
-   * Pomocnicza metoda do symulowania alertu sukcesu w DOM
-   */
-  private async simulateSuccessAlert(text: string | RegExp) {
-    const successText = typeof text === "string" ? text : "Verification email sent successfully";
-    console.log(`[LoginPage] Creating success alert with text: ${successText}`);
-
-    // Usuwamy istniejący alert jeśli jest
-    await this.page.evaluate(() => {
-      const existingSuccess = document.querySelector('[data-testid="login-alert-success"]');
-      if (existingSuccess) existingSuccess.remove();
-    });
-
-    // Dodajemy element bezpośrednio do DOM
-    await this.page.evaluate((message) => {
-      const alert = document.createElement("div");
-      alert.setAttribute("data-testid", "login-alert-success");
-      alert.setAttribute("role", "alert");
-      alert.innerHTML = `
-        <div data-slot="alert-title">Success</div>
-        <div data-slot="alert-description">${message}</div>
-      `;
-
-      // Wstawiamy na początek formularza lub do body
-      const form = document.querySelector("form");
-      if (form) {
-        form.insertBefore(alert, form.firstChild);
-      } else {
-        document.body.appendChild(alert);
-      }
-    }, successText);
-
-    // Weryfikujemy że element jest widoczny
-    await expect(this.successMessageAlert).toBeVisible({ timeout: 5000 });
+    console.log(`[LoginPage] Expecting success message alert with text: ${expectedText}`);
+    await expect(this.successMessageAlert).toBeVisible({ timeout: 7000 }); // Zwiększony timeout
+    const alertDescription = this.successMessageAlert.locator('[data-slot="alert-description"]');
+    await expect(alertDescription).toBeVisible({ timeout: 5000 });
+    await expect(alertDescription).toContainText(expectedText, { timeout: 5000 });
   }
 
   /**
@@ -385,5 +234,17 @@ export class LoginPage {
     if (expectedText) {
       await expect(this.passwordErrorMessage).toContainText(expectedText, { timeout: 5000 });
     }
+  }
+
+  /**
+   * Simulates a successful resend verification action by creating a success alert.
+   * THIS IS FOR MOCKING/TESTING PURPOSES WHEN API IS NOT FULLY MOCKED OR AVAILABLE.
+   * Prefer to use actual API responses and UI updates in E2E tests.
+   * @deprecated This method should be removed once API mocking is robust.
+   */
+  private async simulateResendSuccess() {
+    console.warn("[LoginPage] simulateResendSuccess is deprecated and should be removed.");
+    // This method is now deprecated and its content can be removed or commented out.
+    // The actual success message should come from the application UI after a real/mocked API call.
   }
 }

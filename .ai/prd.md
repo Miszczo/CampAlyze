@@ -85,6 +85,37 @@ Następujące funkcjonalności są poza zakresem MVP:
 12. Analizy semantyczne treści reklamowych
 13. Automatyczne powiadomienia e-mail o zaplanowanych weryfikacjach zmian
 
+## 4.1 Minimal MVP (na ostatni moment przed terminem)
+
+Aby spełnić wymagania projektu zaliczeniowego z minimalnym nakładem pracy, należy skupić się na następujących zadaniach:
+
+### 4.1.1 CRUD dla importów (minimalny zakres)
+
+- Endpoint `GET /api/imports` – lista importów (bez paginacji)
+- Endpoint `DELETE /api/imports/:id` – usunięcie importu
+- UI: prosta strona `/imports` z tabelą importów i przyciskiem usunięcia
+
+### 4.1.2 Test E2E dla przepływu użytkownika
+
+- Test E2E (Playwright) obejmujący:
+  - Logowanie użytkownika
+  - Przejście do listy importów
+  - Usunięcie importu
+
+### 4.1.3 Prosta analiza AI z OpenRouter
+
+- Prosty endpoint `POST /api/ai-insights/analyze` analizujący dane z importu
+- Integracja z OpenRouter używając gpt-3.5-turbo
+- Podstawowy prompt systemowy dla analizy kampanii
+- Prosty UI pokazujący wyniki analizy
+- Strona szczegółów importu (`/imports/[id]`) z listą kampanii i przyciskiem analizy AI
+- Testy jednostkowe dla endpointu i komponentu UI
+
+### 4.1.4 Podstawowe wymagania projektu zaliczeniowego (już zaimplementowane)
+- Obsługa logowania użytkownika (Auth)
+- Podstawowa logika biznesowa – import pliku CSV i zapis do bazy
+- Scenariusz CI/CD na GitHub Actions (uruchamianie testów automatycznie)
+
 ## 5. Historyjki użytkowników
 
 ### Uwierzytelnianie i zarządzanie kontami
