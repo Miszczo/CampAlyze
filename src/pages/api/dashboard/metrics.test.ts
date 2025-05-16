@@ -1,32 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { GET } from "./metrics"; // Importujemy naszą funkcję GET
 import type { APIContext } from "astro";
-import type {
-  DashboardMetricsResponse,
-  DashboardMetricsQueryParams,
-  DailyMetricDataPoint,
-} from "../../../types";
+import type { DashboardMetricsResponse, DashboardMetricsQueryParams, DailyMetricDataPoint } from "../../../types";
 
-const { 
-  mockSupabaseData, 
-  mockSupabaseError, 
-  mockEq, 
-  mockGte, 
-  mockLte, 
-  mockIn, 
+const {
+  mockSupabaseData,
+  mockSupabaseError,
+  mockEq,
+  mockGte,
+  mockLte,
+  mockIn,
   // supabaseQueryBuilder, // Możemy go odkomentować, jeśli potrzebujemy testować .then bezpośrednio
   mockSelectFn, // Zmieniona nazwa dla spójności
-  mockFromFn    // Zmieniona nazwa dla spójności
+  mockFromFn, // Zmieniona nazwa dla spójności
 } = vi.hoisted(() => {
   const mockSupabaseData = vi.fn();
   const mockSupabaseError = vi.fn();
-  
+
   const queryBuilderInstance = {
     eq: vi.fn().mockReturnThis(),
     gte: vi.fn().mockReturnThis(),
     lte: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
-    then: (callback: (result: { data: any; error: any }) => void) => 
+    then: (callback: (result: { data: any; error: any }) => void) =>
       callback({ data: mockSupabaseData(), error: mockSupabaseError() }),
   };
 
@@ -41,8 +37,8 @@ const {
     mockLte: queryBuilderInstance.lte,
     mockIn: queryBuilderInstance.in,
     // supabaseQueryBuilder: queryBuilderInstance,
-    mockSelectFn: selectFn, 
-    mockFromFn: fromFn 
+    mockSelectFn: selectFn,
+    mockFromFn: fromFn,
   };
 });
 
@@ -58,16 +54,12 @@ vi.mock("../../../db/supabase.client", async (importOriginal) => {
 });
 
 // Mock dla APIContext
-const mockAPIContext = (
-  searchParamsValues: Record<string, string | null>,
-): Partial<APIContext> => ({
+const mockAPIContext = (searchParamsValues: Record<string, string | null>): Partial<APIContext> => ({
   url: {
     searchParams: {
-      get: (key: string) =>
-        searchParamsValues[key] === undefined ? null : searchParamsValues[key],
+      get: (key: string) => (searchParamsValues[key] === undefined ? null : searchParamsValues[key]),
       has: (key: string) => searchParamsValues[key] !== undefined,
-      getAll: (key: string) =>
-        searchParamsValues[key] ? [searchParamsValues[key] as string] : [],
+      getAll: (key: string) => (searchParamsValues[key] ? [searchParamsValues[key] as string] : []),
     } as URLSearchParams,
     // @ts-ignore
   } as URL,
@@ -87,12 +79,12 @@ describe("GET /api/dashboard/metrics", () => {
     mockLte.mockClear().mockReturnThis();
     mockIn.mockClear().mockReturnThis();
     mockSelectFn.mockClear(); // Resetujemy mockSelectFn
-    mockFromFn.mockClear();   // Resetujemy mockFromFn
+    mockFromFn.mockClear(); // Resetujemy mockFromFn
   });
 
   afterEach(() => {
-    vi.restoreAllMocks(); 
-  })
+    vi.restoreAllMocks();
+  });
 
   describe("Parameter Validation", () => {
     it("should return 400 if organization_id is missing", async () => {
@@ -139,23 +131,23 @@ describe("GET /api/dashboard/metrics", () => {
     };
 
     const mockDbRow = {
-        date: "2024-05-01",
-        platform_name: "google",
-        campaign_id: "campaign_google_1",
-        campaign_name: "Google Campaign Alpha",
-        impressions: 1000,
-        clicks: 100,
-        spend: 50,
-        conversions: 10,
-        revenue: 200,
-        cost_per_conversion: 5,
-        cpc: 0.5,
-        ctr: 0.1,
-        roas: 4,
-        reach: null, // Symulujemy brak reach i conversion_type z bazy na razie
-        conversion_type: null,
-        // campaigns: { organization_id: defaultParams.organization_id } // To jest efektem JOIN, nie trzeba mockować bezpośrednio w select
-      };
+      date: "2024-05-01",
+      platform_name: "google",
+      campaign_id: "campaign_google_1",
+      campaign_name: "Google Campaign Alpha",
+      impressions: 1000,
+      clicks: 100,
+      spend: 50,
+      conversions: 10,
+      revenue: 200,
+      cost_per_conversion: 5,
+      cpc: 0.5,
+      ctr: 0.1,
+      roas: 4,
+      reach: null, // Symulujemy brak reach i conversion_type z bazy na razie
+      conversion_type: null,
+      // campaigns: { organization_id: defaultParams.organization_id } // To jest efektem JOIN, nie trzeba mockować bezpośrednio w select
+    };
 
     it("should call Supabase with correct filters", async () => {
       mockSupabaseData.mockReturnValue([mockDbRow]);
@@ -191,7 +183,12 @@ describe("GET /api/dashboard/metrics", () => {
     });
 
     it("should return 500 if Supabase query fails", async () => {
-      mockSupabaseError.mockReturnValue({ message: "Database connection failed", code: "50000", details: "", hint: "" });
+      mockSupabaseError.mockReturnValue({
+        message: "Database connection failed",
+        code: "50000",
+        details: "",
+        hint: "",
+      });
       const context = mockAPIContext(defaultParams) as APIContext;
       const response = await GET(context);
 
@@ -203,9 +200,51 @@ describe("GET /api/dashboard/metrics", () => {
 
     it("should correctly process data from Supabase and calculate summary metrics", async () => {
       const dbData = [
-        { ...mockDbRow, date: "2024-05-01", clicks: 100, impressions: 1000, spend: 50, conversions: 10, revenue: 200, platform_name: "google", campaign_id: "c1", ctr: 0.1, cpc: 0.5, cost_per_conversion: 5, roas: 4 },
-        { ...mockDbRow, date: "2024-05-01", clicks: 200, impressions: 2000, spend: 80, conversions: 15, revenue: 300, platform_name: "meta", campaign_id: "c2", ctr: 0.1, cpc: 0.4, cost_per_conversion: 80/15, roas: 300/80 },
-        { ...mockDbRow, date: "2024-05-02", clicks: 150, impressions: 1500, spend: 60, conversions: 20, revenue: 400, platform_name: "google", campaign_id: "c1", ctr: 0.1, cpc: 0.4, cost_per_conversion: 3, roas: 400/60 },
+        {
+          ...mockDbRow,
+          date: "2024-05-01",
+          clicks: 100,
+          impressions: 1000,
+          spend: 50,
+          conversions: 10,
+          revenue: 200,
+          platform_name: "google",
+          campaign_id: "c1",
+          ctr: 0.1,
+          cpc: 0.5,
+          cost_per_conversion: 5,
+          roas: 4,
+        },
+        {
+          ...mockDbRow,
+          date: "2024-05-01",
+          clicks: 200,
+          impressions: 2000,
+          spend: 80,
+          conversions: 15,
+          revenue: 300,
+          platform_name: "meta",
+          campaign_id: "c2",
+          ctr: 0.1,
+          cpc: 0.4,
+          cost_per_conversion: 80 / 15,
+          roas: 300 / 80,
+        },
+        {
+          ...mockDbRow,
+          date: "2024-05-02",
+          clicks: 150,
+          impressions: 1500,
+          spend: 60,
+          conversions: 20,
+          revenue: 400,
+          platform_name: "google",
+          campaign_id: "c1",
+          ctr: 0.1,
+          cpc: 0.4,
+          cost_per_conversion: 3,
+          roas: 400 / 60,
+        },
       ];
       mockSupabaseData.mockReturnValue(dbData);
 
@@ -215,7 +254,7 @@ describe("GET /api/dashboard/metrics", () => {
 
       const json: DashboardMetricsResponse = await response.json();
       expect(json.timeSeriesData).toHaveLength(3);
-      
+
       const totalImpressions = 1000 + 2000 + 1500;
       const totalClicks = 100 + 200 + 150;
       const totalSpend = 50 + 80 + 60;
@@ -238,26 +277,26 @@ describe("GET /api/dashboard/metrics", () => {
       const firstPoint: DailyMetricDataPoint = json.timeSeriesData[0];
       expect(firstPoint.impressions).toBe(1000);
       // Check derived metrics provided by the (mocked) view
-      expect(firstPoint.ctr).toBe(dbData[0].ctr); 
+      expect(firstPoint.ctr).toBe(dbData[0].ctr);
       expect(firstPoint.cpc).toBe(dbData[0].cpc);
       expect(firstPoint.cost_per_conversion).toBe(dbData[0].cost_per_conversion);
       expect(firstPoint.roas).toBe(dbData[0].roas);
     });
 
     it("should return empty arrays and zeroed summary for no data from Supabase", async () => {
-        mockSupabaseData.mockReturnValue([]); // No data
-        const context = mockAPIContext(defaultParams) as APIContext;
-        const response = await GET(context);
-        expect(response.status).toBe(200);
-        const json: DashboardMetricsResponse = await response.json();
+      mockSupabaseData.mockReturnValue([]); // No data
+      const context = mockAPIContext(defaultParams) as APIContext;
+      const response = await GET(context);
+      expect(response.status).toBe(200);
+      const json: DashboardMetricsResponse = await response.json();
 
-        expect(json.timeSeriesData).toEqual([]);
-        expect(json.summaryMetrics.impressions).toBe(0);
-        expect(json.summaryMetrics.clicks).toBe(0);
-        expect(json.summaryMetrics.spend).toBe(0);
-        // ...etc for other summary metrics
-        expect(json.summaryMetrics.ctr).toBe(0);
-        expect(json.summaryMetrics.cpc).toBe(0);
+      expect(json.timeSeriesData).toEqual([]);
+      expect(json.summaryMetrics.impressions).toBe(0);
+      expect(json.summaryMetrics.clicks).toBe(0);
+      expect(json.summaryMetrics.spend).toBe(0);
+      // ...etc for other summary metrics
+      expect(json.summaryMetrics.ctr).toBe(0);
+      expect(json.summaryMetrics.cpc).toBe(0);
     });
   });
 
@@ -280,7 +319,7 @@ describe("GET /api/dashboard/metrics", () => {
       expect(json.error).toBe("Failed to fetch dashboard metrics.");
       expect(json.details).toBe("Simulated processing error");
 
-      Array.prototype.map = originalMap; 
+      Array.prototype.map = originalMap;
     });
   });
-}); 
+});

@@ -1,5 +1,3 @@
-
-
 ## Firecrawl MCP
 
 Opis: Zaawansowany web-scraping i crawling z retry i rate-limitingiem.
@@ -25,8 +23,7 @@ Opis: Zaawansowany web-scraping i crawling z retry i rate-limitingiem.
 
 - W promptach poprzedź zapytanie frazą `use firecrawl-mcp`.
 - Przykład:
-> „Pobierz listę nagłówków z https://example.com use firecrawl-mcp”
-
+  > „Pobierz listę nagłówków z https://example.com use firecrawl-mcp”
 
 ## Context7 MCP
 
@@ -49,8 +46,7 @@ Opis: Dostarcza zawsze aktualną, wersjonowaną dokumentację i przykłady kodu.
 
 - Dodaj `use context7` w treści prompta.
 - Przykład:
-> „Jak zainicjalizować klienta Redis w Pythonie? use context7”
-
+  > „Jak zainicjalizować klienta Redis w Pythonie? use context7”
 
 ## GitHub MCP
 
@@ -76,8 +72,7 @@ Opis: Integracja z GitHub API do automatyzacji i analizy repozytoriów.
 
 - W promptach dodaj `use github`.
 - Przykład:
-> „Znajdź wszystkie otwarte issue w repozytorium user/proj use github”
-
+  > „Znajdź wszystkie otwarte issue w repozytorium user/proj use github”
 
 ## Supabase MCP
 
@@ -100,8 +95,7 @@ Opis: Pozwala AI na zapytania i operacje na bazie Supabase.
 
 - W promptach użyj `use supabase`.
 - Przykład:
-> „Pobierz listę użytkowników z tabeli users use supabase”
-
+  > „Pobierz listę użytkowników z tabeli users use supabase”
 
 ## Sequential Thinking MCP
 
@@ -127,8 +121,7 @@ Opis: Strukturyzuje sekwencyjne myślenie agenta, zapisując kroki w Recall.
 
 - Dołącz `use sequential-thinking` do prompta.
 - Przykład:
-> „Rozwiąż ten problem w krokach use sequential-thinking”
-
+  > „Rozwiąż ten problem w krokach use sequential-thinking”
 
 ## Playwright MCP
 
@@ -151,8 +144,7 @@ Opis: Automatyzuje interakcje z przeglądarką i API testy.
 
 - W promptach dodaj `use playwright`.
 - Przykład:
-> „Odwiedź stronę example.com i zrób zrzut ekranu use playwright”
-
+  > „Odwiedź stronę example.com i zrób zrzut ekranu use playwright”
 
 ## Memory Bank MCP
 
@@ -178,8 +170,7 @@ Opis: Zdalny dostęp do plików pamięci projektu z operacjami read/write.
 
 - W promptach użyj `use memory-bank`.
 - Przykład:
-> „Zapisz notatkę „Spotkanie z klientem” do pamięci use memory-bank”
-
+  > „Zapisz notatkę „Spotkanie z klientem” do pamięci use memory-bank”
 
 ## Knowledge Graph Memory MCP
 
@@ -205,8 +196,7 @@ Opis: Trwała pamięć jako graf wiedzy z relacjami i encjami.
 
 - Dodaj `use knowledge-graph-memory` w promptach.
 - Przykład:
-> „Dodaj encję „Projekt X” z opisem use knowledge-graph-memory”
-
+  > „Dodaj encję „Projekt X” z opisem use knowledge-graph-memory”
 
 ## DuckDuckGo MCP
 
@@ -229,7 +219,7 @@ Opis: Wyszukiwanie i pobieranie treści przez DuckDuckGo z rate-limitingiem.
 
 - W promptach dołącz `use ddg-search`.
 - Przykład:
-> „Znajdź najnowsze wiadomości o AI use ddg-search”
+  > „Znajdź najnowsze wiadomości o AI use ddg-search”
 
 ---
 
@@ -414,4 +404,3 @@ Po skonfigurowaniu każdego MCP Servera, agent Cursor rozpozna odpowiednie narz�
 [^88]: https://playbooks.com/mcp/zhsama-duckduckgo-search
 
 [^89]: https://github.com/gianlucamazza/mcp-duckduckgo
-

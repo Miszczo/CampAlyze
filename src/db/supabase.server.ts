@@ -5,7 +5,7 @@ import type { Database } from "./database.types";
 export function supabaseServerClient(Astro: AstroGlobal) {
   const supabaseUrl = import.meta.env.SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
-  
+
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       flowType: "pkce",
@@ -18,4 +18,4 @@ export function supabaseServerClient(Astro: AstroGlobal) {
       },
     },
   });
-} 
+}

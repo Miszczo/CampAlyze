@@ -41,11 +41,12 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
     if (dbError) {
       console.error("Database error fetching import status:", dbError);
-      if (dbError.code === 'PGRST116') { // Not a single row
+      if (dbError.code === "PGRST116") {
+        // Not a single row
         return new Response(JSON.stringify({ error: "Import not found or access denied" }), {
-            status: 404,
-            headers: { "Content-Type": "application/json" },
-          });
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
       }
       return new Response(JSON.stringify({ error: "Failed to fetch import status" }), {
         status: 500,
@@ -70,7 +71,6 @@ export const GET: APIRoute = async ({ params, locals }) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     console.error("Unexpected error fetching import status:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
@@ -78,4 +78,4 @@ export const GET: APIRoute = async ({ params, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-}; 
+};

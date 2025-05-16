@@ -1,15 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import type { Database } from '../db/database.types.ts'; // Corrected filename
+import Layout from "../layouts/Layout.astro";
+import type { Database } from "../db/database.types.ts"; // Corrected filename
 import { Button } from "@/components/ui/button";
 
 // Define a type for our joined data using type alias and intersection
-type AiInsightRow = Database['public']['Tables']['ai_insights']['Row'];
-type ImportsRowForInsight = { 
+type AiInsightRow = Database["public"]["Tables"]["ai_insights"]["Row"];
+interface ImportsRowForInsight {
   imports: {
     file_path: string | null;
   } | null;
-};
+}
 type AiInsightWithImport = AiInsightRow & ImportsRowForInsight;
 
 const { supabase, session } = Astro.locals;
@@ -22,21 +22,23 @@ if (!supabase) {
   fetchError = "Please log in to view AI insights.";
 } else {
   const { data, error } = await supabase
-    .from('ai_insights')
-    .select(`
+    .from("ai_insights")
+    .select(
+      `
       *,
       imports (
         file_path
       )
-    `)
-    .eq('user_id', session.user.id)
-    .order('created_at', { ascending: false });
+    `
+    )
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching AI insights:", error);
     fetchError = error.message || "Could not fetch AI insights.";
   } else {
-    insights = data as AiInsightWithImport[]; 
+    insights = data as AiInsightWithImport[];
   }
 }
 
@@ -47,41 +49,54 @@ const pageTitle = "AI Insights | CampAlyze";
   <div class="container mx-auto py-8 px-4">
     <h1 class="text-3xl font-bold mb-8 text-gray-800">Your AI-Generated Reports</h1>
 
-    {fetchError && (
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-        <strong class="font-bold">Error:</strong>
-        <span class="block sm:inline">{fetchError}</span>
-      </div>
-    )}
+    {
+      fetchError && (
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+          <strong class="font-bold">Error:</strong>
+          <span class="block sm:inline">{fetchError}</span>
+        </div>
+      )
+    }
 
-    {insights && insights.length === 0 && !fetchError && (
-      <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-6" role="alert">
-        <strong class="font-bold">No Reports Found:</strong>
-        <span class="block sm:inline">You haven't generated any AI reports yet, or there was an issue fetching them. Try generating an analysis for one of your imports.</span>
-      </div>
-    )}
+    {
+      insights && insights.length === 0 && !fetchError && (
+        <div
+          class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-6"
+          role="alert"
+        >
+          <strong class="font-bold">No Reports Found:</strong>
+          <span class="block sm:inline">
+            You haven't generated any AI reports yet, or there was an issue fetching them. Try generating an analysis
+            for one of your imports.
+          </span>
+        </div>
+      )
+    }
 
-    {insights && insights.length > 0 && (
-      <div class="space-y-6">
-        {insights.map((insight) => (
-          <div class="bg-white shadow-lg rounded-lg p-6 transition-shadow hover:shadow-xl">
-            <div class="mb-4">
-              <h2 class="text-xl font-semibold text-gray-700 mb-1">Report for: <span class="font-normal">{insight.imports?.file_path || 'Unknown File'}</span></h2>
-              <p class="text-sm text-gray-500">
-                Generated on: {new Date(insight.created_at).toLocaleString()} using {insight.model_used || 'default model'}
-              </p>
+    {
+      insights && insights.length > 0 && (
+        <div class="space-y-6">
+          {insights.map((insight) => (
+            <div class="bg-white shadow-lg rounded-lg p-6 transition-shadow hover:shadow-xl">
+              <div class="mb-4">
+                <h2 class="text-xl font-semibold text-gray-700 mb-1">
+                  Report for: <span class="font-normal">{insight.imports?.file_path || "Unknown File"}</span>
+                </h2>
+                <p class="text-sm text-gray-500">
+                  Generated on: {new Date(insight.created_at).toLocaleString()} using{" "}
+                  {insight.model_used || "default model"}
+                </p>
+              </div>
+              <div class="prose prose-sm max-w-none text-gray-600 mb-4 whitespace-pre-wrap">{insight.insights}</div>
+              {insight.import_id && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={`/imports/${insight.import_id}`}>View Original Import</a>
+                </Button>
+              )}
             </div>
-            <div class="prose prose-sm max-w-none text-gray-600 mb-4 whitespace-pre-wrap">
-              {insight.insights}
-            </div>
-            {insight.import_id && (
-              <Button asChild variant="outline" size="sm">
-                <a href={`/imports/${insight.import_id}`}>View Original Import</a>
-              </Button>
-            )}
-          </div>
-        ))}
-      </div>
-    )}
+          ))}
+        </div>
+      )
+    }
   </div>
-</Layout> 
+</Layout>

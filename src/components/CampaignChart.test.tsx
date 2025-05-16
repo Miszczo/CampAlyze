@@ -42,7 +42,11 @@ describe("CampaignChart", () => {
 
   it("wyświetla komunikat gdy wybrana metryka nie istnieje w danych", () => {
     render(<CampaignChart data={mockData} metric={"non_existent_metric" as any} metricLabel="Nieistniejąca Metryka" />);
-    expect(screen.getByText('Wybrana metryka "Nieistniejąca Metryka" nie jest dostępna w danych lub jej wartość jest nieokreślona.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Wybrana metryka "Nieistniejąca Metryka" nie jest dostępna w danych lub jej wartość jest nieokreślona.'
+      )
+    ).toBeInTheDocument();
   });
 
   it("poprawnie renderuje wykres gdy dane zawierają wartości null dla metryk", () => {

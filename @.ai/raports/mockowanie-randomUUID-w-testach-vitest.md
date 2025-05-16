@@ -18,7 +18,7 @@ Pierwsza próba polegała na użyciu standardowego podejścia do mockowania modu
 
 ```typescript
 vi.mock("crypto", () => ({
-  randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000")
+  randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000"),
 }));
 ```
 
@@ -41,7 +41,7 @@ Problem: Ten kod generował błąd: "randomUUID is not a function", ponieważ mo
 const mockRandomUUID = vi.hoisted(() => vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000"));
 
 vi.mock("crypto", () => ({
-  randomUUID: mockRandomUUID
+  randomUUID: mockRandomUUID,
 }));
 ```
 
@@ -52,13 +52,13 @@ Problem: Nadal występowały błędy z referencjami do pozostałych funkcji modu
 Ostatecznie rozwiązanie zostało znalezione w dokumentacji Vitest i bazowało na użyciu parametru `importOriginal` w funkcji `vi.mock()`. Pozwala to na zaimportowanie oryginalnego modułu, a następnie nadpisanie tylko tych funkcji, które chcemy zmockować.
 
 ```typescript
-import type * as Crypto from 'crypto';
+import type * as Crypto from "crypto";
 
 vi.mock("crypto", async (importOriginal) => {
   const actual = await importOriginal<typeof Crypto>();
   return {
     ...actual,
-    randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000")
+    randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000"),
   };
 });
 ```
@@ -106,6 +106,7 @@ describe("Mockowanie crypto.randomUUID", () => {
 ```
 
 Test ten potwierdził, że:
+
 1. Funkcja `randomUUID()` zwraca zamockowaną wartość
 2. Możemy śledzić wywołania tej funkcji za pomocą `vi.mocked()`
 
@@ -119,9 +120,9 @@ describe("POST /api/imports/upload - scenariusz podstawowy", () => {
     auth: {
       getSession: vi.fn().mockResolvedValue({
         data: { session: null },
-        error: null
-      })
-    }
+        error: null,
+      }),
+    },
   };
 
   beforeEach(() => {
@@ -135,12 +136,12 @@ describe("POST /api/imports/upload - scenariusz podstawowy", () => {
   it("powinno zwrócić 401 dla nieautoryzowanego użytkownika", async () => {
     mockSupabase.auth.getSession.mockResolvedValueOnce({
       data: { session: null },
-      error: null
+      error: null,
     });
 
     const mockContext = {
       locals: { supabase: mockSupabase },
-      request: new Request("http://localhost/api/imports/upload", { method: "POST" })
+      request: new Request("http://localhost/api/imports/upload", { method: "POST" }),
     } as unknown as APIContext;
 
     const response = await POST(mockContext);
@@ -167,4 +168,4 @@ describe("POST /api/imports/upload - scenariusz podstawowy", () => {
 
 - [Dokumentacja Vitest - Mocking](https://vitest.dev/guide/mocking.html)
 - [Dokumentacja Node.js crypto module](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions)
-- [TypeScript - Working with Type Declarations](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html) 
+- [TypeScript - Working with Type Declarations](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)

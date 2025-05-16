@@ -12,10 +12,7 @@ interface ImportFormProps {
   onImportError?: (error: Error) => void;
 }
 
-export default function ImportForm({ 
-  onImportSuccess, 
-  onImportError 
-}: ImportFormProps) {
+export default function ImportForm({ onImportSuccess, onImportError }: ImportFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +26,7 @@ export default function ImportForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!file) {
       setError("Wybierz plik do importu.");
       return;
@@ -40,7 +37,7 @@ export default function ImportForm({
 
     const formData = new FormData();
     formData.append("file", file);
-    
+
     // Dodaj parametr platformy (potrzebny dla API)
     formData.append("platform_id", "google"); // Domyślna platforma
 
@@ -57,7 +54,7 @@ export default function ImportForm({
           description: "Plik został wysłany do przetwarzania.",
           variant: "default",
         });
-        
+
         if (onImportSuccess) {
           onImportSuccess(data);
         }
@@ -68,13 +65,13 @@ export default function ImportForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
-      
+
       toast({
         title: "Błąd importu",
         description: errorMessage,
         variant: "destructive",
       });
-      
+
       if (onImportError) {
         onImportError(err instanceof Error ? err : new Error(String(err)));
       }
@@ -87,9 +84,7 @@ export default function ImportForm({
     <Card className="max-w-md mx-auto">
       <CardHeader>
         <CardTitle>Importuj plik danych</CardTitle>
-        <CardDescription>
-          Wybierz plik CSV lub XLSX do analizy kampanii reklamowych
-        </CardDescription>
+        <CardDescription>Wybierz plik CSV lub XLSX do analizy kampanii reklamowych</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} aria-label="Formularz importu pliku">
@@ -111,16 +106,20 @@ export default function ImportForm({
           </div>
 
           {error && (
-            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md mb-4 flex items-center" role="alert" data-testid="error-alert">
+            <div
+              className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md mb-4 flex items-center"
+              role="alert"
+              data-testid="error-alert"
+            >
               <AlertCircle className="h-4 w-4 mr-2" />
               <span>{error}</span>
             </div>
           )}
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isUploading} 
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isUploading}
             data-testid="import-button"
             aria-disabled={isUploading}
           >
@@ -129,10 +128,12 @@ export default function ImportForm({
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Wysyłanie...
               </>
-            ) : "Importuj"}
+            ) : (
+              "Importuj"
+            )}
           </Button>
         </form>
       </CardContent>
     </Card>
   );
-} 
+}

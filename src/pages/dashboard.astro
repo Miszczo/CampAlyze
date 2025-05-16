@@ -31,10 +31,10 @@ const userFullName = session.user?.user_metadata?.full_name || session.user?.ema
 
 // Zmienne na dane organizacji i błędy inicjalizacji
 let organizationId: string | undefined;
-let initialError: string | null = null;
+// let initialError: string | null = null; // Zakomentowane - nieużywane
 
 if (!Astro.locals.supabase) {
-  initialError = "Błąd inicjalizacji usługi bazy danych. Skontaktuj się z administratorem.";
+  // initialError = "Błąd inicjalizacji usługi bazy danych. Skontaktuj się z administratorem."; // Zakomentowane
 } else {
   // Pobieranie organizacji użytkownika (w MVP zakładamy, że użytkownik ma tylko jedną organizację)
   const { data: userOrgs, error: userOrgsError } = await Astro.locals.supabase
@@ -44,7 +44,7 @@ if (!Astro.locals.supabase) {
     .limit(1);
 
   if (userOrgsError) {
-    initialError = "Błąd podczas pobierania organizacji użytkownika.";
+    // initialError = "Błąd podczas pobierania organizacji użytkownika."; // Zakomentowane
     // console.error("Error fetching user organizations:", userOrgsError);
   } else {
     organizationId = userOrgs?.[0]?.organization_id;
@@ -81,12 +81,10 @@ const campaignOptions: SelectOption[] = [
 let metricsData: DashboardMetricsResponse | null = null;
 let error: string | null = null;
 
-// Sprawdzenie, czy Astro.locals.supabase jest dostępne
 if (!Astro.locals.supabase) {
   error = "Błąd inicjalizacji usługi bazy danych. Skontaktuj się z administratorem.";
 } else if (organizationId) {
   try {
-    // Zaktualizowano URL, aby uwzględniał nowe parametry filtrowania
     const apiUrl = new URL(`/api/dashboard/metrics`, Astro.url.origin);
     apiUrl.searchParams.set("organization_id", organizationId);
     apiUrl.searchParams.set("dateFrom", dateFromState);
@@ -95,7 +93,7 @@ if (!Astro.locals.supabase) {
       apiUrl.searchParams.set("platform", selectedPlatformState);
     }
     if (selectedCampaignState !== "all") {
-      apiUrl.searchParams.set("campaign_id", selectedCampaignState); // Zakładając, że API akceptuje campaign_id
+      apiUrl.searchParams.set("campaign_id", selectedCampaignState);
     }
 
     const response = await fetch(apiUrl.toString(), {
@@ -110,9 +108,8 @@ if (!Astro.locals.supabase) {
     } else {
       metricsData = await response.json();
     }
-  } catch (err) {
+  } catch /* (err) */ {
     error = "Błąd połączenia z serwerem";
-    // Zakomentowałem console.error zgodnie z regułami lintera
     // console.error("Error fetching dashboard metrics:", err);
   }
 }
@@ -360,7 +357,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
               </Button>
             </div>
             <div class="flex gap-2">
-              <a 
+              <a
                 href="/imports-upload"
                 class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-purple-600 text-primary-foreground shadow hover:bg-purple-700 h-9 px-4 py-2"
               >
@@ -380,14 +377,16 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
           <div class="mb-6 p-4 bg-white rounded-lg shadow">
             <h3 class="mb-3 text-lg font-semibold text-gray-700">Filtry</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-              {/* <div class="flex flex-col space-y-1">
+              {
+                /* <div class="flex flex-col space-y-1">
                 <label for="dateFrom" class="text-sm font-medium text-gray-700">Data od:</label>
                 <DatePicker client:load date={new Date(dateFromState)} paramName="dateFrom" />
               </div>
               <div class="flex flex-col space-y-1">
                 <label for="dateTo" class="text-sm font-medium text-gray-700">Data do:</label>
                 <DatePicker client:load date={new Date(dateToState)} paramName="dateTo" />
-              </div> */}
+              </div> */
+              }
               <div class="flex flex-col space-y-1">
                 <label for="platform" class="text-sm font-medium text-gray-700">Platforma:</label>
                 <DropdownSelect
@@ -588,18 +587,33 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
 </Layout>
 
 <script>
-  // Polling dla oczekującego importu
   if (typeof window !== "undefined") {
     const urlParams = new URLSearchParams(window.location.search);
     const pendingImportId = urlParams.get("pendingImportId");
 
     if (pendingImportId) {
-      // Wyświetl tymczasowy komunikat o przetwarzaniu
-      const showProcessingMessage = () => {
-        let notification = document.getElementById("import-processing-notification");
+      const notificationContainerId = "import-processing-notification";
+
+      const removeProcessingMessage = () => {
+        const notification = document.getElementById(notificationContainerId);
+        if (notification) {
+          notification.remove();
+        }
+      };
+
+      const showErrorAlert = (message: string) => {
+        removeProcessingMessage();
+        alert(`Błąd importu: ${message}`);
+        urlParams.delete("pendingImportId");
+        window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams.toString()}`);
+      };
+
+      // Display initial processing message
+      (() => {
+        let notification = document.getElementById(notificationContainerId);
         if (!notification) {
           notification = document.createElement("div");
-          notification.id = "import-processing-notification";
+          notification.id = notificationContainerId;
           notification.style.position = "fixed";
           notification.style.bottom = "20px";
           notification.style.right = "20px";
@@ -619,41 +633,30 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
           `;
           document.body.appendChild(notification);
         }
-      };
+      })();
 
-      const removeProcessingMessage = () => {
-        const notification = document.getElementById("import-processing-notification");
-        if (notification) {
-          notification.remove();
+      const startTime = Date.now();
+      const MAX_POLL_DURATION = 5 * 60 * 1000;
+      const POLL_INTERVAL = 5000;
+
+      const pollingFunction = async () => {
+        const now = Date.now();
+        if (now - startTime > MAX_POLL_DURATION) {
+          clearInterval(pollTimerId);
+          showErrorAlert("Przekroczono maksymalny czas oczekiwania na zakończenie importu.");
+          return;
         }
-      };
-      
-      const showErrorAlert = (message: string) => {
-        removeProcessingMessage(); // Usuń komunikat o przetwarzaniu
-        // Można zintegrować z istniejącym systemem alertów lub dodać nowy
-        alert(`Błąd importu: ${message}`); // Prosty alert na razie
-        // Usuń parametr z URL, aby nie próbować ponownie po odświeżeniu
-        urlParams.delete("pendingImportId");
-        window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams.toString()}`);
-      };
 
-
-      const pollInterval = 5000; // Co 5 sekund
-      let pollTimerId: number | undefined;
-
-      const checkImportStatus = async () => {
         try {
-          // TODO: Upewnij się, że ten endpoint istnieje i zwraca { status: "pending" | "completed" | "failed", message?: string }
           const response = await fetch(`/api/imports/${pendingImportId}/status`);
           if (!response.ok) {
-            // Jeśli status HTTP jest błędem, ale nie jest to błąd serwera, spróbuj odczytać JSON
             if (response.status >= 400 && response.status < 500) {
-                const errorData = await response.json();
-                console.error("Błąd statusu importu (klient):", errorData.message || response.statusText);
-                showErrorAlert(errorData.message || "Nie udało się pobrać statusu importu.");
+              const errorData = await response.json();
+              console.error("Błąd statusu importu (klient):", errorData.message || response.statusText);
+              showErrorAlert(errorData.message || "Nie udało się pobrać statusu importu.");
             } else {
-                console.error("Błąd serwera podczas sprawdzania statusu importu:", response.statusText);
-                showErrorAlert("Błąd serwera podczas sprawdzania statusu importu.");
+              console.error("Błąd serwera podczas sprawdzania statusu importu:", response.statusText);
+              showErrorAlert("Błąd serwera podczas sprawdzania statusu importu.");
             }
             clearInterval(pollTimerId);
             return;
@@ -664,7 +667,6 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
           if (data.status === "completed") {
             clearInterval(pollTimerId);
             removeProcessingMessage();
-            // Usuń parametr z URL przed przeładowaniem
             urlParams.delete("pendingImportId");
             window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams.toString()}`);
             window.location.reload();
@@ -673,10 +675,8 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
             console.error("Import nie powiódł się:", data.message || "Brak szczegółów błędu.");
             showErrorAlert(data.message || "Import zakończony niepowodzeniem.");
           } else if (data.status === "pending") {
-            // Kontynuuj polling, nic nie rób
             console.log("Import w toku, status:", data.status);
           } else {
-            // Nieznany status, zatrzymaj polling i zaloguj błąd
             clearInterval(pollTimerId);
             console.error("Nieznany status importu:", data.status);
             showErrorAlert("Otrzymano nieznany status importu.");
@@ -687,17 +687,16 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
           showErrorAlert("Wystąpił błąd podczas komunikacji z serwerem w celu sprawdzenia statusu importu.");
         }
       };
-      
-      showProcessingMessage();
-      // Uruchom polling
-      // Pierwsze sprawdzenie od razu, potem interwał
-      checkImportStatus();
-      pollTimerId = window.setInterval(checkImportStatus, pollInterval);
+
+      // Initial check immediately
+      pollingFunction();
+      // Then set interval
+
+      const pollTimerId = setInterval(pollingFunction, POLL_INTERVAL);
     }
   }
 
-  // Dodanie animacji dla ikony ładowania w komunikacie
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.innerHTML = `
     @keyframes spin {
       0% { transform: rotate(0deg); }

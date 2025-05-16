@@ -306,7 +306,7 @@ describe("ResetPasswordForm Component", () => {
 
   it("should display network error message", async () => {
     mockFetch.mockRejectedValue(new Error("Network request failed"));
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Mock console.error
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}); // Mock console.error
 
     render(<ResetPasswordForm />);
     await fillAndSubmitForm();

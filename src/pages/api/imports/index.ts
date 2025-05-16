@@ -22,7 +22,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
     // Dodano filtrowanie po user_id, aby użytkownik widział tylko swoje importy
     const { data: imports, error } = await supabase
       .from("imports")
-      .select(`
+      .select(
+        `
         id,
         platform_id,
         platforms (name),
@@ -31,7 +32,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
         created_at,
         error_message,
         user_id 
-      `)
+      `
+      )
       .eq("user_id", session.user.id) // Filtrowanie po user_id
       .order("created_at", { ascending: false });
 
@@ -68,4 +70,4 @@ export const GET: APIRoute = async ({ request, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-}; 
+};

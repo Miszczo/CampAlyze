@@ -26,7 +26,7 @@ describe("DELETE /api/imports/:id endpoint", () => {
 
     // Definicja mocków dla poszczególnych operacji Supabase
     const mockAuthGetSession = vi.fn().mockResolvedValue({ data: { session: mockSession } });
-    
+
     const mockStorageRemove = vi.fn().mockResolvedValue({ error: null });
     const mockStorageFrom = vi.fn().mockReturnValue({ remove: mockStorageRemove });
 
@@ -34,12 +34,12 @@ describe("DELETE /api/imports/:id endpoint", () => {
       data: { file_path: "user-123/platform-uuid/123e4567-e89b-12d3-a456-426614174000.csv" },
       error: null,
     });
-    
+
     // Mockowanie dla delete().eq("id", id).eq("user_id", userId)
     const mockImportDeleteEqUserId = vi.fn().mockResolvedValue({ error: null });
     const mockImportDeleteEqId = vi.fn().mockReturnValue({ eq: mockImportDeleteEqUserId });
     const mockImportDelete = vi.fn().mockReturnValue({ eq: mockImportDeleteEqId });
-    
+
     const mockImportSelectEqUserId = vi.fn().mockReturnValue({ single: mockImportSingle });
     const mockImportSelectEqId = vi.fn().mockReturnValue({ eq: mockImportSelectEqUserId });
     const mockImportSelect = vi.fn().mockReturnValue({ eq: mockImportSelectEqId });
@@ -117,23 +117,24 @@ describe("DELETE /api/imports/:id endpoint", () => {
 
     // Sprawdź status odpowiedzi
     expect(response.status).toBe(200);
-    
+
     // Sprawdź, czy pobieranie importu zostało wywołane poprawnie
     expect(mockSupabase._mocks.from).toHaveBeenCalledWith("imports");
     expect(mockSupabase._mocks.importSelect).toHaveBeenCalledWith("file_path");
     expect(mockSupabase._mocks.importSelectEqId).toHaveBeenCalledWith("id", mockParams.id);
     expect(mockSupabase._mocks.importSelectEqUserId).toHaveBeenCalledWith("user_id", mockSession.user.id);
     expect(mockSupabase._mocks.importSingle).toHaveBeenCalled();
-    
+
     // Sprawdź, czy usuwanie pliku zostało wywołane
     expect(mockSupabase._mocks.storageFrom).toHaveBeenCalledWith("imports");
-    expect(mockSupabase._mocks.storageRemove).toHaveBeenCalledWith(["user-123/platform-uuid/123e4567-e89b-12d3-a456-426614174000.csv"]);
-    
+    expect(mockSupabase._mocks.storageRemove).toHaveBeenCalledWith([
+      "user-123/platform-uuid/123e4567-e89b-12d3-a456-426614174000.csv",
+    ]);
+
     // Sprawdź, czy usuwanie rekordu zostało wywołane poprawnie
     expect(mockSupabase._mocks.importDelete).toHaveBeenCalled();
     expect(mockSupabase._mocks.importDeleteEqId).toHaveBeenCalledWith("id", mockParams.id);
     expect(mockSupabase._mocks.importDeleteEqUserId).toHaveBeenCalledWith("user_id", mockSession.user.id);
-
 
     // Sprawdź odpowiedź
     const responseBody = await response.json();
@@ -142,18 +143,20 @@ describe("DELETE /api/imports/:id endpoint", () => {
 
   it("should handle errors when deleting file from storage and still delete record", async () => {
     // Mock dla błędu podczas usuwania pliku ze storage
-    mockSupabase._mocks.storageRemove.mockResolvedValueOnce({ 
-      error: { message: "Storage error" } 
+    mockSupabase._mocks.storageRemove.mockResolvedValueOnce({
+      error: { message: "Storage error" },
     });
 
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const mockLocals = { supabase: mockSupabase };
     const response = await DELETE({ params: mockParams, locals: mockLocals } as any);
 
     // Sprawdź, czy ostrzeżenie zostało zalogowane
-    expect(consoleWarnSpy).toHaveBeenCalledWith("Warning: Could not delete file from storage:", {"message": "Storage error"});
-    
+    expect(consoleWarnSpy).toHaveBeenCalledWith("Warning: Could not delete file from storage:", {
+      message: "Storage error",
+    });
+
     // Sprawdź status odpowiedzi - nadal powinno być 200, ponieważ rekord został usunięty
     expect(response.status).toBe(200);
     const responseBody = await response.json();
@@ -170,8 +173,8 @@ describe("DELETE /api/imports/:id endpoint", () => {
   it("should return 500 if deleting record from db fails", async () => {
     // Mock dla błędu podczas usuwania rekordu z bazy
     // Ten mock powinien być na ostatnim kroku łańcucha: delete().eq().eq()
-    mockSupabase._mocks.importDeleteEqUserId.mockResolvedValueOnce({ 
-      error: { message: "DB delete error" } 
+    mockSupabase._mocks.importDeleteEqUserId.mockResolvedValueOnce({
+      error: { message: "DB delete error" },
     });
 
     const mockLocals = { supabase: mockSupabase };
@@ -181,7 +184,6 @@ describe("DELETE /api/imports/:id endpoint", () => {
     const responseBody = await response.json();
     expect(responseBody.error).toBe("Failed to delete import");
   });
-
 
   it("should return 500 if fetching import details fails (non-PGRST116 error)", async () => {
     mockSupabase._mocks.importSingle.mockResolvedValueOnce({
@@ -196,4 +198,4 @@ describe("DELETE /api/imports/:id endpoint", () => {
     const responseBody = await response.json();
     expect(responseBody.error).toBe("Failed to fetch import");
   });
-}); 
+});

@@ -1,7 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import ImportDetailsDisplay from "../../components/ImportDetailsDisplay.tsx";
-import type { Import, Campaign, Metric, Platform } from "../../types";
+import type { Import, Platform } from "../../types";
 
 const { session, supabase } = Astro.locals;
 
@@ -33,13 +33,10 @@ if (!supabase) {
     importDetailsData = importResult as Import;
 
     // 2. Pobierz wszystkie dostępne platformy
-    const { data: platformsResult, error: platformsError } = await supabase
-      .from("platforms")
-      .select("id, name");
-    
+    const { data: platformsResult, error: platformsError } = await supabase.from("platforms").select("id, name");
+
     if (platformsError) throw platformsError;
     allPlatforms = platformsResult || [];
-
   } catch (error) {
     console.error(`Error fetching data for import ID ${importId}:`, error);
     fetchError = error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd podczas pobierania danych.";
@@ -51,20 +48,18 @@ if (!supabase) {
 
 <Layout title={importDetailsData ? `Szczegóły: ${importDetailsData.file_name}` : "Szczegóły importu"}>
   <div class="container mx-auto px-4 py-8">
-    {fetchError ? (
-      <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-        <span class="font-medium">Błąd ładowania danych!</span> {fetchError}
-        <br />
-        <a href="/imports" class="mt-2 inline-block text-primary hover:underline">
-          ← Powrót do listy importów
-        </a>
-      </div>
-    ) : (
-      <ImportDetailsDisplay 
-        client:load 
-        importDetails={importDetailsData} 
-        platforms={allPlatforms}
-      />
-    )}
+    {
+      fetchError ? (
+        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+          <span class="font-medium">Błąd ładowania danych!</span> {fetchError}
+          <br />
+          <a href="/imports" class="mt-2 inline-block text-primary hover:underline">
+            ← Powrót do listy importów
+          </a>
+        </div>
+      ) : (
+        <ImportDetailsDisplay client:load importDetails={importDetailsData} platforms={allPlatforms} />
+      )
+    }
   </div>
-</Layout> 
+</Layout>

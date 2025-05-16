@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { randomUUID } from "crypto";
-import type * as Crypto from 'crypto';
+import type * as Crypto from "crypto";
 import { POST } from "./upload";
 import type { APIContext } from "astro";
 
@@ -11,36 +11,36 @@ vi.mock("crypto", async (importOriginal) => {
   const actual = await importOriginal<typeof Crypto>();
   return {
     ...actual,
-    randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000")
+    randomUUID: vi.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000"),
   };
 });
 
 // Mock dla File.arrayBuffer()
-const createMockFile = (content = 'test,data,content', name = 'test.csv', type = 'text/csv', size = 1024) => {
+const createMockFile = (content = "test,data,content", name = "test.csv", type = "text/csv", size = 1024) => {
   const blob = new Blob([content], { type });
   const file = new File([blob], name, { type });
-  
+
   // Nadpisujemy arrayBuffer, który jest używany w kodzie
   file.arrayBuffer = vi.fn().mockResolvedValue(new ArrayBuffer(size));
-  
+
   // Nadpisujemy size jeśli potrzeba specyficznego rozmiaru
-  Object.defineProperty(file, 'size', {
+  Object.defineProperty(file, "size", {
     value: size,
     writable: false,
-    configurable: true
+    configurable: true,
   });
-  
+
   return file;
 };
 
 // Mock dla FormData
 class MockFormData {
   private data = new Map();
-  
+
   append(key, value) {
     this.data.set(key, value);
   }
-  
+
   get(key) {
     return this.data.get(key);
   }
@@ -54,53 +54,53 @@ class MockFormData {
 const createMockSupabase = () => {
   // Mock dla sesji
   const mockSession = {
-    user: { id: 'user-123' },
-    access_token: 'mock-token'
+    user: { id: "user-123" },
+    access_token: "mock-token",
   };
 
   // Mock dla auth.getSession
   const mockGetSession = vi.fn().mockResolvedValue({
     data: { session: mockSession },
-    error: null
+    error: null,
   });
 
   // Mock dla operacji storage
   const mockUpload = vi.fn().mockResolvedValue({
-    data: { path: 'org-123/google/123e4567-e89b-12d3-a456-426614174000.csv' },
-    error: null
+    data: { path: "org-123/google/123e4567-e89b-12d3-a456-426614174000.csv" },
+    error: null,
   });
-  
+
   const mockRemove = vi.fn().mockResolvedValue({
     data: {},
-    error: null
+    error: null,
   });
-  
+
   const mockStorageFrom = vi.fn().mockReturnValue({
     upload: mockUpload,
-    remove: mockRemove
+    remove: mockRemove,
   });
 
   // Mock dla operacji DB (tabela 'imports')
   const mockImportSingle = vi.fn().mockResolvedValue({
     data: {
-      id: '123e4567-e89b-12d3-a456-426614174000',
-      original_filename: 'test.csv',
-      status: 'pending',
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      original_filename: "test.csv",
+      status: "pending",
     },
-    error: null
+    error: null,
   });
   const mockImportSelect = vi.fn().mockReturnValue({ single: mockImportSingle });
   const mockInsert = vi.fn().mockReturnValue({ select: mockImportSelect });
-  
+
   // Mock dla operacji DB (tabela 'platforms')
-  const mockPlatformSingle = vi.fn().mockImplementation(({ }) => {
+  const mockPlatformSingle = vi.fn().mockImplementation(({}) => {
     // Domyślnie zwracamy sukces dla platformy, można to nadpisać w testach
     // Sprawdzimy, czy eq('name', 'google') lub eq('name', 'meta') jest wywoływane
     // i zwrócimy odpowiedni UUID.
     // Ta implementacja jest uproszczona; w rzeczywistych testach można by ją rozbudować
     // o sprawdzanie argumentu przekazanego do eq().
     return Promise.resolve({
-      data: { id: 'platform-uuid-google' }, // Domyślny UUID, np. dla 'google'
+      data: { id: "platform-uuid-google" }, // Domyślny UUID, np. dla 'google'
       error: null,
     });
   });
@@ -109,10 +109,10 @@ const createMockSupabase = () => {
 
   // Mock dla from()
   const mockFrom = vi.fn().mockImplementation((tableName) => {
-    if (tableName === 'imports') {
+    if (tableName === "imports") {
       return { insert: mockInsert };
     }
-    if (tableName === 'platforms') {
+    if (tableName === "platforms") {
       return { select: mockPlatformSelect };
     }
     return {
@@ -125,7 +125,7 @@ const createMockSupabase = () => {
       single: vi.fn().mockResolvedValue({ data: {}, error: null }),
     };
   });
-  
+
   return {
     auth: { getSession: mockGetSession },
     storage: { from: mockStorageFrom },
@@ -142,8 +142,8 @@ const createMockSupabase = () => {
       platformSingle: mockPlatformSingle,
       platformEq: mockPlatformEq,
       platformSelect: mockPlatformSelect,
-      from: mockFrom
-    }
+      from: mockFrom,
+    },
   };
 };
 
@@ -170,33 +170,33 @@ describe("POST /api/imports/upload", () => {
   let mockFile;
   let mockRequest;
   let mockContext;
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Przygotowanie mocka pliku z implementacją arrayBuffer
     mockFile = createMockFile();
-    
+
     // Przygotowanie mocka formData
     global.FormData = MockFormData as any;
     const formData = new FormData();
-    formData.append('file', mockFile);
-    formData.append('platform_id', 'google');
-    formData.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
-    
+    formData.append("file", mockFile);
+    formData.append("platform_id", "google");
+    formData.append("organization_id", "123e4567-e89b-12d3-a456-426614174001");
+
     // Przygotowanie mocka Request
     mockRequest = {
-      method: 'POST',
-      formData: vi.fn().mockResolvedValue(formData)
+      method: "POST",
+      formData: vi.fn().mockResolvedValue(formData),
     };
-    
+
     // Inicjalizacja mocka Supabase
     mockSupabase = createMockSupabase();
-    
+
     // Przygotowanie kontekstu API
     mockContext = {
       locals: { supabase: mockSupabase },
-      request: mockRequest
+      request: mockRequest,
     } as unknown as APIContext;
   });
 
@@ -209,7 +209,7 @@ describe("POST /api/imports/upload", () => {
     // Symulujemy brak sesji użytkownika
     mockSupabase._mocks.getSession.mockResolvedValueOnce({
       data: { session: null },
-      error: null
+      error: null,
     });
 
     const response = await POST(mockContext);
@@ -224,9 +224,9 @@ describe("POST /api/imports/upload", () => {
   it("powinno zwrócić 400 gdy brak pliku", async () => {
     // Tworzymy formData bez pliku, ale z pozostałymi parametrami
     const formDataWithoutFile = new FormData();
-    formDataWithoutFile.append('platform_id', 'google');
-    formDataWithoutFile.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
-    
+    formDataWithoutFile.append("platform_id", "google");
+    formDataWithoutFile.append("organization_id", "123e4567-e89b-12d3-a456-426614174001");
+
     mockContext.request.formData.mockResolvedValueOnce(formDataWithoutFile);
 
     const response = await POST(mockContext);
@@ -239,13 +239,13 @@ describe("POST /api/imports/upload", () => {
   // Test dla nieprawidłowego typu pliku
   it("powinno zwrócić 400 dla nieprawidłowego typu pliku", async () => {
     // Symulacja pliku JSON zamiast CSV
-    const jsonFile = createMockFile('{"test":"data"}', 'test.json', 'application/json');
-    
+    const jsonFile = createMockFile('{"test":"data"}', "test.json", "application/json");
+
     const formData = new FormData();
-    formData.append('file', jsonFile);
-    formData.append('platform_id', 'google');
-    formData.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
-    
+    formData.append("file", jsonFile);
+    formData.append("platform_id", "google");
+    formData.append("organization_id", "123e4567-e89b-12d3-a456-426614174001");
+
     mockContext.request.formData.mockResolvedValueOnce(formData);
 
     const response = await POST(mockContext);
@@ -258,13 +258,13 @@ describe("POST /api/imports/upload", () => {
   // Test dla zbyt dużego pliku
   it("powinno zwrócić 413 dla zbyt dużego pliku", async () => {
     // Symulacja dużego pliku (> 5MB)
-    const largeFile = createMockFile('test,data,content', 'test.csv', 'text/csv', 6 * 1024 * 1024);
-    
+    const largeFile = createMockFile("test,data,content", "test.csv", "text/csv", 6 * 1024 * 1024);
+
     const formData = new FormData();
-    formData.append('file', largeFile);
-    formData.append('platform_id', 'google');
-    formData.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
-    
+    formData.append("file", largeFile);
+    formData.append("platform_id", "google");
+    formData.append("organization_id", "123e4567-e89b-12d3-a456-426614174001");
+
     mockContext.request.formData.mockResolvedValueOnce(formData);
 
     const response = await POST(mockContext);
@@ -278,12 +278,12 @@ describe("POST /api/imports/upload", () => {
   it("powinno zwrócić 400 dla nieprawidłowego platform_id lub organization_id", async () => {
     // Nieprawidłowa platforma (nie meta/google)
     const formData = new FormData();
-    formData.append('file', mockFile);
-    formData.append('platform_id', "invalid_platform"); // Nieprawidłowa platforma
-    formData.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
-    
+    formData.append("file", mockFile);
+    formData.append("platform_id", "invalid_platform"); // Nieprawidłowa platforma
+    formData.append("organization_id", "123e4567-e89b-12d3-a456-426614174001");
+
     mockContext.request.formData.mockResolvedValueOnce(formData);
-    
+
     // Symulacja, że platforma nie zostanie znaleziona w bazie (co powinno być obsłużone przez walidację Zod wcześniej)
     // mockSupabase._mocks.platformSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found"} });
 
@@ -298,14 +298,14 @@ describe("POST /api/imports/upload", () => {
   it("powinno zwrócić 500 przy błędzie uploadu do storage", async () => {
     // Upewnijmy się, że mock dla platformy zwróci poprawny UUID, aby test nie upadł wcześniej
     mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
-      data: { id: 'platform-uuid-google-test-storage-error' }, 
+      data: { id: "platform-uuid-google-test-storage-error" },
       error: null,
     });
 
     // Symulacja błędu storage
     mockSupabase._mocks.upload.mockResolvedValueOnce({
-      data: null, 
-      error: { message: "Storage error" }
+      data: null,
+      error: { message: "Storage error" },
     });
 
     const response = await POST(mockContext);
@@ -320,15 +320,15 @@ describe("POST /api/imports/upload", () => {
   it("powinno zwrócić 500 przy błędzie insertu do bazy danych", async () => {
     // Upewnijmy się, że mock dla platformy zwróci poprawny UUID, aby test nie upadł wcześniej
     mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
-      data: { id: 'platform-uuid-google-test-db-error' }, 
+      data: { id: "platform-uuid-google-test-db-error" },
       error: null,
     });
 
     // Symulacja błędu przy insercie do bazy
-    mockSupabase._mocks.insert.mockReturnValueOnce({ 
+    mockSupabase._mocks.insert.mockReturnValueOnce({
       select: vi.fn().mockReturnValueOnce({
-        single: vi.fn().mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } })
-      })
+        single: vi.fn().mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } }),
+      }),
     });
 
     const response = await POST(mockContext);
@@ -346,10 +346,10 @@ describe("POST /api/imports/upload", () => {
   it("powinno zwrócić 201 przy poprawnym uploadzie i insercie", async () => {
     // Upewnijmy się, że mock dla platformy zwróci poprawny UUID
     mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
-      data: { id: 'platform-uuid-google-test' }, 
+      data: { id: "platform-uuid-google-test" },
       error: null,
     });
-    
+
     const response = await POST(mockContext);
     const responseBody = await response.json();
 

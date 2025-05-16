@@ -98,17 +98,19 @@ test.describe("Login Page E2E Tests", () => {
     const password = process.env.TEST_USER_PASSWORD ?? "Password123!";
 
     // Przygotowujemy nasłuchiwanie na nawigację do strony dashboard po zalogowaniu
-    const navigationPromise = loginPage.page.waitForNavigation({
-      url: '**/dashboard',
-      timeout: 5000
-    }).catch(() => {
-      console.log("[Test] Navigation timeout or did not happen - continuing test");
-      return null;
-    });
+    const navigationPromise = loginPage.page
+      .waitForNavigation({
+        url: "**/dashboard",
+        timeout: 5000,
+      })
+      .catch(() => {
+        console.log("[Test] Navigation timeout or did not happen - continuing test");
+        return null;
+      });
 
     // Zapisujemy stronę docelową przed zalogowaniem
     await loginPage.page.evaluate(() => {
-      window.sessionStorage.setItem('loginSuccessTest', 'pending');
+      window.sessionStorage.setItem("loginSuccessTest", "pending");
     });
 
     // Logowanie z poprawnymi danymi
@@ -116,7 +118,7 @@ test.describe("Login Page E2E Tests", () => {
 
     // Czekamy na potencjalną nawigację
     const navigationResult = await navigationPromise;
-    
+
     // Sprawdzamy wynik nawigacji - jeśli nastąpiła, to logowanie było udane
     if (navigationResult) {
       console.log("[Test] Successfully navigated to dashboard - login successful");
@@ -137,8 +139,10 @@ test.describe("Login Page E2E Tests", () => {
 
     // Ostateczna weryfikacja - upewniamy się, że nie ma widocznego błędu
     const errorAlert = loginPage.page.getByTestId("login-alert-error");
-    await expect(errorAlert).not.toBeVisible({ timeout: 1000 }).catch(() => {
-      console.log("[Test] No error shown, assuming login passed");
-    });
+    await expect(errorAlert)
+      .not.toBeVisible({ timeout: 1000 })
+      .catch(() => {
+        console.log("[Test] No error shown, assuming login passed");
+      });
   });
 });

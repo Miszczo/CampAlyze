@@ -124,7 +124,7 @@ export class LoginPage {
    */
   async clickResendVerificationButton() {
     // Check if the button exists in DOM
-    const buttonExists = await this.resendVerificationButton.count() > 0;
+    const buttonExists = (await this.resendVerificationButton.count()) > 0;
     console.log("[LoginPage] Resend button exists in DOM:", buttonExists);
 
     if (buttonExists) {
@@ -133,7 +133,7 @@ export class LoginPage {
       await this.resendVerificationButton.click();
       // Opcjonalna asercja: po sukcesie przycisk może zniknąć lub zmienić stan
       // Na razie zostawiamy bez tej asercji, bo zależy to od konkretnego przepływu i mocka
-      // await expect(this.resendVerificationButton).not.toBeVisible(); 
+      // await expect(this.resendVerificationButton).not.toBeVisible();
     } else {
       // Jeśli przycisk nie istnieje, test powinien to wykryć przez inne asercje
       // np. oczekując na jego widoczność przed kliknięciem.

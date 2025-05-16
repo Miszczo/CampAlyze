@@ -41,7 +41,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
           headers: { "Content-Type": "application/json" },
         });
       }
-      
+
       console.error("Error fetching import:", fetchError);
       return new Response(JSON.stringify({ error: "Failed to fetch import" }), {
         status: 500,
@@ -51,9 +51,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
     // 4. Usunięcie pliku z Supabase Storage (jeśli istnieje ścieżka pliku)
     if (importData.file_path) {
-      const { error: storageError } = await supabase.storage
-        .from("imports")
-        .remove([importData.file_path]);
+      const { error: storageError } = await supabase.storage.from("imports").remove([importData.file_path]);
 
       if (storageError) {
         console.warn("Warning: Could not delete file from storage:", storageError);
@@ -62,11 +60,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     }
 
     // 5. Usunięcie rekordu importu z bazy danych
-    const { error: deleteError } = await supabase
-      .from("imports")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", session.user.id);
+    const { error: deleteError } = await supabase.from("imports").delete().eq("id", id).eq("user_id", session.user.id);
 
     if (deleteError) {
       console.error("Error deleting import:", deleteError);
@@ -88,4 +82,4 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   }
-}; 
+};

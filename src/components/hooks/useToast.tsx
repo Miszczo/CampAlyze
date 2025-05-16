@@ -1,34 +1,38 @@
+/* eslint-disable react/prop-types */
 import * as React from "react";
 
 // Typy dla komponentu toast
-export type ToastProps = {
+export interface ToastProps {
   id?: string;
   title?: string;
   description?: string;
   action?: React.ReactNode;
   variant?: "default" | "destructive";
-};
+}
 
 // Typy dla kontekstu
 type ToastActionType = "ADD_TOAST" | "UPDATE_TOAST" | "DISMISS_TOAST" | "REMOVE_TOAST";
 
-type Action = {
+interface Action {
   type: ToastActionType;
   toast?: ToastProps;
   toastId?: string;
-};
+}
 
-type State = {
+interface State {
   toasts: ToastProps[];
-};
+}
 
-const ToastContext = React.createContext<{
-  toasts: ToastProps[];
-  toast: (props: ToastProps) => void;
-  dismiss: (toastId: string) => void;
-  update: (props: ToastProps) => void;
-  remove: (toastId: string) => void;
-} | undefined>(undefined);
+const ToastContext = React.createContext<
+  | {
+      toasts: ToastProps[];
+      toast: (props: ToastProps) => void;
+      dismiss: (toastId: string) => void;
+      update: (props: ToastProps) => void;
+      remove: (toastId: string) => void;
+    }
+  | undefined
+>(undefined);
 
 function toastReducer(state: State, action: Action): State {
   switch (action.type) {
@@ -43,9 +47,11 @@ function toastReducer(state: State, action: Action): State {
         toasts: state.toasts.map((t) => (t.id === action.toast?.id ? { ...t, ...action.toast } : t)),
       };
     case "DISMISS_TOAST":
+      // Logika dla DISMISS_TOAST (jeśli potrzebna) - obecnie mapuje, ale nie zmienia obiektu toastu
+      // Jeśli celem jest np. oznaczenie jako odrzucony, trzeba by dodać odpowiednie pole do ToastProps
       return {
         ...state,
-        toasts: state.toasts.map((t) => (t.id === action.toastId ? { ...t } : t)),
+        toasts: state.toasts.map((t) => (t.id === action.toastId ? { ...t } : t)), // Możliwa pomyłka, to nie usuwa ani nie modyfikuje toastu
       };
     case "REMOVE_TOAST":
       return {
@@ -75,7 +81,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const dismiss = React.useCallback((toastId: string) => {
-    dispatch({ type: "DISMISS_TOAST", toastId });
+    // Jeśli DISMISS_TOAST ma inne znaczenie niż REMOVE_TOAST, zaimplementuj tutaj
+    // Na razie zakładam, że dismiss to po prostu remove
+    dispatch({ type: "REMOVE_TOAST", toastId });
   }, []);
 
   const remove = React.useCallback((toastId: string) => {
@@ -120,4 +128,4 @@ export function Toaster() {
       ))}
     </div>
   );
-} 
+}

@@ -141,12 +141,22 @@ export function useLoginForm(props?: LoginFormProps) {
 
         if (!response.ok) {
           const errorMsg = result.error || "Failed to resend verification email.";
-          console.log("[useLoginForm] Resend verification API call !response.ok. Setting error:", errorMsg, "Result:", result);
+          console.log(
+            "[useLoginForm] Resend verification API call !response.ok. Setting error:",
+            errorMsg,
+            "Result:",
+            result
+          );
           setError(errorMsg);
           console.log("[useLoginForm] Resend verification failed (network/server error)", { error: result.error });
         } else {
           const successMsg = result.message || "Verification email sent successfully.";
-          console.log("[useLoginForm] Resend verification API call response.ok. Preparing to set success message:", successMsg, "Result:", result);
+          console.log(
+            "[useLoginForm] Resend verification API call response.ok. Preparing to set success message:",
+            successMsg,
+            "Result:",
+            result
+          );
           setSuccessMessage(successMsg);
           // Sprawdzenie stanu zaraz po ustawieniu
           // Uwaga: console.log bezpośrednio po setState może nie pokazać zaktualizowanej wartości z powodu asynchroniczności setState

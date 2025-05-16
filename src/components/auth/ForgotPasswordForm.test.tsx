@@ -158,7 +158,7 @@ describe("ForgotPasswordForm.tsx", () => {
 
   it("powinien pokazać generyczny komunikat sukcesu, jeśli fetch rzuci wyjątek", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network Error"));
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Mock console.error
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}); // Mock console.error
 
     renderComponent();
     const emailInput = screen.getByLabelText(/email/i);

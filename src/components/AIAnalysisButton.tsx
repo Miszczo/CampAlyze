@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Brain } from 'lucide-react';
-import { toast } from 'sonner';
+import { Loader2, Brain } from "lucide-react";
+import { toast } from "sonner";
 
 interface AIAnalysisButtonProps {
   importId: string;
@@ -16,25 +16,24 @@ const AIAnalysisButton: React.FC<AIAnalysisButtonProps> = ({ importId, onAnalysi
     setIsLoading(true);
     try {
       const response = await fetch(`/api/imports/${importId}/analyze`, {
-        method: 'POST',
+        method: "POST",
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to analyze import');
+        throw new Error(result.error || "Failed to analyze import");
       }
 
       if (result.insights) {
         onAnalysisComplete(result.insights);
         toast.success("Wygenerowano wnioski AI.");
       } else {
-        throw new Error('No insights returned from analysis.');
+        throw new Error("No insights returned from analysis.");
       }
-
-    } catch (error: any) {
+    } catch (error: Error) {
       console.error("AI Analysis Error:", error);
-      const errorMessage = error.message || 'An unexpected error occurred during AI analysis.';
+      const errorMessage = error.message || "An unexpected error occurred during AI analysis.";
       toast.error(errorMessage);
       if (onAnalysisError) {
         onAnalysisError(errorMessage);
@@ -47,12 +46,16 @@ const AIAnalysisButton: React.FC<AIAnalysisButtonProps> = ({ importId, onAnalysi
   return (
     <Button onClick={handleAnalyze} disabled={isLoading} className="mt-4">
       {isLoading ? (
-        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Insights...</>
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Insights...
+        </>
       ) : (
-        <><Brain className="mr-2 h-4 w-4" /> Generate AI Insights</>
+        <>
+          <Brain className="mr-2 h-4 w-4" /> Generate AI Insights
+        </>
       )}
     </Button>
   );
 };
 
-export default AIAnalysisButton; 
+export default AIAnalysisButton;

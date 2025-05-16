@@ -1,16 +1,9 @@
-import React from 'react';
-import type { ImportListItemDTO } from '../types';
-import { ToastProvider, Toaster, useToast } from './hooks/useToast';
-import { Button } from './ui/button';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from './ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import React from "react";
+import type { ImportListItemDTO } from "../types";
+import { ToastProvider, Toaster, useToast } from "./hooks/useToast";
+import { Button } from "./ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface ImportsDisplayProps {
   imports: ImportListItemDTO[];
@@ -20,13 +13,16 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleString("pl-PL", {
     year: "numeric",
     month: "long",
-    day: "numeric", 
-    hour: "2-digit", 
-    minute: "2-digit"
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
-const DeleteButton: React.FC<{ importId: string, onSuccessfulDelete: (id: string) => void }> = ({ importId, onSuccessfulDelete }) => {
+const DeleteButton: React.FC<{ importId: string; onSuccessfulDelete: (id: string) => void }> = ({
+  importId,
+  onSuccessfulDelete,
+}) => {
   const { toast } = useToast();
 
   const handleDelete = async () => {
@@ -38,31 +34,30 @@ const DeleteButton: React.FC<{ importId: string, onSuccessfulDelete: (id: string
 
         if (response.ok) {
           toast({
-            title: 'Sukces',
-            description: 'Import został usunięty',
-            variant: 'default'
+            title: "Sukces",
+            description: "Import został usunięty",
+            variant: "default",
           });
           onSuccessfulDelete(importId);
         } else {
-          const errorData = await response.json().catch(() => ({ error: 'Nie udało się przetworzyć odpowiedzi serwera po błędzie usunięcia' }));
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: "Nie udało się przetworzyć odpowiedzi serwera po błędzie usunięcia" }));
           throw new Error(errorData.error || "Nie udało się usunąć importu");
         }
       } catch (error) {
         console.error("Błąd podczas usuwania importu:", error);
         toast({
-          title: 'Błąd',
+          title: "Błąd",
           description: error instanceof Error ? error.message : String(error),
-          variant: 'destructive'
+          variant: "destructive",
         });
       }
     }
   };
 
   return (
-    <button
-      onClick={handleDelete}
-      className="text-red-600 hover:text-red-900"
-    >
+    <button onClick={handleDelete} className="text-red-600 hover:text-red-900">
       Usuń
     </button>
   );
@@ -72,17 +67,17 @@ const ImportsDisplay: React.FC<ImportsDisplayProps> = ({ imports: initialImports
   const [imports, setImports] = React.useState<ImportListItemDTO[]>(initialImports);
 
   const handleSuccessfulDelete = (deletedImportId: string) => {
-    setImports(prevImports => prevImports.filter(imp => imp.id !== deletedImportId));
+    setImports((prevImports) => prevImports.filter((imp) => imp.id !== deletedImportId));
   };
-  
+
   return (
     <ToastProvider>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="imports-heading">Historia importów</h1>
-          <p className="text-slate-500 mt-1">
-            Lista wszystkich importowanych plików
-          </p>
+          <h1 className="text-2xl font-bold" data-testid="imports-heading">
+            Historia importów
+          </h1>
+          <p className="text-slate-500 mt-1">Lista wszystkich importowanych plików</p>
         </div>
         <a href="/imports-upload">
           <Button>Nowy import</Button>
@@ -118,7 +113,10 @@ const ImportsDisplay: React.FC<ImportsDisplayProps> = ({ imports: initialImports
                           </span>
                         )}
                         {importItem.status === "failed" && (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" title={importItem.error_message || ""}>
+                          <span
+                            className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                            title={importItem.error_message || ""}
+                          >
                             Błąd
                           </span>
                         )}
@@ -162,4 +160,4 @@ const ImportsDisplay: React.FC<ImportsDisplayProps> = ({ imports: initialImports
   );
 };
 
-export default ImportsDisplay; 
+export default ImportsDisplay;

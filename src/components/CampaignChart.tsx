@@ -39,7 +39,9 @@ const CampaignChart: React.FC<CampaignChartProps> = ({ data, metric, metricLabel
     console.warn(
       `Metryka "${metric}" (etykieta: "${metricLabel}") nie została znaleziona w pierwszym punkcie danych lub jej wartość to undefined. Dostępne klucze w pierwszym punkcie: ${Object.keys(sampleDataPoint).join(", ")}`
     );
-    return <p>Wybrana metryka &quot;{metricLabel}&quot; nie jest dostępna w danych lub jej wartość jest nieokreślona.</p>;
+    return (
+      <p>Wybrana metryka &quot;{metricLabel}&quot; nie jest dostępna w danych lub jej wartość jest nieokreślona.</p>
+    );
   }
 
   return (

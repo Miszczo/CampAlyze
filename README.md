@@ -166,7 +166,9 @@ MIT
 ## Pokrycie testami
 
 ### Testy jednostkowe (unit)
+
 Pokrywają kluczowe funkcje backendu i komponenty UI:
+
 - **Autoryzacja (auth):**
   - Rejestracja, logowanie, reset hasła, weryfikacja emaila (`src/pages/api/auth/*.test.ts`)
 - **Import danych:**
@@ -179,7 +181,9 @@ Pokrywają kluczowe funkcje backendu i komponenty UI:
   - Endpoint analizy AI, komponent UI (`src/pages/api/ai-insights/analyze.test.ts`, `src/components/ai/AIInsights.test.tsx`)
 
 ### Testy end-to-end (E2E)
+
 Pokrywają najważniejsze przepływy użytkownika i integracje:
+
 - **Logowanie i rejestracja:**
   - Pełny przepływ logowania, rejestracji, weryfikacji emaila (`tests/e2e/login.spec.ts`, `tests/e2e/resend-verification.spec.ts`)
 - **Strona główna i dashboard:**

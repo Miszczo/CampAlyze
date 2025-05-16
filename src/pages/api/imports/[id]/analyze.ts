@@ -1,8 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  ERROR_MESSAGES,
-  HTTP_STATUS_CODES,
-} from "../../../../lib/constants";
+import { ERROR_MESSAGES, HTTP_STATUS_CODES } from "../../../../lib/constants";
 import Papa from "papaparse";
 
 const MAX_ROWS_FOR_AI_ANALYSIS = 50; // Max rows to send to AI (excluding header)
@@ -22,10 +19,10 @@ export const POST: APIRoute = async ({ params, locals }) => {
   }
 
   // Użyj locals.session bezpośrednio, zamiast locals.auth.validate()
-  const session = locals.session; 
+  const session = locals.session;
 
   // Zaktualizowane sprawdzenie sesji
-  if (!session || !session.user) { 
+  if (!session || !session.user) {
     console.log("API Route: No active session or user found in locals.session.");
     return new Response(JSON.stringify({ error: ERROR_MESSAGES.UNAUTHORIZED }), {
       status: HTTP_STATUS_CODES.UNAUTHORIZED,
@@ -37,13 +34,10 @@ export const POST: APIRoute = async ({ params, locals }) => {
   const importId = params.id;
 
   if (!importId) {
-    return new Response(
-      JSON.stringify({ error: ERROR_MESSAGES.MISSING_IMPORT_ID }),
-      {
-        status: HTTP_STATUS_CODES.BAD_REQUEST,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: ERROR_MESSAGES.MISSING_IMPORT_ID }), {
+      status: HTTP_STATUS_CODES.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   console.log("Attempting to read OpenRouter env variables...");
@@ -51,13 +45,13 @@ export const POST: APIRoute = async ({ params, locals }) => {
   const openRouterApiKey = import.meta.env.OPENROUTER_API_KEY;
   const openRouterModel = import.meta.env.OPENROUTER_MODEL_NAME;
 
-  console.log(`OPENROUTER_API_KEY from env: ${openRouterApiKey ? 'Loaded (*******' + openRouterApiKey.slice(-4) + ')' : 'NOT LOADED'}`);
-  console.log(`OPENROUTER_MODEL_NAME from env: ${openRouterModel || 'NOT LOADED'}`);
+  console.log(
+    `OPENROUTER_API_KEY from env: ${openRouterApiKey ? "Loaded (*******" + openRouterApiKey.slice(-4) + ")" : "NOT LOADED"}`
+  );
+  console.log(`OPENROUTER_MODEL_NAME from env: ${openRouterModel || "NOT LOADED"}`);
 
   if (!openRouterApiKey || !openRouterModel) {
-    console.error(
-      "OpenRouter API key or model name is not configured properly in environment variables."
-    );
+    console.error("OpenRouter API key or model name is not configured properly in environment variables.");
     return new Response(
       JSON.stringify({
         error: ERROR_MESSAGES.OPENROUTER_CONFIG_MISSING,
@@ -79,7 +73,14 @@ export const POST: APIRoute = async ({ params, locals }) => {
       .single();
 
     if (importError || !importRecord) {
-      console.error("Error fetching import record:", importError, "For user_id:", session.user.id, "Import ID:", importId);
+      console.error(
+        "Error fetching import record:",
+        importError,
+        "For user_id:",
+        session.user.id,
+        "Import ID:",
+        importId
+      );
       return new Response(
         JSON.stringify({
           error: importError?.message || ERROR_MESSAGES.IMPORT_NOT_FOUND,
@@ -121,13 +122,10 @@ export const POST: APIRoute = async ({ params, locals }) => {
 
     if (parsedCsv.errors.length > 0) {
       console.error("Error parsing CSV:", parsedCsv.errors);
-      return new Response(
-        JSON.stringify({ error: ERROR_MESSAGES.CSV_PARSE_ERROR }),
-        {
-          status: HTTP_STATUS_CODES.BAD_REQUEST,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: ERROR_MESSAGES.CSV_PARSE_ERROR }), {
+        status: HTTP_STATUS_CODES.BAD_REQUEST,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     let dataForAI = parsedCsv.data;
@@ -136,10 +134,10 @@ export const POST: APIRoute = async ({ params, locals }) => {
       // and a sample of rows
       dataForAI = dataForAI.slice(0, MAX_ROWS_FOR_AI_ANALYSIS);
     }
-    
+
     // Convert array of objects back to CSV string for the prompt, or use JSON
     // For simplicity, sending a string representation might be easier for some models
-    const  csvSampleForAI = Papa.unparse(dataForAI);
+    const csvSampleForAI = Papa.unparse(dataForAI);
 
     // 4. Prepare prompt for AI
     const prompt = `
@@ -159,23 +157,18 @@ export const POST: APIRoute = async ({ params, locals }) => {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${openRouterApiKey}`,
+        Authorization: `Bearer ${openRouterApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: openRouterModel,
-        messages: [
-          { role: "user", content: prompt },
-        ],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error(
-        `Error from OpenRouter API: ${response.status} ${response.statusText}`,
-        errorBody
-      );
+      console.error(`Error from OpenRouter API: ${response.status} ${response.statusText}`, errorBody);
       return new Response(
         JSON.stringify({
           error: `${ERROR_MESSAGES.OPENROUTER_API_ERROR} - ${response.statusText}`,
@@ -207,7 +200,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
     }
 
     // 7. (Optional) Save insights to DB
-    const { error: saveError } = await supabase.from('ai_insights').insert({
+    const { error: saveError } = await supabase.from("ai_insights").insert({
       import_id: importId,
       insights: aiInsights,
       user_id: session.user.id,
@@ -222,21 +215,15 @@ export const POST: APIRoute = async ({ params, locals }) => {
     }
 
     // 8. Return AI insights
-    return new Response(
-      JSON.stringify({ insights: aiInsights }),
-      {
-        status: HTTP_STATUS_CODES.OK,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ insights: aiInsights }), {
+      status: HTTP_STATUS_CODES.OK,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error: any) {
     console.error("Error during AI analysis:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR }),
-      {
-        status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR }), {
+      status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-}; 
+};

@@ -2,27 +2,16 @@
 import Layout from "../layouts/Layout.astro";
 // import { supabaseServerClient } from "../db/supabase.server"; // Usunięto - będziemy korzystać z Astro.locals
 import type { ImportListItemDTO } from "../types";
-import { ToastProvider, Toaster } from "../components/hooks/useToast";
-import { Button } from "../components/ui/button";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "../components/ui/table";
+// Usunięto nieużywane importy: ToastProvider, Toaster, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import ImportsDisplay from "../components/ImportsDisplay.tsx"; // Zaimportuj nowy komponent
 
-// Ochrona przed dostępem niezalogowanych użytkowników
-// Użyj sesji i klienta Supabase z Astro.locals, które są ustawiane przez middleware
-const { session, supabase } = Astro.locals; // ZMIANA TUTAJ
+const { session } = Astro.locals; // Usunięto nieużywaną zmienną 'supabase'
 
 if (!session) {
   // Jeśli nie ma sesji, przekieruj na stronę logowania
   // (Middleware i tak by to zrobił, ale dla pewności można zostawić)
-  return Astro.redirect("/login?redirect_to=/imports"); 
+  return Astro.redirect("/login?redirect_to=/imports");
 }
 
 // Pobranie listy importów z API
@@ -36,8 +25,8 @@ try {
   const response = await fetch(`${Astro.url.origin}/api/imports`, {
     headers: {
       // Przekazanie ciasteczek jest kluczowe, aby endpoint API mógł uwierzytelnić żądanie
-      Cookie: Astro.request.headers.get("cookie") || ""
-    }
+      Cookie: Astro.request.headers.get("cookie") || "",
+    },
   });
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: "Failed to fetch imports and parse error" }));
@@ -55,77 +44,20 @@ try {
 
 <Layout title="Historia importów">
   <div class="container mx-auto px-4 py-8">
-    {fetchError ? (
-      <Card>
-        <CardHeader>
-          <CardTitle>Błąd ładowania importów</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p class="text-red-500">{fetchError}</p>
-          <p class="mt-2">Spróbuj odświeżyć stronę lub skontaktuj się z administratorem.</p>
-        </CardContent>
-      </Card>
-    ) : (
-      <ImportsDisplay client:load imports={imports} />
-    )}
+    {
+      fetchError ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Błąd ładowania importów</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p class="text-red-500">{fetchError}</p>
+            <p class="mt-2">Spróbuj odświeżyć stronę lub skontaktuj się z administratorem.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <ImportsDisplay client:load imports={imports} />
+      )
+    }
   </div>
 </Layout>
-
-<script>
-  // Obsługa usuwania importów
-  document.addEventListener("DOMContentLoaded", () => {
-    const deleteButtons = document.querySelectorAll(".delete-import-btn");
-  
-    deleteButtons.forEach(button => {
-      button.addEventListener("click", async () => {
-        const importId = button.getAttribute("data-import-id");
-        if (!importId) return;
-  
-        if (confirm("Czy na pewno chcesz usunąć ten import?")) {
-          try {
-            const response = await fetch(`/api/imports/${importId}`, {
-              method: "DELETE",
-            });
-  
-            if (response.ok) {
-              // Usuń wiersz z tabeli
-              const row = button.closest("tr");
-              if (row) row.remove();
-              
-              // Wyświetl informację o sukcesie
-              const event = new CustomEvent('toast', {
-                detail: {
-                  title: 'Sukces',
-                  description: 'Import został usunięty',
-                  variant: 'default'
-                }
-              });
-              window.dispatchEvent(event);
-  
-              // Odśwież stronę jeśli to był ostatni import
-              const tbody = document.querySelector("tbody");
-              if (tbody && tbody.children.length === 0) {
-                window.location.reload();
-              }
-            } else {
-              const errorData = await response.json();
-              throw new Error(errorData.error || "Nie udało się usunąć importu");
-            }
-          } catch (error) {
-            console.error("Błąd podczas usuwania importu:", error);
-            
-            // Wyświetl informację o błędzie
-            const event = new CustomEvent('toast', {
-              detail: {
-                title: 'Błąd',
-                description: error instanceof Error ? error.message : String(error),
-                variant: 'destructive'
-              }
-            });
-            window.dispatchEvent(event);
-          }
-        }
-      });
-    });
-  });
-</script> 

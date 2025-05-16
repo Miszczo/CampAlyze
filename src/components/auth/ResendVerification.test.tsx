@@ -179,7 +179,7 @@ describe("ResendVerification Component", () => {
 
   it("should display generic error message on network error", async () => {
     mockFetch.mockRejectedValue(new Error("Network failed"));
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); // Mock console.error
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {}); // Mock console.error
 
     render(<ResendVerification />);
     await waitFor(() => expect(screen.getByRole("button")).toBeEnabled());

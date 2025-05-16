@@ -91,7 +91,7 @@ export async function setupApiInterception(page: Page) {
           body: JSON.stringify({
             success: false, // Zgodnie z tym co API może zwrócić przy błędzie walidacji
             error: "Invalid input.", // Lub bardziej szczegółowe z ZodError
-            details: { email: ["Invalid email address"] } // Przykładowy detal
+            details: { email: ["Invalid email address"] }, // Przykładowy detal
           }),
         });
         return;
@@ -106,7 +106,8 @@ export async function setupApiInterception(page: Page) {
           contentType: "application/json",
           body: JSON.stringify({
             // success: false, // API niekoniecznie musi zwracać 'success: false' w tym przypadku
-            message: "If an account with this email exists and requires verification, a new verification link has been sent.",
+            message:
+              "If an account with this email exists and requires verification, a new verification link has been sent.",
           }),
         });
         return;
@@ -120,7 +121,8 @@ export async function setupApiInterception(page: Page) {
         contentType: "application/json",
         body: JSON.stringify({
           // success: true, // API niekoniecznie musi zwracać 'success: true'
-          message: "If an account with this email exists and requires verification, a new verification link has been sent.",
+          message:
+            "If an account with this email exists and requires verification, a new verification link has been sent.",
         }),
       });
     } catch (error) {

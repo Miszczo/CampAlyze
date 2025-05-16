@@ -93,10 +93,12 @@ describe("GET /api/imports endpoint", () => {
 
     // Sprawdź, czy metoda from została wywołana
     expect(mockSupabase.from).toHaveBeenCalledWith("imports");
-    
+
     // Sprawdź, czy metoda select została wywołana
-    expect(mockSelect).toHaveBeenCalledWith(expect.stringContaining("id,\n        platform_id,\n        platforms (name)"));
-    
+    expect(mockSelect).toHaveBeenCalledWith(
+      expect.stringContaining("id,\n        platform_id,\n        platforms (name)")
+    );
+
     // Sprawdź, czy metoda eq została wywołana z odpowiednimi parametrami
     expect(mockEq).toHaveBeenCalledWith("user_id", "user-123");
 
@@ -107,7 +109,7 @@ describe("GET /api/imports endpoint", () => {
     const responseBody = await response.json();
     expect(Array.isArray(responseBody.data)).toBe(true);
     expect(responseBody.data).toHaveLength(2);
-    
+
     // Sprawdź czy dane są poprawnie zmapowane do ImportListItemDTO
     expect(responseBody.data[0]).toEqual({
       id: mockImports[0].id,
@@ -157,9 +159,9 @@ describe("GET /api/imports endpoint", () => {
 
     // Sprawdź status odpowiedzi
     expect(response.status).toBe(500);
-    
+
     // Sprawdź treść błędu
     const responseBody = await response.json();
     expect(responseBody.error).toBe("Failed to fetch imports");
   });
-}); 
+});
