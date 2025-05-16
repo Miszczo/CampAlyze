@@ -18,19 +18,21 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 
   try {
-    // 2. Pobranie listy importów z bazy danych (bez paginacji)
+    // 2. Pobranie listy importów z bazy danych
+    // Dodano filtrowanie po user_id, aby użytkownik widział tylko swoje importy
     const { data: imports, error } = await supabase
       .from("imports")
       .select(`
-        id, 
-        organization_id,
+        id,
         platform_id,
         platforms (name),
         original_filename,
         status,
         created_at,
-        error_message
+        error_message,
+        user_id 
       `)
+      .eq("user_id", session.user.id) // Filtrowanie po user_id
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -44,13 +46,14 @@ export const GET: APIRoute = async ({ request, locals }) => {
     // 3. Mapowanie danych do formatu ImportListItemDTO
     const importsList: ImportListItemDTO[] = imports.map((importItem) => ({
       id: importItem.id,
-      organization_id: importItem.organization_id,
+      // organization_id: importItem.organization_id, // Usunięto
       platform_id: importItem.platform_id,
-      platform_name: importItem.platforms?.name || importItem.platform_id, // Fallback jeśli join się nie powiedzie
+      platform_name: importItem.platforms?.name || String(importItem.platform_id), // Upewnij się, że platform_id jest stringiem, jeśli platforms jest null
       original_filename: importItem.original_filename,
       status: importItem.status,
       created_at: importItem.created_at,
       error_message: importItem.error_message,
+      user_id: importItem.user_id, // Dodano user_id do DTO, jeśli potrzebne
     }));
 
     // 4. Zwrócenie odpowiedzi zgodnej z oczekiwaniami

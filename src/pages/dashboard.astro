@@ -247,11 +247,18 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
               Dashboard
             </a>
             <a
-              href="/import"
-              class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100"
+              href="/imports-upload"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-purple-600"
             >
-              <Upload className="w-5 h-5 mr-3 text-gray-500" />
-              Import Danych
+              <Upload className="w-5 h-5 mr-3 text-gray-400 group-hover:text-purple-500" />
+              Importuj dane
+            </a>
+            <a
+              href="/imports"
+              class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-purple-600"
+            >
+              <Download className="w-5 h-5 mr-3 text-gray-400 group-hover:text-purple-500" />
+              Moje importy
             </a>
             <a
               href="/kampanie"
@@ -353,11 +360,12 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
               </Button>
             </div>
             <div class="flex gap-2">
-              <a href="/import">
-                <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Importuj dane
-                </Button>
+              <a 
+                href="/imports-upload"
+                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-purple-600 text-primary-foreground shadow hover:bg-purple-700 h-9 px-4 py-2"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Importuj dane
               </a>
               <a href="/ai-insights">
                 <Button size="sm" variant="outline" className="bg-white">
@@ -415,7 +423,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold">{metrics.cpc.value}</span>
                     <span
-                      class={`ml-2 text-xs font-medium ${metrics.cpc.trend === "up" ? (metrics.cpc.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.cpc.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                      class={`ml-2 text-xs font-medium ${metrics.cpc.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
                     >
                       {metrics.cpc.change}
                     </span>
@@ -430,7 +438,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold">{metrics.ctr.value}</span>
                     <span
-                      class={`ml-2 text-xs font-medium ${metrics.ctr.trend === "up" ? (metrics.ctr.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.ctr.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                      class={`ml-2 text-xs font-medium ${metrics.ctr.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}
                     >
                       {metrics.ctr.change}
                     </span>
@@ -445,7 +453,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold">{metrics.konwersje.value}</span>
                     <span
-                      class={`ml-2 text-xs font-medium ${metrics.konwersje.trend === "up" ? (metrics.konwersje.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.konwersje.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                      class={`ml-2 text-xs font-medium ${metrics.konwersje.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}
                     >
                       {metrics.konwersje.change}
                     </span>
@@ -460,7 +468,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold">{metrics.kosztKonwersji.value}</span>
                     <span
-                      class={`ml-2 text-xs font-medium ${metrics.kosztKonwersji.trend === "down" ? (metrics.kosztKonwersji.change.startsWith("+") ? "text-red-500" : "text-green-500") : metrics.kosztKonwersji.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}
+                      class={`ml-2 text-xs font-medium ${metrics.kosztKonwersji.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
                     >
                       {metrics.kosztKonwersji.change}
                     </span>
@@ -475,7 +483,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
                   <div class="flex items-baseline">
                     <span class="text-2xl font-bold">{metrics.roas.value}</span>
                     <span
-                      class={`ml-2 text-xs font-medium ${metrics.roas.trend === "up" ? (metrics.roas.change.startsWith("+") ? "text-green-500" : "text-red-500") : metrics.roas.change.startsWith("+") ? "text-red-500" : "text-green-500"}`}
+                      class={`ml-2 text-xs font-medium ${metrics.roas.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}
                     >
                       {metrics.roas.change}
                     </span>
@@ -606,7 +614,7 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2" style="margin-right: 10px; animation: spin 2s linear infinite;">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
               </svg>
-              Trwa przetwarzanie importu danych... Dashboard zostanie odświeżony po zakończeniu.
+              Trwa przetwarzanie importu danych... Dashboard zostanie odświeżone po zakończeniu.
             </div>
           `;
           document.body.appendChild(notification);

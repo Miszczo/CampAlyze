@@ -57,7 +57,7 @@ const { session } = Astro.locals; // Get session from middleware
     {/* Basic Header for Sign Out */}
     <header class="bg-gray-100 p-4 border-b border-gray-300">
       <div class="container mx-auto flex justify-between items-center">
-        <span class="font-bold text-lg">CampAlyze</span>
+        <a href="/dashboard" class="font-bold text-lg hover:underline focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">CampAlyze</a>
         {
           session && (
             <form method="POST" action="/api/auth/signout">

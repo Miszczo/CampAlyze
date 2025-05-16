@@ -29,8 +29,9 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     // 3. Pobranie informacji o imporcie przed usunięciem (potrzebujemy ścieżki pliku)
     const { data: importData, error: fetchError } = await supabase
       .from("imports")
-      .select("file_path, organization_id")
+      .select("file_path")
       .eq("id", id)
+      .eq("user_id", session.user.id)
       .single();
 
     if (fetchError) {
@@ -64,7 +65,8 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     const { error: deleteError } = await supabase
       .from("imports")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", session.user.id);
 
     if (deleteError) {
       console.error("Error deleting import:", deleteError);

@@ -11,6 +11,7 @@ An analytical tool for advertising campaigns designed for marketing specialists 
 - [Project Scope](#project-scope)
 - [Project Status](#project-status)
 - [License](#license)
+- [Pokrycie testami](#pokrycie-testami)
 
 ## Project Description
 
@@ -161,3 +162,31 @@ Development priorities:
 ## License
 
 MIT
+
+## Pokrycie testami
+
+### Testy jednostkowe (unit)
+Pokrywają kluczowe funkcje backendu i komponenty UI:
+- **Autoryzacja (auth):**
+  - Rejestracja, logowanie, reset hasła, weryfikacja emaila (`src/pages/api/auth/*.test.ts`)
+- **Import danych:**
+  - Endpoint uploadu plików, walidacja, obsługa błędów (`src/pages/api/imports/upload.test.ts`)
+- **Dashboard:**
+  - Pobieranie metryk, filtrowanie (`src/pages/api/dashboard/metrics.test.ts`)
+- **Komponenty UI:**
+  - DatePicker, DropdownSelect, CampaignChart (`src/components/ui/**/*.test.tsx`)
+- **AI Insights:**
+  - Endpoint analizy AI, komponent UI (`src/pages/api/ai-insights/analyze.test.ts`, `src/components/ai/AIInsights.test.tsx`)
+
+### Testy end-to-end (E2E)
+Pokrywają najważniejsze przepływy użytkownika i integracje:
+- **Logowanie i rejestracja:**
+  - Pełny przepływ logowania, rejestracji, weryfikacji emaila (`tests/e2e/login.spec.ts`, `tests/e2e/resend-verification.spec.ts`)
+- **Strona główna i dashboard:**
+  - Nawigacja, responsywność, widoczność kluczowych elementów, snapshoty UI (`tests/e2e/home.spec.ts`)
+- **CRUD importów:**
+  - Lista importów, usuwanie importu (`tests/e2e/imports.spec.ts` - obecnie pominięty, jeśli był problematyczny)
+- **AI Analysis:**
+  - Analiza AI na szczegółach importu (`tests/e2e/ai-analysis.spec.ts` - obecnie pominięty, jeśli był problematyczny)
+
+> Uwaga: Niektóre testy E2E (np. pełny przepływ importów, analiza AI) mogą być tymczasowo pominięte, jeśli sprawiały problemy w CI/CD. Kluczowe funkcjonalności MVP są jednak pokryte testami jednostkowymi i E2E.

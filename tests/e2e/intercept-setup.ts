@@ -83,48 +83,55 @@ export async function setupApiInterception(page: Page) {
       const { email } = postData;
 
       if (!email) {
+        // Ten przypadek jest zgodny z walidacją Zod w API (błąd 400)
+        console.log(`[Intercept] Mocking missing email for resend verification: ${email}`);
         await route.fulfill({
           status: 400,
           contentType: "application/json",
           body: JSON.stringify({
-            success: false,
-            error: "Please enter your email address to resend verification.",
+            success: false, // Zgodnie z tym co API może zwrócić przy błędzie walidacji
+            error: "Invalid input.", // Lub bardziej szczegółowe z ZodError
+            details: { email: ["Invalid email address"] } // Przykładowy detal
           }),
         });
         return;
       }
 
-      // Błąd dla konkretnego adresu email używanego w testach
+      // Symulacja błędu dla konkretnego adresu email (np. wewnętrzny błąd serwera)
+      // API odpowie statusem 200 i generycznym komunikatem, aby nie ujawniać informacji.
       if (email === "error-prone@example.com") {
-        console.log(`[Intercept] Mocking error for resend verification: ${email}`);
+        console.log(`[Intercept] Mocking server-side issue for resend verification (but returning 200): ${email}`);
         await route.fulfill({
-          status: 400,
+          status: 200, // Zgodnie z API, które maskuje błędy
           contentType: "application/json",
           body: JSON.stringify({
-            success: false,
-            error: "Failed to resend verification email.",
+            // success: false, // API niekoniecznie musi zwracać 'success: false' w tym przypadku
+            message: "If an account with this email exists and requires verification, a new verification link has been sent.",
           }),
         });
         return;
       }
 
-      // Pomyślne ponowne wysłanie
+      // Pomyślne ponowne wysłanie (standardowy przypadek)
+      // API również odpowie statusem 200 i generycznym komunikatem.
+      console.log(`[Intercept] Mocking successful resend verification (returning 200): ${email}`);
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          success: true,
-          message: "Verification email sent successfully",
+          // success: true, // API niekoniecznie musi zwracać 'success: true'
+          message: "If an account with this email exists and requires verification, a new verification link has been sent.",
         }),
       });
     } catch (error) {
       console.error(`[Intercept] Error handling resend-verification:`, error);
+      // W przypadku nieoczekiwanego błędu w mocku, zwróć 500
       await route.fulfill({
         status: 500,
         contentType: "application/json",
         body: JSON.stringify({
           success: false,
-          error: "An unexpected error occurred while resending verification",
+          error: "An unexpected error occurred while intercepting resend verification",
         }),
       });
     }

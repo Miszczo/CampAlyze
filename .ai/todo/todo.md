@@ -342,3 +342,44 @@ Aby MVP było zaliczone, frontend musi spełniać następujące warunki:
 - Wersja MVP nie wymaga zaawansowanej walidacji plików, podglądu danych przed importem ani rozbudowanego UI.
 - Kluczowe jest, aby każda funkcja backendowa miała odzwierciedlenie w prostym, działającym widoku frontendowym.
 - Po zaliczeniu MVP można rozbudować UI o dodatkowe funkcje i lepszy UX. 
+
+# CHECKLISTA NAPRAWY TESTÓW E2E (Playwright, minimal MVP)
+
+1. ✅ **Serwer i konfiguracja webServer**
+   - Sprawdź w `playwright.config.ts` sekcję `webServer`:
+     - Czy `command` uruchamia dev/build serwer (np. `npm run dev` lub `npm run dev:e2e`)?
+     - Czy `url` odpowiada rzeczywistemu portowi (np. `http://localhost:3000` lub `http://localhost:4321`)?
+     - Czy `timeout` jest wystarczający (np. 120s)?
+     - Czy `reuseExistingServer` jest ustawione na `!process.env.CI`?
+   - Upewnij się, że serwer startuje przed testami (brak `net::ERR_CONNECTION_REFUSED`).
+   - Jeśli pojawia się błąd portu, sprawdź czy nie jest zajęty przez inną instancję.
+
+2. ✅ **Selektory i widoczność elementów (POM, testId, assertions)**
+   - Przejrzyj POM i komponenty:
+     - Czy wszystkie używane w testach `data-testid` (np. `login-input-email`, `login-button-resend-verification`) są obecne w kodzie?
+     - W POM używaj `page.getByTestId('...')` lub `page.getByRole(...)` (zgodnie z Playwright docs).
+     - Przed każdą interakcją z elementem: `await expect(locator).toBeVisible()`.
+     - Jeśli element jest warunkowy, dodaj krok, który go wywoła (np. kliknięcie, nawigacja).
+
+3. **Mockowanie API**
+   - Upewnij się, że w testach E2E przechwytujesz żądania do endpointów (np. `/api/auth/signin`, `/api/auth/resend-verification`) i zwracasz deterministyczne odpowiedzi.
+   - Po sukcesie mock powinien zwracać odpowiedź, która powoduje zmianę stanu UI (np. ukrycie przycisku resend).
+   - Dodaj szczegółowe logowanie żądań i odpowiedzi (łatwiejszy debug).
+
+4. **Resilience POM i assertions**
+   - W POM zawsze sprawdzaj obecność elementów przed interakcją (`await expect(locator).toBeVisible()`).
+   - Po akcjach, które powinny zmienić UI (np. kliknięcie, submit), używaj assertions typu `await expect(locator).toBeHidden()` lub `toHaveText()`.
+   - Jeśli element nie znika, sprawdź czy mock API zwraca poprawną odpowiedź i czy UI reaguje na nią.
+   - Możesz użyć soft assertions (`expect.soft(...)`), by zebrać więcej informacji w jednym przebiegu.
+
+5. **Debugowanie trace**
+   - Uruchom testy z trace: `npx playwright test --trace on`.
+   - Po nieudanym teście otwórz trace: `npx playwright show-trace <ścieżka>`.
+   - Sprawdź, czy elementy są w DOM, czy pojawiają się błędy JS, czy mocki API działają.
+
+6. **Iteracja i powtarzanie**
+   - Po każdej poprawce uruchom testy E2E ponownie.
+   - Jeśli testy dalej nie przechodzą, powtórz cykl: trace → poprawka → test.
+   - Jeśli testy przechodzą, przejdź do kolejnego bloku funkcjonalności (np. import, AI analysis).
+
+--- 

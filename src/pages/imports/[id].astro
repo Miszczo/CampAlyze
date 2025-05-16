@@ -1,230 +1,70 @@
+---
 import Layout from "../../layouts/Layout.astro";
-import { supabaseServerClient } from "../../db/supabase.server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "../../components/ui/table";
-import AIAnalysisButton from "../../components/AIAnalysisButton";
-import { ToastProvider, Toaster } from "../../components/hooks/useToast";
+import ImportDetailsDisplay from "../../components/ImportDetailsDisplay.tsx";
+import type { Import, Campaign, Metric, Platform } from "../../types";
 
-// Ochrona przed dostępem niezalogowanych użytkowników
-const supabase = supabaseServerClient(Astro);
-const { data: { session } } = await supabase.auth.getSession();
+const { session, supabase } = Astro.locals;
 
 if (!session) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/login?redirect_to=" + Astro.url.pathname);
 }
 
-// Pobierz ID importu z parametrów URL
 const importId = Astro.params.id;
+let importDetailsData: Import | null = null;
+let allPlatforms: Platform[] = [];
+let fetchError: string | null = null;
 
-if (!importId) {
-  return Astro.redirect("/imports");
+if (!supabase) {
+  fetchError = "Błąd konfiguracji klienta bazy danych.";
+} else if (!importId) {
+  fetchError = "Brak ID importu w adresie URL.";
+} else {
+  try {
+    // 1. Pobierz szczegóły importu
+    const { data: importResult, error: importError } = await supabase
+      .from("imports")
+      .select("*")
+      .eq("id", importId)
+      .eq("user_id", session.user.id)
+      .single();
+
+    if (importError) throw importError;
+    if (!importResult) throw new Error("Nie znaleziono importu lub brak dostępu.");
+    importDetailsData = importResult as Import;
+
+    // 2. Pobierz wszystkie dostępne platformy
+    const { data: platformsResult, error: platformsError } = await supabase
+      .from("platforms")
+      .select("id, name");
+    
+    if (platformsError) throw platformsError;
+    allPlatforms = platformsResult || [];
+
+  } catch (error) {
+    console.error(`Error fetching data for import ID ${importId}:`, error);
+    fetchError = error instanceof Error ? error.message : "Wystąpił nieoczekiwany błąd podczas pobierania danych.";
+    importDetailsData = null;
+    allPlatforms = [];
+  }
 }
+---
 
-// Pobierz szczegóły importu
-const { data: importData, error: importError } = await supabase
-  .from("imports")
-  .select("*, platforms(name)")
-  .eq("id", importId)
-  .single();
-
-if (importError || !importData) {
-  return Astro.redirect("/imports");
-}
-
-// Pobierz kampanie powiązane z tym importem
-const { data: campaigns, error: campaignsError } = await supabase
-  .from("campaigns")
-  .select("id, name, platform_id")
-  .eq("organization_id", importData.organization_id);
-
-// Pobierz przykładowe metryki dla wyświetlenia
-const { data: metrics, error: metricsError } = await supabase
-  .from("metrics")
-  .select("campaign_id, date, impressions, clicks, spend")
-  .eq("import_id", importId)
-  .order("date", { ascending: false })
-  .limit(10);
-
-// Format daty dla ludzi
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString("pl-PL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-};
-
-// Format liczb
-const formatNumber = (num: number) => {
-  return new Intl.NumberFormat("pl-PL").format(num);
-};
-
-// Format waluty
-const formatCurrency = (num: number) => {
-  return new Intl.NumberFormat("pl-PL", {
-    style: "currency",
-    currency: "PLN"
-  }).format(num);
-};
-
-<Layout title={`Szczegóły importu: ${importData.original_filename} | campAlyze`}>
+<Layout title={importDetailsData ? `Szczegóły: ${importDetailsData.file_name}` : "Szczegóły importu"}>
   <div class="container mx-auto px-4 py-8">
-    <ToastProvider client:load>
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Szczegóły importu</h1>
-        <a href="/imports" class="text-primary hover:underline flex items-center">
-          ← Powrót do listy
+    {fetchError ? (
+      <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+        <span class="font-medium">Błąd ładowania danych!</span> {fetchError}
+        <br />
+        <a href="/imports" class="mt-2 inline-block text-primary hover:underline">
+          ← Powrót do listy importów
         </a>
       </div>
-
-      <div class="grid gap-6 mb-8">
-        <!-- Informacje o imporcie -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Podstawowe informacje</CardTitle>
-            <CardDescription>Szczegóły zaimportowanego pliku</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-              <div class="py-2">
-                <dt class="text-sm font-medium text-muted-foreground">Nazwa pliku</dt>
-                <dd class="mt-1 text-sm">{importData.original_filename}</dd>
-              </div>
-              <div class="py-2">
-                <dt class="text-sm font-medium text-muted-foreground">Data importu</dt>
-                <dd class="mt-1 text-sm">{formatDate(importData.created_at)}</dd>
-              </div>
-              <div class="py-2">
-                <dt class="text-sm font-medium text-muted-foreground">Platforma</dt>
-                <dd class="mt-1 text-sm">
-                  {importData.platforms?.name || importData.platform_id}
-                </dd>
-              </div>
-              <div class="py-2">
-                <dt class="text-sm font-medium text-muted-foreground">Status</dt>
-                <dd class="mt-1 text-sm">
-                  {importData.status === "completed" && (
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      Zakończony
-                    </span>
-                  )}
-                  {importData.status === "failed" && (
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                      Błąd
-                    </span>
-                  )}
-                  {importData.status === "pending" && (
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                      Oczekujący
-                    </span>
-                  )}
-                  {importData.status === "processing" && (
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                      Przetwarzanie
-                    </span>
-                  )}
-                </dd>
-              </div>
-              {importData.error_message && (
-                <div class="py-2 col-span-2">
-                  <dt class="text-sm font-medium text-muted-foreground">Komunikat błędu</dt>
-                  <dd class="mt-1 text-sm text-destructive">{importData.error_message}</dd>
-                </div>
-              )}
-            </dl>
-          </CardContent>
-        </Card>
-
-        <!-- Kampanie z tego importu -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Kampanie</CardTitle>
-            <CardDescription>Kampanie reklamowe powiązane z tym importem</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {campaigns && campaigns.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nazwa kampanii</TableHead>
-                    <TableHead>Platforma</TableHead>
-                    <TableHead className="text-right">Analiza AI</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {campaigns.map((campaign) => (
-                    <TableRow key={campaign.id}>
-                      <TableCell className="font-medium">{campaign.name}</TableCell>
-                      <TableCell>{campaign.platform_id}</TableCell>
-                      <TableCell className="text-right">
-                        <div id={`ai-analysis-${campaign.id}`}>
-                          <AIAnalysisButton 
-                            client:load 
-                            campaignId={campaign.id} 
-                            dateRangeStart={metrics && metrics.length > 0 ? 
-                              metrics[metrics.length - 1]?.date : undefined
-                            } 
-                            dateRangeEnd={metrics && metrics.length > 0 ? 
-                              metrics[0]?.date : undefined
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div class="text-center py-6 text-muted-foreground">
-                Nie znaleziono kampanii powiązanych z tym importem.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <!-- Przykładowe metryki -->
-        {metrics && metrics.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Przykładowe metryki</CardTitle>
-              <CardDescription>Ostatnie zaimportowane dane (maksymalnie 10 wpisów)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Wyświetlenia</TableHead>
-                    <TableHead className="text-right">Kliknięcia</TableHead>
-                    <TableHead className="text-right">Wydatki</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {metrics.map((metric) => (
-                    <TableRow key={`${metric.campaign_id}-${metric.date}`}>
-                      <TableCell>{new Date(metric.date).toLocaleDateString("pl-PL")}</TableCell>
-                      <TableCell className="text-right">{formatNumber(metric.impressions)}</TableCell>
-                      <TableCell className="text-right">{formatNumber(metric.clicks)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(metric.spend)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-      <Toaster client:load />
-    </ToastProvider>
+    ) : (
+      <ImportDetailsDisplay 
+        client:load 
+        importDetails={importDetailsData} 
+        platforms={allPlatforms}
+      />
+    )}
   </div>
 </Layout> 

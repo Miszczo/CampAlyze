@@ -31,8 +31,9 @@ export const POST: APIRoute = async ({ request }) => {
       .single();
 
     if (campaignError || !campaign) {
+      console.log("Campaign fetch error:", campaignError);
       return new Response(
-        JSON.stringify({ error: 'Campaign not found' }),
+        JSON.stringify({ error: 'Campaign not found', details: campaignError }),
         { status: 404 }
       );
     }
@@ -47,8 +48,9 @@ export const POST: APIRoute = async ({ request }) => {
       .order('date', { ascending: true });
 
     if (metricsError) {
+      console.error("Metrics fetch error:", metricsError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch campaign metrics' }),
+        JSON.stringify({ error: 'Failed to fetch campaign metrics', details: metricsError }),
         { status: 500 }
       );
     }
@@ -103,70 +105,79 @@ export const POST: APIRoute = async ({ request }) => {
       Keep your analysis factual, data-driven and actionable.
     `;
 
-    // Call OpenRouter API
-    const response = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://campalyze.example.com',
-        'X-Title': 'CampAlyze'
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'You are an expert marketing and advertising analyst assistant. You analyze ad campaign data and provide concise, actionable insights and recommendations.' },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: 1000
-      })
-    });
+    try {
+      // Call OpenRouter API
+      const response = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': 'https://campalyze.example.com',
+          'X-Title': 'CampAlyze'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are an expert marketing and advertising analyst assistant. You analyze ad campaign data and provide concise, actionable insights and recommendations.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 1000
+        })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        return new Response(
+          JSON.stringify({ error: 'AI analysis failed', details: errorData }),
+          { status: 500 }
+        );
+      }
+
+      const aiResponse = await response.json();
+      const analysisContent = aiResponse.choices[0]?.message?.content || 'No analysis available';
+
+      // Save the analysis as an AI insight
+      const insight: Partial<InsightDTO> = {
+        campaign_id,
+        campaign_name: campaign.name,
+        insight_type: 'analysis',
+        content: analysisContent,
+        date_range_start: date_range_start || null,
+        date_range_end: date_range_end || null,
+        status: 'active'
+      };
+
+      const { data: savedInsight, error: insertError } = await supabase
+        .from('ai_insights')
+        .insert(insight)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Failed to save insight to database:', insertError);
+        // Continue even if saving to DB fails - return 200 since analysis was successful
+      }
+
       return new Response(
-        JSON.stringify({ error: 'AI analysis failed', details: errorData }),
+        JSON.stringify({
+          data: {
+            id: savedInsight?.id || 'temp-id',
+            content: analysisContent,
+            campaign_name: campaign.name,
+            date_range_start,
+            date_range_end
+          }
+        }),
+        { status: 200 }
+      );
+    } catch (openRouterError) {
+      // Błąd podczas komunikacji z OpenRouter API
+      console.error('OpenRouter API error:', openRouterError);
+      return new Response(
+        JSON.stringify({ error: 'AI analysis failed', details: String(openRouterError) }),
         { status: 500 }
       );
     }
-
-    const aiResponse = await response.json();
-    const analysisContent = aiResponse.choices[0]?.message?.content || 'No analysis available';
-
-    // Save the analysis as an AI insight
-    const insight: Partial<InsightDTO> = {
-      campaign_id,
-      campaign_name: campaign.name,
-      insight_type: 'analysis',
-      content: analysisContent,
-      date_range_start: date_range_start || null,
-      date_range_end: date_range_end || null,
-      status: 'active'
-    };
-
-    const { data: savedInsight, error: insertError } = await supabase
-      .from('ai_insights')
-      .insert(insight)
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error('Failed to save insight to database:', insertError);
-      // Continue even if saving to DB fails
-    }
-
-    return new Response(
-      JSON.stringify({
-        data: {
-          id: savedInsight?.id || 'temp-id',
-          content: analysisContent,
-          campaign_name: campaign.name,
-          date_range_start,
-          date_range_end
-        }
-      }),
-      { status: 200 }
-    );
   } catch (err) {
     console.error('Error in AI insights analysis:', err);
     return new Response(

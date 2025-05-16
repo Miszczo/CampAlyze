@@ -124,13 +124,13 @@ export interface ImportStatusDTO {
 
 export interface ImportListItemDTO {
   id: string;
-  organization_id: string;
   platform_id: string;
   platform_name: string;
   original_filename: string;
   status: string; // 'pending', 'processing', 'completed', 'error'
   created_at: string;
   error_message: string | null;
+  user_id: string;
 }
 
 // Campaign DTOs

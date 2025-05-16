@@ -32,6 +32,13 @@
         "MEMORY_FILE_PATH": "D:\\www\\campAlyze\\@campalyze_knowledge.jsonl",
         "APPDATA": "%APPDATA%"
       }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
     }
   }
 } 

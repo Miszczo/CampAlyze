@@ -1,16 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ImportForm from "../components/ImportForm";
-import { ToastProvider, Toaster } from "../components/hooks/useToast";
-import { supabaseServerClient } from "../db/supabase.server";
+// import ImportForm from "../components/ImportForm"; // Usunięto bezpośredni import
+// import { ToastProvider, Toaster } from "../components/hooks/useToast"; // Usunięto bezpośredni import
+import ImportSection from "../components/ImportSection"; // Dodano import komponentu-wrappera
 
 // Ochrona przed dostępem niezalogowanych użytkowników
-const supabase = supabaseServerClient(Astro);
-const { data: { session } } = await supabase.auth.getSession();
+// Użyj sesji i klienta Supabase z Astro.locals, które są ustawiane przez middleware
+const { session, supabase } = Astro.locals; // Zmiana na Astro.locals
 
 if (!session) {
+  // Jeśli nie ma sesji, przekieruj na stronę logowania
+  // Rozważ dodanie ?redirect_to=/imports-upload, aby po zalogowaniu wrócić tutaj, np.:
+  // return Astro.redirect(`/login?redirect_to=${Astro.url.pathname}`);
   return Astro.redirect("/login");
 }
+// Jeśli potrzebujesz wykonać inne operacje Supabase na tej stronie, 
+// możesz użyć obiektu `supabase` z Astro.locals, np. do zapisu danych z formularza.
 ---
 
 <Layout title="Importuj plik danych">
@@ -31,15 +36,12 @@ if (!session) {
       </a>
     </div>
     
-    <ToastProvider client:load>
-      <ImportForm 
-        client:load
-        onImportSuccess={(data) => {
-          window.location.href = `/imports/${data.id}`;
-        }}
-      />
-      <Toaster client:load />
-    </ToastProvider>
+    <ImportSection 
+      client:load 
+      onImportSuccess={(data) => {
+        window.location.href = `/imports/${data.id}`;
+      }}
+    />
     
     <div class="mt-8 bg-slate-50 rounded-lg p-6 border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
       <h2 class="text-lg font-medium mb-4">Wskazówki dotyczące importu plików</h2>

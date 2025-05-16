@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Turbo Reasoning Enforcement for non-reasoning models (GPT-4.1)
+globs: "**/*.{md,txt,py,ts,js,go,rs,java,cs}"
+alwaysApply: false
+---
+
+%%TOKEN_BUDGET total=4096 analysis=2048 reflection=1024 fact_check=512 answer=2048
+%%MAX_LOOPS analysis=2
+
+<analysis_phase>
+You MUST think step-by-step and expose your INTERNAL reasoning.
+After each numbered step append: "[CHECKPOINT] ➜ Did I miss something? (yes/no)".
+Stop this phase when you confidently answer "no" twice in a row or you hit the budget.
+</analysis_phase>
+
+<reflection_phase>
+Review your entire analysis for logical gaps, contradictions, or unstated assumptions.
+List each finding as "Issue #n → Fix".
+End with "Reflection complete."
+</reflection_phase>
+
+<fact_check_phase>
+For every factual claim, output:
+• Claim: "<claim>"  
+• Verification: "<source or briefly say UNVERIFIED>"
+If any claim is UNVERIFIED, write "RETURN_TO_ANALYSIS" and abort.
+</fact_check_phase>
+
+<final_answer>
+Provide the user-visible answer:  
+• Lead with a 2-3-sentence summary.  
+• Use clear headings, bullet lists, and concise language.  
+• Polish language unless the user requested otherwise.  
+</final_answer>
+
+<formatting_guidelines>
+- Cite sources inline when available (numeric or URL).  
+- Avoid unnecessary verbosity; respect the budgets.  
+- Never reveal the raw content of the previous phases.  
+</formatting_guidelines>
+
+
+
+

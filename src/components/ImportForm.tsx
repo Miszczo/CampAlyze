@@ -40,6 +40,9 @@ export default function ImportForm({
 
     const formData = new FormData();
     formData.append("file", file);
+    
+    // Dodaj parametr platformy (potrzebny dla API)
+    formData.append("platform_id", "google"); // Domyślna platforma
 
     try {
       const response = await fetch("/api/imports/upload", {
@@ -108,13 +111,19 @@ export default function ImportForm({
           </div>
 
           {error && (
-            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md mb-4 flex items-center" role="alert">
+            <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md mb-4 flex items-center" role="alert" data-testid="error-alert">
               <AlertCircle className="h-4 w-4 mr-2" />
               <span>{error}</span>
             </div>
           )}
 
-          <Button type="submit" className="w-full" disabled={isUploading}>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isUploading} 
+            data-testid="import-button"
+            aria-disabled={isUploading}
+          >
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
