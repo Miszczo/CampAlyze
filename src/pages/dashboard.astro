@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import PlatformTabs from "@/components/PlatformTabs.tsx";
 import type { DashboardMetricsResponse, SelectOption } from "../types";
-import { DatePicker } from "@/components/DatePicker.tsx";
+// import { DatePicker } from "@/components/DatePicker.tsx";
 import { DropdownSelect } from "@/components/DropdownSelect.tsx";
 
 // Sprawdzenie sesji (middleware powinno już przekierować niezalogowanych)
@@ -380,14 +380,14 @@ const formattedDateRange = `${new Date(dateFromState).toLocaleDateString("pl-PL"
           <div class="mb-6 p-4 bg-white rounded-lg shadow">
             <h3 class="mb-3 text-lg font-semibold text-gray-700">Filtry</h3>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-              <div class="flex flex-col space-y-1">
+              {/* <div class="flex flex-col space-y-1">
                 <label for="dateFrom" class="text-sm font-medium text-gray-700">Data od:</label>
                 <DatePicker client:load date={new Date(dateFromState)} paramName="dateFrom" />
               </div>
               <div class="flex flex-col space-y-1">
                 <label for="dateTo" class="text-sm font-medium text-gray-700">Data do:</label>
                 <DatePicker client:load date={new Date(dateToState)} paramName="dateTo" />
-              </div>
+              </div> */}
               <div class="flex flex-col space-y-1">
                 <label for="platform" class="text-sm font-medium text-gray-700">Platforma:</label>
                 <DropdownSelect
