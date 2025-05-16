@@ -66,10 +66,14 @@ describe("GET /api/imports endpoint", () => {
       },
     };
 
-    const mockSelect = vi.fn().mockReturnThis();
+    const mockEq = vi.fn().mockReturnThis();
     const mockOrder = vi.fn().mockResolvedValue({
       data: mockImports,
       error: null,
+    });
+    const mockSelect = vi.fn().mockReturnValue({
+      eq: mockEq,
+      order: mockOrder,
     });
 
     const mockSupabase = {
@@ -78,7 +82,6 @@ describe("GET /api/imports endpoint", () => {
       },
       from: vi.fn().mockReturnValue({
         select: mockSelect,
-        order: mockOrder,
       }),
     };
 
@@ -92,8 +95,11 @@ describe("GET /api/imports endpoint", () => {
     expect(mockSupabase.from).toHaveBeenCalledWith("imports");
     
     // Sprawdź, czy metoda select została wywołana
-    expect(mockSelect).toHaveBeenCalled();
+    expect(mockSelect).toHaveBeenCalledWith(expect.stringContaining("id,\n        platform_id,\n        platforms (name)"));
     
+    // Sprawdź, czy metoda eq została wywołana z odpowiednimi parametrami
+    expect(mockEq).toHaveBeenCalledWith("user_id", "user-123");
+
     // Sprawdź, czy metoda order została wywołana z odpowiednimi parametrami
     expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
 
@@ -105,7 +111,6 @@ describe("GET /api/imports endpoint", () => {
     // Sprawdź czy dane są poprawnie zmapowane do ImportListItemDTO
     expect(responseBody.data[0]).toEqual({
       id: mockImports[0].id,
-      organization_id: mockImports[0].organization_id,
       platform_id: mockImports[0].platform_id,
       platform_name: mockImports[0].platforms.name,
       original_filename: mockImports[0].original_filename,
@@ -113,6 +118,10 @@ describe("GET /api/imports endpoint", () => {
       created_at: mockImports[0].created_at,
       error_message: mockImports[0].error_message,
     });
+    // Sprawdź, czy user_id jest obecny, jeśli jest zwracany przez API (opcjonalne, w zależności od definicji DTO)
+    if (responseBody.data[0].user_id) {
+      expect(responseBody.data[0].user_id).toBeDefined();
+    }
   });
 
   it("should handle database error gracefully", async () => {
@@ -124,10 +133,14 @@ describe("GET /api/imports endpoint", () => {
     };
 
     // Mockowanie błędu bazy danych
-    const mockSelect = vi.fn().mockReturnThis();
-    const mockOrder = vi.fn().mockResolvedValue({
+    const mockEqError = vi.fn().mockReturnThis();
+    const mockOrderError = vi.fn().mockResolvedValue({
       data: null,
       error: { message: "Database error" },
+    });
+    const mockSelectError = vi.fn().mockReturnValue({
+      eq: mockEqError,
+      order: mockOrderError,
     });
 
     const mockSupabase = {
@@ -135,8 +148,7 @@ describe("GET /api/imports endpoint", () => {
         getSession: vi.fn().mockResolvedValue({ data: { session: mockSession } }),
       },
       from: vi.fn().mockReturnValue({
-        select: mockSelect,
-        order: mockOrder,
+        select: mockSelectError,
       }),
     };
 

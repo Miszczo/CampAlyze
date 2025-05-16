@@ -80,8 +80,8 @@ const createMockSupabase = () => {
     remove: mockRemove
   });
 
-  // Mock dla operacji DB
-  const mockSingle = vi.fn().mockResolvedValue({
+  // Mock dla operacji DB (tabela 'imports')
+  const mockImportSingle = vi.fn().mockResolvedValue({
     data: {
       id: '123e4567-e89b-12d3-a456-426614174000',
       original_filename: 'test.csv',
@@ -89,13 +89,41 @@ const createMockSupabase = () => {
     },
     error: null
   });
+  const mockImportSelect = vi.fn().mockReturnValue({ single: mockImportSingle });
+  const mockInsert = vi.fn().mockReturnValue({ select: mockImportSelect });
   
-  const mockSelect = vi.fn().mockReturnValue({ single: mockSingle });
-  const mockInsert = vi.fn().mockReturnValue({ select: mockSelect });
-  
+  // Mock dla operacji DB (tabela 'platforms')
+  const mockPlatformSingle = vi.fn().mockImplementation(({ }) => {
+    // Domyślnie zwracamy sukces dla platformy, można to nadpisać w testach
+    // Sprawdzimy, czy eq('name', 'google') lub eq('name', 'meta') jest wywoływane
+    // i zwrócimy odpowiedni UUID.
+    // Ta implementacja jest uproszczona; w rzeczywistych testach można by ją rozbudować
+    // o sprawdzanie argumentu przekazanego do eq().
+    return Promise.resolve({
+      data: { id: 'platform-uuid-google' }, // Domyślny UUID, np. dla 'google'
+      error: null,
+    });
+  });
+  const mockPlatformEq = vi.fn().mockReturnValue({ single: mockPlatformSingle });
+  const mockPlatformSelect = vi.fn().mockReturnValue({ eq: mockPlatformEq });
+
   // Mock dla from()
-  const mockFrom = vi.fn().mockReturnValue({ 
-    insert: mockInsert 
+  const mockFrom = vi.fn().mockImplementation((tableName) => {
+    if (tableName === 'imports') {
+      return { insert: mockInsert };
+    }
+    if (tableName === 'platforms') {
+      return { select: mockPlatformSelect };
+    }
+    return {
+      // Domyślne zachowanie dla innych tabel, jeśli potrzebne
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: {}, error: null }),
+    };
   });
   
   return {
@@ -108,9 +136,12 @@ const createMockSupabase = () => {
       upload: mockUpload,
       remove: mockRemove,
       storageFrom: mockStorageFrom,
-      single: mockSingle,
-      select: mockSelect,
+      importSingle: mockImportSingle,
+      importSelect: mockImportSelect,
       insert: mockInsert,
+      platformSingle: mockPlatformSingle,
+      platformEq: mockPlatformEq,
+      platformSelect: mockPlatformSelect,
       from: mockFrom
     }
   };
@@ -248,20 +279,29 @@ describe("POST /api/imports/upload", () => {
     // Nieprawidłowa platforma (nie meta/google)
     const formData = new FormData();
     formData.append('file', mockFile);
-    formData.append('platform_id', 'invalid-platform');
+    formData.append('platform_id', "invalid_platform"); // Nieprawidłowa platforma
     formData.append('organization_id', '123e4567-e89b-12d3-a456-426614174001');
     
     mockContext.request.formData.mockResolvedValueOnce(formData);
+    
+    // Symulacja, że platforma nie zostanie znaleziona w bazie (co powinno być obsłużone przez walidację Zod wcześniej)
+    // mockSupabase._mocks.platformSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found"} });
 
     const response = await POST(mockContext);
     const responseBody = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseBody.error).toBe("Invalid platform_id or organization_id");
+    expect(responseBody.error).toBe("Invalid platform_id"); // Zmieniono oczekiwany błąd
   });
 
   // Test dla błędu podczas uploadowania do storage
   it("powinno zwrócić 500 przy błędzie uploadu do storage", async () => {
+    // Upewnijmy się, że mock dla platformy zwróci poprawny UUID, aby test nie upadł wcześniej
+    mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
+      data: { id: 'platform-uuid-google-test-storage-error' }, 
+      error: null,
+    });
+
     // Symulacja błędu storage
     mockSupabase._mocks.upload.mockResolvedValueOnce({
       data: null, 
@@ -278,10 +318,17 @@ describe("POST /api/imports/upload", () => {
 
   // Test dla błędu podczas insertu do bazy danych
   it("powinno zwrócić 500 przy błędzie insertu do bazy danych", async () => {
-    // Symulacja poprawnego uploadu, ale błąd bazy
-    mockSupabase._mocks.single.mockResolvedValueOnce({
-      data: null,
-      error: { message: "Database error" }
+    // Upewnijmy się, że mock dla platformy zwróci poprawny UUID, aby test nie upadł wcześniej
+    mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
+      data: { id: 'platform-uuid-google-test-db-error' }, 
+      error: null,
+    });
+
+    // Symulacja błędu przy insercie do bazy
+    mockSupabase._mocks.insert.mockReturnValueOnce({ 
+      select: vi.fn().mockReturnValueOnce({
+        single: vi.fn().mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } })
+      })
     });
 
     const response = await POST(mockContext);
@@ -289,14 +336,20 @@ describe("POST /api/imports/upload", () => {
 
     expect(response.status).toBe(500);
     expect(responseBody.error).toBe("Failed to create import record");
-    
+
     // Sprawdzamy czy próbowano usunąć wysłany plik
     expect(mockSupabase.storage.from).toHaveBeenCalledWith("imports");
-    expect(mockSupabase._mocks.remove).toHaveBeenCalled();
+    expect(mockSupabase._mocks.remove).toHaveBeenCalledWith([expect.any(String)]);
   });
 
   // Test dla poprawnego uploadu i insertu
   it("powinno zwrócić 201 przy poprawnym uploadzie i insercie", async () => {
+    // Upewnijmy się, że mock dla platformy zwróci poprawny UUID
+    mockSupabase._mocks.platformSingle.mockResolvedValueOnce({
+      data: { id: 'platform-uuid-google-test' }, 
+      error: null,
+    });
+    
     const response = await POST(mockContext);
     const responseBody = await response.json();
 
