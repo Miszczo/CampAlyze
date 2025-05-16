@@ -96,17 +96,15 @@ npm run dev
 
 ### Core Features
 
-1. **Import and Process Data**
+1. **Import and Process Data** (Częściowo zaimplementowano w Minimal MVP)
+   - Import data from CSV/XLSX files (Google Ads and Meta Ads) (Zaimplementowano w Minimal MVP - podstawowy upload CSV)
+   - Data validation and error reporting (Podstawowa walidacja po stronie serwera)
+   - Process key metrics: CPC, CTR, conversions, cost/conversion, ROAS (Dane ładowane do widoku `campaign_metrics_derived`)
 
-   - Import data from CSV/XLSX files (Google Ads and Meta Ads)
-   - Data validation and error reporting
-   - Process key metrics: CPC, CTR, conversions, cost/conversion, ROAS
-
-2. **Interactive Dashboard**
-
-   - Visualize key metrics
-   - Compare platforms side-by-side
-   - Segment data by platform, campaign, and time period
+2. **Interactive Dashboard** (Zaimplementowano w Minimal MVP)
+   - Visualize key metrics (Zaimplementowano w Minimal MVP)
+   - Compare platforms side-by-side (Zaimplementowano w Minimal MVP)
+   - Segment data by platform, campaign, and time period (Zaimplementowano w Minimal MVP - podstawowe filtry)
    - Compare periods (current week/month vs. previous)
 
 3. **Alert System**
@@ -125,17 +123,16 @@ npm run dev
    - Export reports to CSV/PDF/XLSX
    - Select data ranges for export
 
-6. **User Authentication**
+6. **User Authentication** (Zaimplementowano w Minimal MVP)
 
-   - Firebase Authentication integration
+   - Supabase Authentication integration (Zaimplementowano w Minimal MVP)
    - User roles and permissions
    - Activity logging
 
-7. **AI Features**
-   - Automated campaign summaries
+7. **AI Features** (Częściowo zaimplementowano w Minimal MVP)
+   - Automated campaign summaries (Zaimplementowano w Minimal MVP - prosta analiza OpenRouter)
    - Trend and anomaly detection
-   - Simple optimization recommendations
-   - Report generation based on selected metrics
+   - Simple optimization recommendations (Zaimplementowano w Minimal MVP - prosta analiza OpenRouter)
 
 ### Out of Scope for MVP
 
@@ -148,16 +145,29 @@ npm run dev
 - Automation of recommendations implementation
 - Advanced benchmark comparisons with industry data
 
-## Project Status
+## Project Status & Currently Available Features
 
-The project is currently in development with a target completion time for MVP of 3-4 weeks. The focus is on delivering core functionality that provides immediate value to users while establishing a solid foundation for future enhancements.
+The Minimal Viable Product (MVP) phase focused on core functionalities has been completed. Users can now perform the following actions within the application:
 
-Development priorities:
+* **User Account Management:**
+  * Register for a new account.
+  * Log in and log out securely.
+  * Verify their email address.
+  * Reset a forgotten password.
+* **Data Import & Management:**
+  * Upload campaign data via CSV files (initial support for Google Ads/Meta Ads common structures).
+  * View a list of their imported files.
+  * Delete previously imported files along with their associated data.
+* **Interactive Dashboard:**
+  * Access an interactive dashboard to view key campaign metrics.
+  * Filter displayed data by organization ID, date range, specific platform (Google Ads/Meta Ads), and campaign.
+  * View platform-specific metrics, such as reach and detailed conversion types for Meta Ads.
+* **Basic AI-Powered Analysis:**
+  * For any imported campaign, trigger a basic AI analysis using OpenRouter (gpt-3.5-turbo).
+  * Receive simple summaries and optimization recommendations based on the provided data.
+  * View these AI-generated insights directly on the import details page.
 
-1. Basic data import and dashboard functionality
-2. User authentication and data management
-3. AI-powered analysis features
-4. Export and reporting capabilities
+The project is under active development to expand these features and deliver the full MVP scope. Future enhancements will include more advanced analytics, broader AI capabilities, and additional data management tools.
 
 ## License
 
